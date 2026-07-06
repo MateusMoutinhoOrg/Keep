@@ -12,6 +12,8 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 
-	database := keep.NewDatabase(database.Schema{})
+	schema := database.Schema{}
+
+	database := keep.NewDatabase(schema)
 	fmt.Println(database)
 }
