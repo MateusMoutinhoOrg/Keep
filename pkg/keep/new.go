@@ -6,18 +6,18 @@ import (
 )
 
 type KeepLib struct {
-	deps deps.Deps
+	Deps deps.Deps
 }
 
 func (l KeepLib) NewDatabase(schema database.Schema) database.Database {
 	return database.Database{
-		deps:   l.deps,
-		schema: schema,
+		Deps:   l.Deps,
+		Schema: schema,
 	}
 }
 
 func New(d deps.Deps) *KeepLib {
 	return &KeepLib{
-		deps: d,
+		Deps: d,
 	}
 }
