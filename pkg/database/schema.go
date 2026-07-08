@@ -1,17 +1,19 @@
 package database
 
-import (
-	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
+type ItemType int
+
+const (
+	Key ItemType = iota
+	Int
 )
 
+type Item struct {
+	Name     string
+	Type     ItemType
+	Required bool
+}
+
 type Schema struct {
-}
-type Props struct {
-	Path         string
-	FixIntegrity bool
-	Schemas      []Schema
-}
-type Database struct {
-	Deps  deps.Deps
-	Props Props
+	Name  string
+	Itens []Item
 }
