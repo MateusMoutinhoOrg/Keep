@@ -48,45 +48,21 @@ func main() {
 		Schemas: schema,
 	}
 
-	
+
 
 	database := keep.NewDatabase(prop)
 	users  := database.GetSchema("Users")
 
-    err := user.EnsureUnique(map[string]string{
+	createdUser,err := users.newItem(map[string]any{
         "Email": EmailToInsert,
-        "UserName": UserNameToInsert
-    })
-    if err != nil {
-		fmt.Println(err)
-		return
-	}
+        "UserName": UserNameToInsert,
+		"Age":AgeToInsert,
+	})
 
-	createdUser := users.newItem()
-
-    err := createdUser.setValue("Email",EmailToInsert)
 	if err != nil {
-		//Revert changes 
-		createdUser.Remove()
 		fmt.Println(err)
 		return
-	}
-	err = createdUser.setValue("Username",UserNameToInsert)
-	if err != nil {
-		//Revert changes 
-		createdUser.Remove()	
-		fmt.Println(err)
-		return
-	}
-	err = createdUser.setValue("Age",AgeToInsert)
-	if err != nil {
-		//Revert changes 
-		createdUser.Remove()	
-		fmt.Println(err)
-		return
-	}
-
-
+	}	
 	
 	fmt.Println("User created successfully")
 
