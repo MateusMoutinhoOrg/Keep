@@ -21,7 +21,7 @@ Each collection (e.g. `users`) is represented by four families of keys.
 
 - `{collection}-list-{position}` — the id of the record currently occupying that position.
 
-Positions run contiguously from `0` to `size - 1`, with no holes. This density is the property that makes iteration possible without listing: a consumer reads position 0, 1, 2, and so on, up to `size - 1`. Note that the list is a *dense set*, not an ordered sequence — deletion may reorder it (see the deletion procedure). If insertion order matters to a consumer, it must be stored as a field on the record itself.
+Positions run contiguously from `1` to `size`, with no holes. This density is the property that makes iteration possible without listing: a consumer reads position 1, 2, 3, and so on, up to `size`. Note that the list is a *dense set*, not an ordered sequence — deletion may reorder it (see the deletion procedure). If insertion order matters to a consumer, it must be stored as a field on the record itself.
 
 **Unique index keys** map a hashed field value to a record id:
 
@@ -48,12 +48,12 @@ Given a new record with its field values:
 
 1. **Check uniqueness.** For each unique field, normalize the incoming value, compute its hash, and read `{collection}-keys-{field}-{hash}`. If any of these keys already exists, abort the insertion with a uniqueness violation. Nothing has been written yet, so no cleanup is needed.
 2. **Allocate the id.** Read `{collection}-last-id`, increment it, and write it back. The incremented value is the new record's id.
-3. **Determine the position.** Read `{collection}-size`. Its current value is the new record's position, since positions are zero-based and dense.
+3. **Determine the position.** Read `{collection}-size`. Its current value plus one is the new record's position, since positions are one-based and dense.
 4. **Write the record's data.** Write one `{collection}-{id}-values-{field}` key per field, and write `{collection}-{id}-position` with the position determined in step 3.
 5. **Write the index entries.** For each unique field, write `{collection}-keys-{field}-{hash(value)}` pointing to the new id.
 6. **Publish the record.** Write `{collection}-list-{position}` with the new id, then write `{collection}-size` incremented by one.
 
-The size key is written **last**, deliberately. Until size is incremented, the new position lies outside the valid range `[0, size)`, so a reader iterating the list never observes a half-written record. If the writer crashes mid-insertion, everything written so far is unreachable garbage rather than corrupt data, and can be reconciled later (see Recovery).
+The size key is written **last**, deliberately. Until size is incremented, the new position lies outside the valid range `[1, size]`, so a reader iterating the list never observes a half-written record. If the writer crashes mid-insertion, everything written so far is unreachable garbage rather than corrupt data, and can be reconciled later (see Recovery).
 
 ### Insertion Example
 
@@ -70,12 +70,12 @@ password: 12345
 ```
 users-size: 1
 users-last-id: 1
-users-list-0: 1
+users-list-1: 1
 
 users-keys-email-sha(user2@gmail.com): 1
 users-keys-username-sha(user1): 1
 
-users-1-position: 0
+users-1-position: 1
 users-1-values-username: User1
 users-1-values-password: 12345
 users-1-values-email: user1@gmail.com
@@ -85,7 +85,7 @@ Walking through the steps:
 
 - *Step 1:* read `users-keys-email-sha(user2@gmail.com)` and `users-keys-username-sha(user2)` — note the value is lowercased before hashing. Both are missing, so the record is unique.
 - *Step 2:* read `users-last-id` (1), write it back as 2. The new id is **2**.
-- *Step 3:* read `users-size` (1). The new position is **1**.
+- *Step 3:* read `users-size` (1). The new position is **2**.
 - *Steps 4–6:* write the value keys, position, index entries, then the list slot, and finally size.
 
 **Database after insertion:**
@@ -93,20 +93,20 @@ Walking through the steps:
 ```
 users-size: 2
 users-last-id: 2
-users-list-0: 1
-users-list-1: 2
+users-list-1: 1
+users-list-2: 2
 
 users-keys-email-sha(user1@gmail.com): 1
 users-keys-email-sha(user2@gmail.com): 2
 users-keys-username-sha(user1): 1
 users-keys-username-sha(user2): 2
 
-users-1-position: 0
+users-1-position: 1
 users-1-values-username: User1
 users-1-values-password: 12345
 users-1-values-email: user1@gmail.com
 
-users-2-position: 1
+users-2-position: 2
 users-2-values-username: User2
 users-2-values-password: 12345
 users-2-values-email: user2@gmail.com
@@ -119,9 +119,9 @@ The stored value keeps its original casing (`User2`); only the index entry uses 
 Naively removing a record from the middle of the list would leave a hole, and closing that hole by shifting would cost one write per remaining record. Instead, the pattern always fills the hole with the **last** record of the list, keeping deletion at a constant cost. Given the id to delete:
 
 1. **Read the victim's position.** Read `{collection}-{id}-position`; call it `p`. If the key does not exist, the record is already gone and the operation is a no-op.
-2. **Locate the last record.** Read `{collection}-size`; the last occupied position is `size - 1`. Read `{collection}-list-{size-1}` to obtain the id of the record living there; call it `lastId`.
-3. **Move the last record into the hole** (skip this step if the victim *is* the last record, i.e. `p == size - 1`). Write `{collection}-list-{p}` with `lastId`, and write `{collection}-{lastId}-position` with `p`.
-4. **Shrink the list.** Delete `{collection}-list-{size-1}` and write `{collection}-size` decremented by one.
+2. **Locate the last record.** Read `{collection}-size`; the last occupied position is `size`. Read `{collection}-list-{size}` to obtain the id of the record living there; call it `lastId`.
+3. **Move the last record into the hole** (skip this step if the victim *is* the last record, i.e. `p == size`). Write `{collection}-list-{p}` with `lastId`, and write `{collection}-{lastId}-position` with `p`.
+4. **Shrink the list.** Delete `{collection}-list-{size}` and write `{collection}-size` decremented by one.
 5. **Remove the index entries.** For each unique field, read the victim's stored value from `{collection}-{id}-values-{field}`, normalize and hash it, and delete `{collection}-keys-{field}-{hash}`.
 6. **Remove the record's data.** Delete every `{collection}-{id}-values-{field}` key and `{collection}-{id}-position`.
 
@@ -138,9 +138,9 @@ Deleting `id: 2` from the following state:
 ```
 users-size: 3
 users-last-id: 3
-users-list-0: 1
-users-list-1: 2
-users-list-2: 3
+users-list-1: 1
+users-list-2: 2
+users-list-3: 3
 
 users-keys-email-sha(user1@gmail.com): 1
 users-keys-email-sha(user2@gmail.com): 2
@@ -149,17 +149,17 @@ users-keys-username-sha(user1): 1
 users-keys-username-sha(user2): 2
 users-keys-username-sha(user3): 3
 
-users-1-position: 0
+users-1-position: 1
 users-1-values-username: User1
 users-1-values-password: 12345
 users-1-values-email: user1@gmail.com
 
-users-2-position: 1
+users-2-position: 2
 users-2-values-username: User2
 users-2-values-password: 12345
 users-2-values-email: user2@gmail.com
 
-users-3-position: 2
+users-3-position: 3
 users-3-values-username: User3
 users-3-values-password: 12345
 users-3-values-email: user3@gmail.com
@@ -167,10 +167,10 @@ users-3-values-email: user3@gmail.com
 
 Walking through the steps:
 
-- *Step 1:* read `users-2-position` → `p = 1`.
-- *Step 2:* read `users-size` (3), so the last position is 2. Read `users-list-2` → `lastId = 3`.
-- *Step 3:* the victim is not the last record, so record 3 moves into the hole: write `users-list-1 = 3` and `users-3-position = 1`.
-- *Step 4:* delete `users-list-2`, write `users-size = 2`.
+- *Step 1:* read `users-2-position` → `p = 2`.
+- *Step 2:* read `users-size` (3), so the last position is 3. Read `users-list-3` → `lastId = 3`.
+- *Step 3:* the victim is not the last record, so record 3 moves into the hole: write `users-list-2 = 3` and `users-3-position = 2`.
+- *Step 4:* delete `users-list-3`, write `users-size = 2`.
 - *Step 5:* read the victim's values, hash them, delete `users-keys-email-sha(user2@gmail.com)` and `users-keys-username-sha(user2)`.
 - *Step 6:* delete all `users-2-*` keys.
 
@@ -179,26 +179,26 @@ Walking through the steps:
 ```
 users-size: 2
 users-last-id: 3
-users-list-0: 1
-users-list-1: 3
+users-list-1: 1
+users-list-2: 3
 
 users-keys-email-sha(user1@gmail.com): 1
 users-keys-email-sha(user3@gmail.com): 3
 users-keys-username-sha(user1): 1
 users-keys-username-sha(user3): 3
 
-users-1-position: 0
+users-1-position: 1
 users-1-values-username: User1
 users-1-values-password: 12345
 users-1-values-email: user1@gmail.com
 
-users-3-position: 1
+users-3-position: 2
 users-3-values-username: User3
 users-3-values-password: 12345
 users-3-values-email: user3@gmail.com
 ```
 
-Two things worth noticing: `users-last-id` remains 3 even though id 2 is gone, and record 3 now occupies position 1 — the list order changed, which is the documented price of constant-time deletion. Whether the collection has 3 records or 3 million, this deletion touched the same number of keys.
+Two things worth noticing: `users-last-id` remains 3 even though id 2 is gone, and record 3 now occupies position 2 — the list order changed, which is the documented price of constant-time deletion. Whether the collection has 3 records or 3 million, this deletion touched the same number of keys.
 
 The consequence of swap-with-last is that list order is **not stable** — deleting a record moves an unrelated record to a new position. This is the price of constant-time deletion and must be documented as a contract of the pattern.
 
@@ -246,7 +246,7 @@ users-1-values-email: newmail@gmail.com
 
 - **By id:** read the `{collection}-{id}-values-{field}` keys directly.
 - **By unique field:** normalize the value, hash it, read `{collection}-keys-{field}-{hash}` to obtain the id, then proceed as a lookup by id.
-- **Full iteration:** read `{collection}-size`, then read `{collection}-list-0` through `{collection}-list-{size-1}`, resolving each id to its record.
+- **Full iteration:** read `{collection}-size`, then read `{collection}-list-1` through `{collection}-list-{size}`, resolving each id to its record.
 
 ### Lookup Example
 
@@ -278,23 +278,23 @@ Suppose a crash happened during an insertion, after step 5 but before step 6. Th
 ```
 users-size: 1
 users-last-id: 2
-users-list-0: 1
+users-list-1: 1
 
 users-keys-email-sha(user2@gmail.com): 2
 users-keys-username-sha(user2): 2
 
-users-2-position: 1
+users-2-position: 2
 users-2-values-username: User2
 users-2-values-email: user2@gmail.com
 ```
 
-Record 2 claims position 1, but `users-size` is 1, so the valid range is only `[0, 1)` — position 1 was never published. A reader iterating the list never sees record 2, and a recovery pass identifies it as garbage (its position ≥ size) and deletes its value keys and index entries. Note that `users-last-id` stays at 2: even a failed insertion consumes its id, preserving the no-reuse guarantee.
+Record 2 claims position 2, but `users-size` is 1, so the valid range is only `[1, 1]` — position 2 was never published. A reader iterating the list never sees record 2, and a recovery pass identifies it as garbage (its position > size) and deletes its value keys and index entries. Note that `users-last-id` stays at 2: even a failed insertion consumes its id, preserving the no-reuse guarantee.
 
 ## Invariants
 
 An implementation is correct if, at every quiescent point, all of the following hold:
 
-1. `{collection}-list-{p}` exists exactly for `p` in `[0, size)`.
+1. `{collection}-list-{p}` exists exactly for `p` in `[1, size]`.
 2. For every live record, `list[position(id)] == id` — the list and the back-pointers agree.
 3. Every unique index entry points to a live record whose current normalized field value hashes back to that entry.
 4. `last-id` is greater than or equal to every id that has ever existed in the collection.
