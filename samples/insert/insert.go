@@ -24,13 +24,11 @@ func main() {
 			 Name:"User",
 			 Itens: []database.Item{
 				   database.Item{
-					  Type:database.String
-                       Key:true
+					  Type:database.Key
                        Name:"Email"
 				   },
                    database.Item{
-					Type: database.String
-					Key: true
+					Type: database.Key 
 					Name: "UserName"
 				   },
 				   database.Item{
@@ -47,18 +45,7 @@ func main() {
 	database := keep.NewDatabase(schema)
 	users  := database.GetSchema("Users")
 
-    possibleUser := users.FindByKey("email",EmailToInsert)
-	if possibleUser != nil {
-		fmt.Println("User already exists")
-		return
-	}
-
-	possibleUser = users.FindByKey("username",UserNameToInsert)
-	if possibleUser != nil {
-		fmt.Println("User already exists")
-		return
-	}
-
+    err = user.EnsureUnique(stri)
 	createdUser := users.newItem()
 
     err := createdUser.setValue("Email",EmailToInsert)
@@ -83,7 +70,7 @@ func main() {
 		return
 	}
 
-	
+
 	
 	fmt.Println("User created successfully")
 
