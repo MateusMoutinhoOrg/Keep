@@ -10,7 +10,7 @@ type Deps interface {
 	//locks the key,them decrease the value
 	Dec(key string) error
 	//locks the key,them writes the value if the key is equal to the expected value
-	WriteIfEqual(key string, value string, expectedValue string) error
+	WriteIfNotExists(key string, value string, expectedValue string) error
 
 	ReadString(key string, pos uint64, length uint64) (string, error)
 	ReadBytes(key string, pos uint64, length uint64) ([]byte, error)
