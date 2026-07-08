@@ -8,6 +8,24 @@ A storage pattern for managing collections of records on top of a plain key-valu
 2. **Constant-time operations.** Insertion, deletion, and lookup by unique field each touch a fixed, small number of keys, regardless of how many records the collection holds.
 3. **Stable identity.** A record's id never changes and is never reused, even after deletion.
 
+## Prerequisites
+
+This pattern requires the backend to implement the full set of functions documented in **RequiredApi.md**. Without those primitives the atomic guarantees described in the operations below **cannot be satisfied**. In particular, the following functions are essential:
+
+| Function | Role in this pattern |
+|---|---|
+| `Write` | Store record data and metadata keys |
+| `IncrementOrDecrement` | Atomically allocate new record ids without locking |
+| `WriteIfKeyNotExists` | Enforce unique-index constraints atomically |
+| `WriteifValueEquals` | Perform safe compare-and-swap updates (e.g. swap-with-last during deletion) |
+| `Append` / `InsertAt` | Extend or splice into byte-level record values |
+| `Exists` | Lightweight existence checks without reading full values |
+| `Read` / `ReadAt` | Retrieve full or partial record data |
+| `Delete` | Remove keys during deletion and cleanup |
+| `Lock` / `UnLock` | Short-lived, fine-grained locking for multi-step mutations |
+
+If any of these functions is missing or behaves differently than specified, the operations in this document are **not safe** to execute.
+
 ## Key Layout
 
 Each collection (e.g. `users`) is represented by four families of keys.
@@ -46,14 +64,17 @@ Consistency between the index keys and the stored values is mandatory, otherwise
 
 Given a new record with its field values:
 
-1. **Check uniqueness.** For each unique field, normalize the incoming value, compute its hash, and read `{collection}-keys-{field}-{hash}`. If any of these keys already exists, abort the insertion with a uniqueness violation. Nothing has been written yet, so no cleanup is needed.
-2. **Allocate the id.** Read `{collection}-last-id`, increment it, and write it back. The incremented value is the new record's id.
-3. **Determine the position.** Read `{collection}-size`. Its current value plus one is the new record's position, since positions are one-based and dense.
-4. **Write the record's data.** Write one `{collection}-{id}-values-{field}` key per field, and write `{collection}-{id}-position` with the position determined in step 3.
-5. **Write the index entries.** For each unique field, write `{collection}-keys-{field}-{hash(value)}` pointing to the new id.
-6. **Publish the record.** Write `{collection}-list-{position}` with the new id, then write `{collection}-size` incremented by one.
+1. **Reserve unique indexes (atomic, no lock needed).** For each unique field, normalize the incoming value, compute its hash, and call `WriteIfKeyNotExists("{collection}-keys-{field}-{hash}", id_placeholder)`. Because `WriteIfKeyNotExists` is atomic, two concurrent inserters with the same value will never both succeed — the second one receives an error and aborts immediately. If any call fails, delete the index entries already written in this step and abort with a uniqueness violation.
+2. **Allocate the id (atomic, no lock needed).** Call `IncrementOrDecrement("{collection}-last-id", 1)`. The returned value is the new record's id. This is atomic and needs no lock.
+3. **Patch the index placeholders.** For each index entry written in step 1, overwrite it with the real id via `Write("{collection}-keys-{field}-{hash}", id)`.
+4. **Lock the collection list.** Call `Lock("{collection}-size", ttl)` with the shortest reasonable TTL. Read `{collection}-size`; its current value plus one is the new record's position.
+5. **Write the record's data.** Call `Write` once per field to store `{collection}-{id}-values-{field}`, and `Write("{collection}-{id}-position", position)`.
+6. **Publish the record.** Call `Write("{collection}-list-{position}", id)`, then `Write("{collection}-size", size + 1)`.
+7. **Unlock immediately.** Call `UnLock("{collection}-size")`.
 
-The size key is written **last**, deliberately. Until size is incremented, the new position lies outside the valid range `[1, size]`, so a reader iterating the list never observes a half-written record. If the writer crashes mid-insertion, everything written so far is unreachable garbage rather than corrupt data, and can be reconciled later (see Recovery).
+The lock is held only during steps 4–7 (position assignment through size update). Steps 1–3 (uniqueness check and id allocation) happen **outside** the lock because `WriteIfKeyNotExists` and `IncrementOrDecrement` are individually atomic. This keeps the critical section as short as possible.
+
+The size key is still written **last**, deliberately. Until size is incremented, the new position lies outside the valid range `[1, size]`, so a reader iterating the list never observes a half-written record. If the writer crashes mid-insertion, everything written so far is unreachable garbage rather than corrupt data, and can be reconciled later (see Recovery).
 
 ### Insertion Example
 
@@ -118,12 +139,16 @@ The stored value keeps its original casing (`User2`); only the index entry uses 
 
 Naively removing a record from the middle of the list would leave a hole, and closing that hole by shifting would cost one write per remaining record. Instead, the pattern always fills the hole with the **last** record of the list, keeping deletion at a constant cost. Given the id to delete:
 
-1. **Read the victim's position.** Read `{collection}-{id}-position`; call it `p`. If the key does not exist, the record is already gone and the operation is a no-op.
-2. **Locate the last record.** Read `{collection}-size`; the last occupied position is `size`. Read `{collection}-list-{size}` to obtain the id of the record living there; call it `lastId`.
-3. **Move the last record into the hole** (skip this step if the victim *is* the last record, i.e. `p == size`). Write `{collection}-list-{p}` with `lastId`, and write `{collection}-{lastId}-position` with `p`.
-4. **Shrink the list.** Delete `{collection}-list-{size}` and write `{collection}-size` decremented by one.
-5. **Remove the index entries.** For each unique field, read the victim's stored value from `{collection}-{id}-values-{field}`, normalize and hash it, and delete `{collection}-keys-{field}-{hash}`.
-6. **Remove the record's data.** Delete every `{collection}-{id}-values-{field}` key and `{collection}-{id}-position`.
+1. **Validate the victim.** Call `Exists("{collection}-{id}-position")`. If it returns `false`, the record is already gone and the operation is a no-op.
+2. **Lock the collection list.** Call `Lock("{collection}-size", ttl)` with the shortest reasonable TTL.
+3. **Read positions.** Read `{collection}-{id}-position` → `p`. Read `{collection}-size` → `size`. Read `{collection}-list-{size}` → `lastId`.
+4. **Safe swap via compare-and-swap** (skip if `p == size`). Call `WriteifValueEquals("{collection}-list-{p}", lastId, id)` — this writes `lastId` into position `p` only if the slot still holds the victim's id, guarding against a concurrent modification. Then call `Write("{collection}-{lastId}-position", p)`.
+5. **Shrink the list.** Call `Delete("{collection}-list-{size}")`, then `Write("{collection}-size", size - 1)`.
+6. **Unlock immediately.** Call `UnLock("{collection}-size")`.
+7. **Remove the index entries (outside the lock).** For each unique field, read the victim's stored value from `{collection}-{id}-values-{field}`, normalize and hash it, and call `Delete("{collection}-keys-{field}-{hash}")`.
+8. **Remove the record's data (outside the lock).** Call `Delete` on every `{collection}-{id}-values-{field}` key and `{collection}-{id}-position`.
+
+The lock is held only during steps 2–6 (reading the list state through shrinking). Steps 7–8 (cleaning up the victim's own keys and index entries) happen **outside** the lock because those keys are already unreachable once the size is decremented — no reader or writer will find them.
 
 Note that `{collection}-last-id` is untouched: ids are permanent and the deleted id will never be assigned again.
 
@@ -204,15 +229,16 @@ The consequence of swap-with-last is that list order is **not stable** — delet
 
 ## Updating an Indexed Field
 
-Updates to non-indexed fields are a single key write. Updates to a **unique indexed field** are the subtle case, because the index must move without leaving orphans:
+Updates to non-indexed fields are a single `Write` call — no locking needed. Updates to a **unique indexed field** are the subtle case, because the index must move atomically without leaving orphans or allowing duplicates:
 
-1. Read the current value from `{collection}-{id}-values-{field}` — the old value is needed to locate the old index entry.
-2. Normalize and hash the new value, and read `{collection}-keys-{field}-{newHash}`. If it exists and points to a different id, abort with a uniqueness violation.
-3. Write the new index entry `{collection}-keys-{field}-{newHash}` pointing to the id.
-4. Write the new value to `{collection}-{id}-values-{field}`.
-5. Delete the old index entry `{collection}-keys-{field}-{oldHash}`.
+1. **Lock the field's value key.** Call `Lock("{collection}-{id}-values-{field}", ttl)` with the shortest reasonable TTL.
+2. **Read the old value.** Call `Read("{collection}-{id}-values-{field}")` — the old value is needed to locate the old index entry.
+3. **Reserve the new index (atomic, no extra lock needed).** Normalize and hash the new value, then call `WriteIfKeyNotExists("{collection}-keys-{field}-{newHash}", id)`. If it fails, a different record already owns the value — call `UnLock` and abort with a uniqueness violation. If the old hash equals the new hash (same normalized value), skip this step entirely.
+4. **Write the new value.** Call `Write("{collection}-{id}-values-{field}", newValue)`.
+5. **Unlock the field.** Call `UnLock("{collection}-{id}-values-{field}")`.
+6. **Delete the old index entry (outside the lock).** Call `Delete("{collection}-keys-{field}-{oldHash})"`. This is safe outside the lock because the new index already points to this record — in the worst case the record is briefly reachable through both old and new hashes, never through neither.
 
-Writing the new entry before deleting the old one means a crash mid-update leaves the record reachable through at least one of the two values, never through neither.
+Using `WriteIfKeyNotExists` in step 3 guarantees that two concurrent updates to different records can never both claim the same index value. The lock is held only for steps 1–5, covering the read-of-old-value through the write-of-new-value.
 
 ### Update Example
 
@@ -260,12 +286,21 @@ Three reads total, regardless of collection size — and the normalization step 
 
 ## Concurrency and Atomicity
 
-The pattern's write sequences are safe against crashes (via the write ordering described above) but not, by themselves, against concurrent writers: two simultaneous insertions could both pass the uniqueness check in step 1, or both read the same `last-id`.
+By using the atomic primitives from RequiredApi (`WriteIfKeyNotExists`, `IncrementOrDecrement`, `WriteifValueEquals`) and short-lived `Lock`/`UnLock` pairs, the operations above are safe against both crashes **and** concurrent writers without requiring backend-level transactions.
 
-- If the backend offers transactions or atomic batches, wrap each operation in one. The write orderings above then matter only as documentation of intent.
-- If it does not, the pattern assumes a **single writer**. Multiple readers are always safe, subject to the visibility guarantee provided by writing `size` last on insertion.
+The concurrency guarantees break down as follows:
 
-This assumption must be stated explicitly by any implementation of the pattern.
+| Concern | Mechanism |
+|---|---|
+| Duplicate unique values | `WriteIfKeyNotExists` — two inserters with the same value race on this call; exactly one succeeds |
+| ID allocation | `IncrementOrDecrement` — atomic counter, no lock needed |
+| List position assignment | `Lock("{collection}-size")` held for the minimum steps (assign position → update size) |
+| Swap-with-last during deletion | `WriteifValueEquals` — only writes if the slot still contains the expected id |
+| Indexed field update | `WriteIfKeyNotExists` for the new index + `Lock` on the value key for read-modify-write |
+
+Multiple readers are always safe, subject to the visibility guarantee provided by writing `size` last on insertion.
+
+If any of the RequiredApi functions is unavailable, the pattern falls back to requiring a **single writer**, and the atomic steps above degrade to plain `Write` calls with the same write ordering described in each section.
 
 ## Recovery
 
