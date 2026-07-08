@@ -72,7 +72,7 @@ users-size: 1
 users-last-id: 1
 users-list-1: 1
 
-users-keys-email-sha(user2@gmail.com): 1
+users-keys-email-sha(user1@gmail.com): 1
 users-keys-username-sha(user1): 1
 
 users-1-position: 1
