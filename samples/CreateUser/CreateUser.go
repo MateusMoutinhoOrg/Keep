@@ -46,6 +46,9 @@ var Props = database.Props{
 func FixIntegrity(db *database.Database, users *database.SchemaInstance, err database.Error) database.Error {
 	if err.Type == database.KeyConflict {
 		AlreadyExistUser := users.FindByKey(err.Key, err.KeyValue)
+
+		// wil lverify if all Required Keys are present in the user,
+		// if they are present, means its a valid user
 		UserOk := AlreadyExistUser.RequiredKeysExist()
 		// if Email or Username not exist, means is a integrity Error, and these user can be removed
 		if !UserOk {
