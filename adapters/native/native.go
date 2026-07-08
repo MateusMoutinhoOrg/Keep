@@ -25,10 +25,6 @@ func (n *NativeDeps) WriteIfNotExists(key string, value string) error {
 	return nil
 }
 
-func (n *NativeDeps) WriteIfEqual(key string, value string, expectedValue string) error {
-	return nil
-}
-
 func (n *NativeDeps) ReadString(key string, pos uint64, length uint64) (string, error) {
 	return "", nil
 }
