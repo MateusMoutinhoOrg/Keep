@@ -49,26 +49,36 @@ func main() {
 
 	createdUser, creation_error := users.newItem()
 	if creation_error != nil {
-
+		fmt.Print("User creation error", creation_error)
+		return
 	}
 
-	err = createdUser.SetUniqueItem("Email", EmailToInsert)
+	err := createdUser.SetUniqueItem("Email", EmailToInsert)
 	if err != nil {
+		remove_user(createdUser)
+		fmt.Print("User creation error", err)
 		return
 	}
 
 	err = createdUser.SetUniqueItem("Username", UserNameToInsert)
 	if err != nil {
+		remove_user(createdUser)
+		fmt.Print("User creation error", err)
+		return
 	}
 
 	err = createdUser.SetUniqueItem("Password", PasswordToInsert)
 	if err != nil {
 		remove_user(createdUser)
+		fmt.Print("User creation error", err)
+		return
 	}
 
 	err = createdUser.SetUniqueItem("Age", AgeToInsert)
 	if err != nil {
 		remove_user(createdUser)
+		fmt.Print("User creation error", err)
+		return
 	}
 
 	fmt.Println("User created successfully", createdUser)
