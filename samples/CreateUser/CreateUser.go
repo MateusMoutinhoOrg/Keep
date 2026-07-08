@@ -30,29 +30,29 @@ var Schemas = []database.Schema{
 				Name:     "UserName",
 			},
 			{
-				Name: "Age",
-				Type: database.Int,
+				Name:     "Age",
+				Required: true,
+				Type:     database.Int,
 			},
 		},
 	},
 }
 
 var Props = database.Props{
-	FixIntegrity: false,
-	Path:         "testDatabase/",
-	Schemas:      Schemas,
+	Path:    "testDatabase/",
+	Schemas: Schemas,
 }
 
 func FixIntegrity(db *database.Database, users *database.SchemaInstance, err database.Error) database.Error {
 	if err.Type == database.KeyConflict {
-		AlreadyExistedUser := users.FindByKey(err.Key, err.KeyValue)
-		UserOk := AlreadyExistedUser.EnsureRequireds()
+		AlreadyExistUser := users.FindByKey(err.Key, err.KeyValue)
+		UserOk := AlreadyExistUser.RequiredKeysExist()
 		// if Email or Username not exist, means is a integrity Error, and these user can be removed
 		if !UserOk {
-			err := AlreadyExistedUser.Remove()
+			//remove these User since it was not fully created
+			err := AlreadyExistUser.Remove()
 			return err
 		}
-
 	}
 	return err
 }

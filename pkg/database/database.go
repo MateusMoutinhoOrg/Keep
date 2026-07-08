@@ -5,9 +5,8 @@ import (
 )
 
 type Props struct {
-	Path         string
-	FixIntegrity bool
-	Schemas      []Schema
+	Path    string
+	Schemas []Schema
 }
 
 type Database struct {
