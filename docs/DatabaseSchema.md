@@ -1,7 +1,15 @@
 
-### Database Schema
 
-- users-size:0
+
+## Insertion Sample
+insertion:
+- email : user2@gmail.com
+- Username: User2 
+- Password: 12345
+
+### Database Before Insertion
+
+- users-size:1
 - users-last-id:1
 - users-list-0:1 
 
@@ -13,12 +21,6 @@
 - users-1-values-Password:12345
 - users-1-values-Email:user1@gmail.com
 
-
-## Insertion Sample
-insertion:
-- email : user2@gmail.com
-- Username: User2 
-- Password: 12345
 
 ### Database After Insertion
 - users-size:2
