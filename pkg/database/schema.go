@@ -8,6 +8,6 @@ type Schema struct {
 }
 
 type Database struct {
-	Deps   deps.Deps
-	Schema Schema
+	Deps    deps.Deps
+	Schemas []Schema
 }

@@ -9,10 +9,10 @@ type KeepLib struct {
 	Deps deps.Deps
 }
 
-func (l KeepLib) NewDatabase(schema database.Schema) database.Database {
-	return database.Database{
-		Deps:   l.Deps,
-		Schema: schema,
+func (l KeepLib) NewDatabase(schema []database.Schema) *database.Database {
+	return &database.Database{
+		Deps:    l.Deps,
+		Schemas: schema,
 	}
 }
 
