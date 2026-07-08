@@ -45,16 +45,18 @@ func main() {
 		return
 	}
 
-	createdUser := users.newItem()
+	createdUser, creation_error := users.newItem()
+	if creation_error != nil {
 
-	err := createdUser.SetUniqueItem("Email", EmailToInsert)
+	}
+
+	err = createdUser.SetUniqueItem("Email", EmailToInsert)
 	if err != nil {
-		remove_user(createdUser)
+		return
 	}
 
 	err = createdUser.SetUniqueItem("Username", UserNameToInsert)
 	if err != nil {
-		remove_user(createdUser)
 	}
 
 	err = createdUser.SetUniqueItem("Password", PasswordToInsert)
