@@ -25,7 +25,7 @@ func remove_user(user database.Instance) {
 	user.RemoveUniqueItem("Username")
 	user.RemoveUniqueItem("Email")
 	user.RemoveItem("Password")
-
+	user.RemoveItem("Age")
 	user.Remove()
 }
 
