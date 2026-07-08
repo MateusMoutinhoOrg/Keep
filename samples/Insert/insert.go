@@ -21,9 +21,11 @@ var Props = database.Props{
 
 func remove_user(user database.Instance) {
 	//revert the transactions
-	user.RemoveKey("Password")
-	user.RemoveKey("Username")
-	user.RemoveKey("Email")
+
+	user.RemoveUniqueItem("Username")
+	user.RemoveUniqueItem("Email")
+	user.RemoveItem("Password")
+
 	user.Remove()
 }
 
