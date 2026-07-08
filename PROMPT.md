@@ -1,6 +1,12 @@
 ### Objective
 Improve the DatabaseSchema.md system by using the RequiredApi.md 
 
+### Important
+  Only Read the Files to read ,dont explore the project
+### Files to Read
+ - DatabaseSchema.md
+ - RequiredApi.md
+
 #### DatabaseSchema.md:
 
 ##### Changes:
