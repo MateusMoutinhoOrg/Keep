@@ -45,7 +45,15 @@ func main() {
 	database := keep.NewDatabase(schema)
 	users  := database.GetSchema("Users")
 
-    err = user.EnsureUnique(stri)
+    err = user.EnsureUnique(map[string]string{
+        "Email": EmailToInsert,
+        "UserName": UserNameToInsert
+    })
+    if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	createdUser := users.newItem()
 
     err := createdUser.setValue("Email",EmailToInsert)
