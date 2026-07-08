@@ -49,8 +49,15 @@ Insert Bytes to the key at the specified position
 #### Returns:
   - error:Error if happened something
 ----
-
-
+#### Exists(key: string) (bool, error or null):
+#### Description
+Check if the key exists
+#### Args:
+  - key:The Key to check
+#### Returns:
+  - exists:True if the key exists, false otherwise
+  - error:Error if happened something
+----
 
 ### Read(key:string) (Byte[], error or null):
 #### Description
@@ -77,6 +84,24 @@ Read Bytes from the key starting at position with the size
 Delete Bytes to the ke
 #### Args:
   - key:The Key to insert
+#### Returns:
+  - error:Error if happened something
+----
+### Lock(key:string, time int) (error or null):
+#### Description
+Lock the key for a specified time
+#### Args:
+  - key:The Key to lock
+  - time:The time to live in seconds
+#### Returns:
+  - error:Error if happened something
+----
+
+### UnLock(key:string) (error or null):
+#### Description
+UnLock the key
+#### Args:
+  - key:The Key to unlock
 #### Returns:
   - error:Error if happened something
 ----
