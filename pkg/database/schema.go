@@ -7,9 +7,8 @@ import (
 type Schema struct {
 }
 type Props struct {
-	Path         string
-	FixIntegrity bool
-	Schemas      []Schema
+	Path    string
+	Schemas []Schema
 }
 type Database struct {
 	Deps  deps.Deps
