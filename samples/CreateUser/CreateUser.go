@@ -67,14 +67,14 @@ func main() {
 		return
 	}
 
-	err = createdUser.SetUniqueItem("Password", PasswordToInsert)
+	err = createdUser.SetItem("Password", PasswordToInsert)
 	if err != nil {
 		remove_user(createdUser)
 		fmt.Print("User creation error", err)
 		return
 	}
 
-	err = createdUser.SetUniqueItem("Age", AgeToInsert)
+	err = createdUser.SetItem("Age", AgeToInsert)
 	if err != nil {
 		remove_user(createdUser)
 		fmt.Print("User creation error", err)
