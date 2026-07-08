@@ -12,6 +12,7 @@ const (
 	UserNameToInsert = "mateus"
 	PasswordToInsert = "12345"
 	EmailToInsert    = "mateus@gmail.com"
+	AgeToInsert      = 27
 )
 
 func main() {
@@ -44,7 +45,46 @@ func main() {
 	}
 
 	database := keep.NewDatabase(schema)
-	
+	users  := database.GetSchema("Users")
 
+    possibleUser := users.FindByKey("email",EmailToInsert)
+	if possibleUser != nil {
+		fmt.Println("User already exists")
+		return
+	}
+
+	possibleUser = users.FindByKey("username",UserNameToInsert)
+	if possibleUser != nil {
+		fmt.Println("User already exists")
+		return
+	}
+
+	createdUser := users.newItem()
+
+    err := createdUser.setValue("Email",EmailToInsert)
+	if err != nil {
+		//Revert changes 
+		createdUser.Remove()
+		fmt.Println(err)
+		return
+	}
+	err = createdUser.setValue("Username",UserNameToInsert)
+	if err != nil {
+		//Revert changes 
+		createdUser.Remove()	
+		fmt.Println(err)
+		return
+	}
+	err = createdUser.setValue("Age",AgeToInsert)
+	if err != nil {
+		//Revert changes 
+		createdUser.Remove()	
+		fmt.Println(err)
+		return
+	}
+
+	
+	
+	fmt.Println("User created successfully")
 
 }
