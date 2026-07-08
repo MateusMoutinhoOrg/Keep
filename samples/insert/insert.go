@@ -42,10 +42,18 @@ func main() {
 
 	}
 
-	database := keep.NewDatabase(schema)
+	prop := database.Props{
+		FixIntegrity: true,
+		Path: "testDatabase/",
+		Schemas: schema,
+	}
+
+	
+
+	database := keep.NewDatabase(prop)
 	users  := database.GetSchema("Users")
 
-    err = user.EnsureUnique(map[string]string{
+    err := user.EnsureUnique(map[string]string{
         "Email": EmailToInsert,
         "UserName": UserNameToInsert
     })
