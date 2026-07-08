@@ -1,4 +1,5 @@
 
+
 ### Write (key: string, value: Byte[]) (error or null):
 #### Description
 Write Bytes to the key
@@ -9,9 +10,19 @@ Write Bytes to the key
   - error:Error if happened something
 
 ----
+### IncrementOrDecrement(key:string, value:int64) (int64, error or null):
+#### Description
+Increment or decrement the value of the key by value and return the new value. These function dont requires a locker, since it garantee atomicity 
+#### Args:
+  - key:The Key to increment
+  - value:The value to increment or decrement (can be negative)
+#### Returns:
+  - value:The final value
+  - error:Error if happened something
+---- 
 ### WriteIfKeyNotExists(key: string, value: Byte[]) (error or null):
 #### Description
-Write Bytes to the key if the key not exists
+Write Bytes to the key if the key not exists, this operations is atomic and doesn't require a locker
 #### Args:
   - key:The Key to insert
   - value:The Bytes to insert
@@ -21,7 +32,7 @@ Write Bytes to the key if the key not exists
 ----
 ### WriteifValueEquals(key: string, value: Byte[], oldValue: Byte[]) (error or null):
 #### Description
-Write Bytes to the key if the value equals oldValue
+Write Bytes to the key if the value equals oldValue, This operation is atomic and doesn't require a locker
 #### Args:
   - key:The Key to insert
   - value:The Bytes to insert
