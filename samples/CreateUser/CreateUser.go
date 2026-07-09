@@ -10,29 +10,50 @@ import (
 
 const (
 	UserNameToInsert = "mateus"
-	PasswordToInsert = "12345"
 	EmailToInsert    = "mateus@gmail.com"
 	AgeToInsert      = 27
 )
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
+			},
+
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{
+						Name:     "token",
+						Type:     database.Key,
+						Required: true,
+					},
+					{
+						Name:     "creation",
+						Type:     database.Int,
+						Required: true,
+					},
+					{
+						Name:     "expiration",
+						Type:     database.Int,
+						Required: true,
+					},
+				},
 			},
 		},
 	},
@@ -47,12 +68,12 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
 
 	createdUser, err := users.NewItem(map[string]any{
-		"Email":    EmailToInsert,
-		"UserName": UserNameToInsert,
-		"Age":      AgeToInsert,
+		"email":    EmailToInsert,
+		"username": UserNameToInsert,
+		"age":      AgeToInsert,
 	})
 	if err != nil {
 		fmt.Println("Error creating user", err)

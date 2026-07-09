@@ -14,22 +14,44 @@ const (
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
+			},
+
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{
+						Name:     "token",
+						Type:     database.Key,
+						Required: true,
+					},
+					{
+						Name:     "creation",
+						Type:     database.Int,
+						Required: true,
+					},
+					{
+						Name:     "expiration",
+						Type:     database.Int,
+						Required: true,
+					},
+				},
 			},
 		},
 	},
@@ -44,31 +66,42 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
+
+	// Create user before retrieving info
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToSearch,
+		"username": "mateus",
+		"age":      27,
+	})
+	if err != nil {
+		fmt.Println("Error creating user before retrieve:", err)
+		return
+	}
 
 	// Find the user by email
-	foundUser := users.FindByKey("Email", EmailToSearch)
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Retrieve and print each field individually
-	email, err := foundUser.Get("Email")
-	if err != nil {
-		fmt.Println("Error retrieving Email:", err)
+	email, errEmail := foundUser.Get("email")
+	if errEmail != nil {
+		fmt.Println("Error retrieving email:", errEmail)
 		return
 	}
 
-	userName, err := foundUser.Get("UserName")
-	if err != nil {
-		fmt.Println("Error retrieving UserName:", err)
+	userName, errUsername := foundUser.Get("username")
+	if errUsername != nil {
+		fmt.Println("Error retrieving username:", errUsername)
 		return
 	}
 
-	age, err := foundUser.Get("Age")
-	if err != nil {
-		fmt.Println("Error retrieving Age:", err)
+	age, errAge := foundUser.Get("age")
+	if errAge != nil {
+		fmt.Println("Error retrieving age:", errAge)
 		return
 	}
 

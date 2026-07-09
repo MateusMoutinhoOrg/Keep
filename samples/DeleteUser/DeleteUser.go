@@ -14,22 +14,44 @@ const (
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
+			},
+
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{
+						Name:     "token",
+						Type:     database.Key,
+						Required: true,
+					},
+					{
+						Name:     "creation",
+						Type:     database.Int,
+						Required: true,
+					},
+					{
+						Name:     "expiration",
+						Type:     database.Int,
+						Required: true,
+					},
+				},
 			},
 		},
 	},
@@ -44,19 +66,30 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
+
+	// Create the user first before deleting
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToDelete,
+		"username": "mateus",
+		"age":      27,
+	})
+	if err != nil {
+		fmt.Println("Error creating user before delete:", err)
+		return
+	}
 
 	// First, find the user by key
-	foundUser := users.FindByKey("Email", EmailToDelete)
+	foundUser := users.FindByKey("email", EmailToDelete)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Then, remove the user (swap-with-last deletion)
-	err := foundUser.Remove()
-	if err != nil {
-		fmt.Println("Error deleting user", err)
+	errRemove := foundUser.Remove()
+	if errRemove.Msg != "" {
+		fmt.Println("Error deleting user:", errRemove.Error())
 		return
 	}
 	fmt.Println("User deleted successfully")

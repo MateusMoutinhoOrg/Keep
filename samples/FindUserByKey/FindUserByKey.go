@@ -14,22 +14,44 @@ const (
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
+			},
+
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{
+						Name:     "token",
+						Type:     database.Key,
+						Required: true,
+					},
+					{
+						Name:     "creation",
+						Type:     database.Int,
+						Required: true,
+					},
+					{
+						Name:     "expiration",
+						Type:     database.Int,
+						Required: true,
+					},
+				},
 			},
 		},
 	},
@@ -44,9 +66,20 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
 
-	foundUser := users.FindByKey("Email", EmailToSearch)
+	// Create user before searching
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToSearch,
+		"username": "mateus",
+		"age":      27,
+	})
+	if err != nil {
+		fmt.Println("Error creating user before find:", err)
+		return
+	}
+
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return

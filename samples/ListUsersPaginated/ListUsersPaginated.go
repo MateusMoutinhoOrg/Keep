@@ -17,22 +17,44 @@ const (
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
+			},
+
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{
+						Name:     "token",
+						Type:     database.Key,
+						Required: true,
+					},
+					{
+						Name:     "creation",
+						Type:     database.Int,
+						Required: true,
+					},
+					{
+						Name:     "expiration",
+						Type:     database.Int,
+						Required: true,
+					},
+				},
 			},
 		},
 	},
@@ -47,7 +69,24 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
+
+	// Create 5 users before listing paginated
+	usersToCreate := []map[string]any{
+		{"email": "mateus1@gmail.com", "username": "mateus1", "age": 21},
+		{"email": "mateus2@gmail.com", "username": "mateus2", "age": 22},
+		{"email": "mateus3@gmail.com", "username": "mateus3", "age": 23},
+		{"email": "mateus4@gmail.com", "username": "mateus4", "age": 24},
+		{"email": "mateus5@gmail.com", "username": "mateus5", "age": 25},
+	}
+
+	for _, u := range usersToCreate {
+		_, err := users.NewItem(u)
+		if err != nil {
+			fmt.Println("Error creating user before paginated listing:", err)
+			return
+		}
+	}
 
 	// Fetch a chunk of users starting at a given position
 	// List(position, chunk) returns up to `chunk` records starting from `position`

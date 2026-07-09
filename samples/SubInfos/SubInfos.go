@@ -33,26 +33,26 @@ var Schemas = []database.Schema{
 			},
 
 			{
-				Name:"sessions",
+				Name: "sessions",
 				Type: database.Database,
 				Itens: []database.Item{
 					{
-						Name:"token",
-						Type: database.Key,
+						Name:     "token",
+						Type:     database.Key,
 						Required: true,
 					},
 					{
-						Name:"creation",
-						Type: database.Int,
+						Name:     "creation",
+						Type:     database.Int,
 						Required: true,
 					},
 					{
-						Name: "expiration",
-						Type: database.Int,
+						Name:     "expiration",
+						Type:     database.Int,
 						Required: true,
 					},
 				},
-			}
+			},
 		},
 	},
 }
@@ -68,6 +68,17 @@ func main() {
 	db := keep.NewDatabase(Props)
 	users := db.GetSchema("users")
 
+	// Create user before searching
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToSearch,
+		"username": "mateus",
+		"age":      27,
+	})
+	if err != nil {
+		fmt.Println("Error creating user:", err)
+		return
+	}
+
 	// Find the user by email
 	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
@@ -77,24 +88,24 @@ func main() {
 
 	sessions := foundUser.ListAll("sessions")
 	for _, session := range sessions {
-		token, err:= session.Get("token")
+		token, err := session.Get("token")
 		if err != nil {
 			fmt.Println("Error getting token", err)
 			continue
 		}
 
-		creation, err:= session.Get("creation")
+		creation, err := session.Get("creation")
 		if err != nil {
 			fmt.Println("Error getting creation", err)
 			continue
 		}
 
-		expiration, err:= session.Get("expiration")
+		expiration, err := session.Get("expiration")
 		if err != nil {
 			fmt.Println("Error getting expiration", err)
 			continue
 		}
-		
+
 		fmt.Println("Token:", token)
 		fmt.Println("Creation:", creation)
 		fmt.Println("Expiration:", expiration)
