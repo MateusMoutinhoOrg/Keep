@@ -1,0 +1,56 @@
+# Error Handling
+
+Database operations return `*database.Error` (or a plain `database.Error` from `Remove`). It carries a machine-checkable `Type` plus context about which field caused it:
+
+```go
+type Error struct {
+	Type     ErrorType // what kind of failure
+	Key      string    // the field involved
+	KeyValue any       // the value involved (when relevant)
+	Msg      string    // human-readable description
+}
+```
+
+## Error types
+
+| Type | Meaning | Typical cause |
+|---|---|---|
+| `database.KeyConflict` | A unique `Key` value is already taken | Creating or updating with an email/username that exists |
+| `database.NotFound` | The field has no stored value for this record | Reading a non-required field that was never set |
+| `database.MissingField` | A required field was not provided | `NewItem` without all `Required` fields |
+| `database.InvalidField` | The field is not in the schema, or the value has the wrong type | Typo in a field name, passing a string to an `Int` field |
+| `database.Internal` | The storage backend failed | I/O error, permissions, corrupted data |
+
+## Reacting to an error
+
+Switch on `Type` to decide what to do:
+
+```go
+created, err := users.NewItem(fields)
+if err != nil {
+	switch err.Type {
+	case database.KeyConflict:
+		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
+	case database.MissingField:
+		fmt.Printf("field %q is required\n", err.Key)
+	default:
+		fmt.Println("unexpected error:", err)
+	}
+	return
+}
+```
+
+A common pattern from the samples — treat "already exists" as fine and reuse the record:
+
+```go
+_, err := users.NewItem(fields)
+if err != nil && err.Type != database.KeyConflict {
+	return err
+}
+user := users.FindByKey("email", email)
+```
+
+## Special cases
+
+- `FindByKey` and `GetSchema` do not return errors — they return `nil` when nothing matches.
+- `Remove` returns a value, not a pointer; check `e.Msg != ""` to detect failure.

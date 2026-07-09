@@ -1,107 +1,47 @@
+# Required API
 
-### Write (key: string, value: Byte[]) (error or null):
-#### Description
-Write Bytes to the key
-#### Args:
-  - key:The Key to insert
-  - value:The Bytes to insert
-#### Returns:
-  - error:Error if happened something
+The methods a storage backend must implement to power Keep. The Go definition is `deps.Deps` in [pkg/deps/deps.go](../pkg/deps/deps.go); see [Dependency Injection](DependencyInjection.md) for how to plug an implementation in.
 
-----
-### WriteIfKeyNotExists(key: string, value: Byte[]) (error or null):
-#### Description
-Write Bytes to the key if the key not exists
-#### Args:
-  - key:The Key to insert
-  - value:The Bytes to insert
-#### Returns:
-  - error:Error if happened something
+Every method returns an `error` (`nil` on success). Where a specific condition is expected, return the matching sentinel from `pkg/deps`, wrapped so `errors.Is` matches:
 
-----
-### WriteifValueEquals(key: string, value: Byte[], oldValue: Byte[]) (error or null):
-#### Description
-Write Bytes to the key if the value equals oldValue
-#### Args:
-  - key:The Key to insert
-  - value:The Bytes to insert
-  - oldValue:The Bytes to compare
-#### Returns:
-  - error:Error if happened something
-----
-### Append(key:string, value:Byte[]) (error or null):
-#### Description
-Append Bytes to the key
-#### Args:
-  - key:The Key to append
-  - value:The Bytes to append
-#### Returns:
-  - error:Error if happened something
-----
+| Sentinel | When |
+|---|---|
+| `deps.ErrKeyNotFound` | `Read`/`ReadAt`/`WriteIfValueEquals` on a missing key |
+| `deps.ErrKeyAlreadyExists` | `WriteIfKeyNotExists` on an existing key |
+| `deps.ErrValueMismatch` | `WriteIfValueEquals` when the current value differs |
+| `deps.ErrKeyLocked` | `Lock` on a key already held |
 
-### InsertAt(key:string, position:int64, value:Byte[]) (error or null):
-#### Description
-Insert Bytes to the key at the specified position
-#### Args:
-  - key:The Key to insert
-  - position:The position to insert
-  - value:The Bytes to insert
-#### Returns:
-  - error:Error if happened something
-----
-#### Exists(key: string) (bool, error or null):
-#### Description
-Check if the key exists
-#### Args:
-  - key:The Key to check
-#### Returns:
-  - exists:True if the key exists, false otherwise
-  - error:Error if happened something
-----
+---
 
-### Read(key:string) (Byte[], error or null):
-#### Description
-Read Bytes from the key
-#### Args:
-  - key:The Key to read
-#### Returns:
-  - value:The Bytes readed
-  - error:Error if happened something
-----
-### ReadAt(key:string,position int64, size int64) (Byte[], error or null):
-#### Description
-Read Bytes from the key starting at position with the size
-#### Args:
-  - key:The Key to read
-  - position:The position to start reading
-  - size:The size of each chunck
-#### Returns:
-  - value:The Bytes readed
-  - error:Error if happened something
-----
-### Delete (key: string) (error or null):
-#### Description
-Delete Bytes to the ke
-#### Args:
-  - key:The Key to insert
-#### Returns:
-  - error:Error if happened something
-----
-### Lock(key:string, time int) (error or null):
-#### Description
-Lock the key for a specified time
-#### Args:
-  - key:The Key to lock
-  - time:The time to live in seconds
-#### Returns:
-  - error:Error if happened something
-----
+### `Write(key string, value []byte) error`
+Store `value` under `key`, overwriting any existing value.
 
-### UnLock(key:string) (error or null):
-#### Description
-UnLock the key
-#### Args:
-  - key:The Key to unlock
-#### Returns:
-  - error:Error if happened something
-----
+### `WriteIfKeyNotExists(key string, value []byte) error`
+Store `value` only if `key` does not exist yet. Returns `ErrKeyAlreadyExists` otherwise. Must be atomic.
+
+### `WriteIfValueEquals(key string, value []byte, oldValue []byte) error`
+Store `value` only if the current value equals `oldValue` (compare-and-swap). Returns `ErrKeyNotFound` if the key is missing, `ErrValueMismatch` if the value differs. Must be atomic.
+
+### `Append(key string, value []byte) error`
+Append `value` to the end of the key's current value, creating the key if needed.
+
+### `InsertAt(key string, position int64, value []byte) error`
+Insert `value` into the key's current value at byte offset `position`. Fails if `position` is out of range.
+
+### `Exists(key string) (bool, error)`
+Report whether `key` exists. A missing key is `(false, nil)`, not an error.
+
+### `Read(key string) ([]byte, error)`
+Return the value stored under `key`. Returns `ErrKeyNotFound` if missing.
+
+### `ReadAt(key string, position int64, size int64) ([]byte, error)`
+Return up to `size` bytes of the value starting at byte offset `position`.
+
+### `Delete(key string) error`
+Remove `key`. Deleting a missing key is a no-op, not an error.
+
+### `Lock(key string, time int) error`
+Acquire a lock on `key` that expires after `time` seconds. Returns `ErrKeyLocked` if the key is already locked and the lock has not expired.
+
+### `UnLock(key string) error`
+Release the lock on `key`. Unlocking a key that is not locked is a no-op.
