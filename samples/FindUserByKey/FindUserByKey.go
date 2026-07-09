@@ -66,20 +66,17 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("users")
-
-	// Create user before searching
-	_, err := users.NewItem(map[string]any{
-		"email":    EmailToSearch,
-		"username": "mateus",
-		"age":      27,
-	})
+	users, err := db.GetSchema("users")
 	if err != nil {
-		fmt.Println("Error creating user before find:", err)
+		fmt.Println("Error getting schema:", err)
 		return
 	}
 
-	foundUser := users.FindByKey("email", EmailToSearch)
+	foundUser, err := users.FindByKey("email", EmailToSearch)
+	if err != nil {
+		fmt.Println("Error finding user:", err)
+		return
+	}
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return

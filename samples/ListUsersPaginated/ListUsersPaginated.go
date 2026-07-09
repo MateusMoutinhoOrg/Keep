@@ -69,23 +69,10 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("users")
-
-	// Create 5 users before listing paginated
-	usersToCreate := []map[string]any{
-		{"email": "mateus1@gmail.com", "username": "mateus1", "age": 21},
-		{"email": "mateus2@gmail.com", "username": "mateus2", "age": 22},
-		{"email": "mateus3@gmail.com", "username": "mateus3", "age": 23},
-		{"email": "mateus4@gmail.com", "username": "mateus4", "age": 24},
-		{"email": "mateus5@gmail.com", "username": "mateus5", "age": 25},
-	}
-
-	for _, u := range usersToCreate {
-		_, err := users.NewItem(u)
-		if err != nil {
-			fmt.Println("Error creating user before paginated listing:", err)
-			return
-		}
+	users, err := db.GetSchema("users")
+	if err != nil {
+		fmt.Println("Error getting schema:", err)
+		return
 	}
 
 	// Fetch a chunk of users starting at a given position

@@ -66,30 +66,27 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("users")
-
-	// Create the user first before deleting
-	_, err := users.NewItem(map[string]any{
-		"email":    EmailToDelete,
-		"username": "mateus",
-		"age":      27,
-	})
+	users, err := db.GetSchema("users")
 	if err != nil {
-		fmt.Println("Error creating user before delete:", err)
+		fmt.Println("Error getting schema:", err)
 		return
 	}
 
 	// First, find the user by key
-	foundUser := users.FindByKey("email", EmailToDelete)
+	foundUser, err := users.FindByKey("email", EmailToDelete)
+	if err != nil {
+		fmt.Println("Error finding user:", err)
+		return
+	}
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Then, remove the user (swap-with-last deletion)
-	errRemove := foundUser.Remove()
-	if errRemove.Msg != "" {
-		fmt.Println("Error deleting user:", errRemove.Error())
+	err = foundUser.Remove()
+	if err != nil {
+		fmt.Println("Error deleting user:", err)
 		return
 	}
 	fmt.Println("User deleted successfully")
