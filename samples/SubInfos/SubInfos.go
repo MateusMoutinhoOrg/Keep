@@ -14,40 +14,40 @@ const (
 
 var Schemas = []database.Schema{
 	{
-		Name: "User",
+		Name: "user",
 		Itens: []database.Item{
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "Email",
+				Name:     "email",
 			},
 			{
 				Type:     database.Key,
 				Required: true,
-				Name:     "UserName",
+				Name:     "username",
 			},
 			{
-				Name:     "Age",
+				Name:     "age",
 				Required: true,
 				Type:     database.Int,
 			},
 
 			{
-				Name:"Sessions",
+				Name:"sessions",
 				Type: database.Database,
 				Itens: []database.Item{
 					{
-						Name:"Token",
+						Name:"token",
 						Type: database.Key,
 						Required: true,
 					},
 					{
-						Name:"Creation",
+						Name:"creation",
 						Type: database.Int,
 						Required: true,
 					},
 					{
-						Name: "Expiration",
+						Name: "expiration",
 						Type: database.Int,
 						Required: true,
 					},
@@ -66,30 +66,30 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("Users")
+	users := db.GetSchema("users")
 
 	// Find the user by email
-	foundUser := users.FindByKey("Email", EmailToSearch)
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
-	sessions := foundUser.ListAll("Sessions")
+	sessions := foundUser.ListAll("sessions")
 	for _, session := range sessions {
-		token, err:= session.Get("Token")
+		token, err:= session.Get("token")
 		if err != nil {
 			fmt.Println("Error getting token", err)
 			continue
 		}
 
-		creation, err:= session.Get("Creation")
+		creation, err:= session.Get("creation")
 		if err != nil {
 			fmt.Println("Error getting creation", err)
 			continue
 		}
 
-		expiration, err:= session.Get("Expiration")
+		expiration, err:= session.Get("expiration")
 		if err != nil {
 			fmt.Println("Error getting expiration", err)
 			continue
