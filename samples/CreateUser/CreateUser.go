@@ -68,11 +68,7 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users, err := db.GetSchema("users")
-	if err != nil {
-		fmt.Println("Error getting schema:", err)
-		return
-	}
+	users := db.GetSchema("users")
 
 	createdUser, err := users.NewItem(map[string]any{
 		"email":    EmailToInsert,

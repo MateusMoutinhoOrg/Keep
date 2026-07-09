@@ -66,39 +66,42 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users, err := db.GetSchema("users")
+	users := db.GetSchema("users")
+
+	// Create user before retrieving info
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToSearch,
+		"username": "mateus",
+		"age":      27,
+	})
 	if err != nil {
-		fmt.Println("Error getting schema:", err)
+		fmt.Println("Error creating user before retrieve:", err)
 		return
 	}
 
 	// Find the user by email
-	foundUser, err := users.FindByKey("email", EmailToSearch)
-	if err != nil {
-		fmt.Println("Error finding user:", err)
-		return
-	}
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Retrieve and print each field individually
-	email, err := foundUser.Get("email")
-	if err != nil {
-		fmt.Println("Error retrieving email:", err)
+	email, errEmail := foundUser.Get("email")
+	if errEmail != nil {
+		fmt.Println("Error retrieving email:", errEmail)
 		return
 	}
 
-	userName, err := foundUser.Get("username")
-	if err != nil {
-		fmt.Println("Error retrieving username:", err)
+	userName, errUsername := foundUser.Get("username")
+	if errUsername != nil {
+		fmt.Println("Error retrieving username:", errUsername)
 		return
 	}
 
-	age, err := foundUser.Get("age")
-	if err != nil {
-		fmt.Println("Error retrieving age:", err)
+	age, errAge := foundUser.Get("age")
+	if errAge != nil {
+		fmt.Println("Error retrieving age:", errAge)
 		return
 	}
 

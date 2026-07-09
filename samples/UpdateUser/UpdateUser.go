@@ -67,27 +67,30 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users, err := db.GetSchema("users")
+	users := db.GetSchema("users")
+
+	// Create user before updating
+	_, err := users.NewItem(map[string]any{
+		"email":    EmailToSearch,
+		"username": "mateus",
+		"age":      27,
+	})
 	if err != nil {
-		fmt.Println("Error getting schema:", err)
+		fmt.Println("Error creating user before update:", err)
 		return
 	}
 
 	// Find the user to update
-	foundUser, err := users.FindByKey("email", EmailToSearch)
-	if err != nil {
-		fmt.Println("Error finding user:", err)
-		return
-	}
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Update a non-indexed field (simple single key write)
-	err = foundUser.Update("age", NewAge)
-	if err != nil {
-		fmt.Println("Error updating user:", err)
+	errUpdate := foundUser.Update("age", NewAge)
+	if errUpdate != nil {
+		fmt.Println("Error updating user", errUpdate)
 		return
 	}
 	fmt.Println("User updated successfully")

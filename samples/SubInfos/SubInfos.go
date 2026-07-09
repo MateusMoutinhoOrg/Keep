@@ -66,14 +66,10 @@ func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users, err := db.GetSchema("users")
-	if err != nil {
-		fmt.Println("Error getting schema:", err)
-		return
-	}
+	users := db.GetSchema("users")
 
 	// Create user before searching
-	_, err = users.NewItem(map[string]any{
+	_, err := users.NewItem(map[string]any{
 		"email":    EmailToSearch,
 		"username": "mateus",
 		"age":      27,
@@ -84,21 +80,13 @@ func main() {
 	}
 
 	// Find the user by email
-	foundUser, err := users.FindByKey("email", EmailToSearch)
-	if err != nil {
-		fmt.Println("Error finding user:", err)
-		return
-	}
+	foundUser := users.FindByKey("email", EmailToSearch)
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
 	}
 
-	sessions, err := foundUser.ListAll("sessions")
-	if err != nil {
-		fmt.Println("Error listing sessions:", err)
-		return
-	}
+	sessions := foundUser.ListAll("sessions")
 	for _, session := range sessions {
 		token, err := session.Get("token")
 		if err != nil {
