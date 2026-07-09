@@ -75,27 +75,29 @@ func main() {
 		return
 	}
 
-	// Retrieve and print each field individually
-	email, err := foundUser.Get("Email")
-	if err != nil {
-		fmt.Println("Error retrieving Email:", err)
-		return
+	sessions := foundUser.ListAll("Sessions")
+	for _, session := range sessions {
+		token, err:= session.Get("Token")
+		if err != nil {
+			fmt.Println("Error getting token", err)
+			continue
+		}
+
+		creation, err:= session.Get("Creation")
+		if err != nil {
+			fmt.Println("Error getting creation", err)
+			continue
+		}
+
+		expiration, err:= session.Get("Expiration")
+		if err != nil {
+			fmt.Println("Error getting expiration", err)
+			continue
+		}
+		
+		fmt.Println("Token:", token)
+		fmt.Println("Creation:", creation)
+		fmt.Println("Expiration:", expiration)
 	}
 
-	userName, err := foundUser.Get("UserName")
-	if err != nil {
-		fmt.Println("Error retrieving UserName:", err)
-		return
-	}
-
-	age, err := foundUser.Get("Age")
-	if err != nil {
-		fmt.Println("Error retrieving Age:", err)
-		return
-	}
-
-	fmt.Println("=== User Information ===")
-	fmt.Println("Email:   ", email)
-	fmt.Println("UserName:", userName)
-	fmt.Println("Age:     ", age)
 }
