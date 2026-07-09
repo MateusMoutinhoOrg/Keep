@@ -3,7 +3,7 @@
 ## Installation
 
 ```sh
-go get github.com/MateusMoutinhoOrg/Keep
+go get github.com/MateusMoutinhoOrg/Keep@v0.0.1
 ```
 
 Requires Go 1.22 or newer.

@@ -1,6 +1,7 @@
 # Keep
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/MateusMoutinhoOrg/Keep.svg)](https://pkg.go.dev/github.com/MateusMoutinhoOrg/Keep)
+[![Release](https://img.shields.io/github/v/release/MateusMoutinhoOrg/Keep)](https://github.com/MateusMoutinhoOrg/Keep/releases/latest)
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.22-blue)](go.mod)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -18,7 +19,7 @@ Keep lets you define schemas with typed fields, unique indexed keys, and nested 
 Install:
 
 ```sh
-go get github.com/MateusMoutinhoOrg/Keep
+go get github.com/MateusMoutinhoOrg/Keep@v0.0.1
 ```
 
 Create a database, insert a record, and find it back:
