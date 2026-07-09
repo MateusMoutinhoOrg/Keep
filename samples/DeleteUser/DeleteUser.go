@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
@@ -64,23 +63,23 @@ var Props = database.Props{
 }
 
 func main() {
-	// Start from a clean database directory so the sample is deterministic
-	os.RemoveAll("testDatabase")
-
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
 	users := db.GetSchema("user")
 
-	// Create the user first before deleting
+	// Create the user first before deleting (skip if it survived a previous run)
 	_, err := users.NewItem(map[string]any{
 		"email":    EmailToDelete,
 		"username": "mateus",
 		"age":      27,
 	})
 	if err != nil {
-		fmt.Println("Error creating user before delete:", err)
-		return
+		if err.Type != database.KeyConflict {
+			fmt.Println("Error creating user before delete:", err)
+			return
+		}
+		fmt.Println("User already exists, deleting the existing one")
 	}
 
 	// First, find the user by key

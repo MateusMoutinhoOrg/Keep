@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
@@ -66,9 +65,6 @@ var Props = database.Props{
 }
 
 func main() {
-	// Start from a clean database directory so the sample is deterministic
-	os.RemoveAll("testDatabase")
-
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
@@ -80,6 +76,12 @@ func main() {
 		"age":      AgeToInsert,
 	})
 	if err != nil {
+		if err.Type == database.KeyConflict {
+			// Second run: the unique index already holds this key
+			fmt.Println("User already exists:", err)
+			fmt.Println("Existing user:", users.FindByKey("email", EmailToInsert))
+			return
+		}
 		fmt.Println("Error creating user", err)
 		return
 	}

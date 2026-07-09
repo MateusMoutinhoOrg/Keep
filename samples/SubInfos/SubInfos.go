@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
@@ -64,23 +63,23 @@ var Props = database.Props{
 }
 
 func main() {
-	// Start from a clean database directory so the sample is deterministic
-	os.RemoveAll("testDatabase")
-
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
 	users := db.GetSchema("user")
 
-	// Create user before searching
+	// Create user before searching (skip if it already exists from a previous run)
 	_, err := users.NewItem(map[string]any{
 		"email":    EmailToSearch,
 		"username": "mateus",
 		"age":      27,
 	})
 	if err != nil {
-		fmt.Println("Error creating user:", err)
-		return
+		if err.Type != database.KeyConflict {
+			fmt.Println("Error creating user:", err)
+			return
+		}
+		fmt.Println("User already exists, reusing it")
 	}
 
 	// Find the user by email
@@ -98,6 +97,11 @@ func main() {
 	for _, s := range sessionsToCreate {
 		_, errSession := foundUser.NewSubItem("sessions", s)
 		if errSession != nil {
+			if errSession.Type == database.KeyConflict {
+				// Already created by a previous run, keep going
+				fmt.Printf("Session %v already exists, skipping\n", s["token"])
+				continue
+			}
 			fmt.Println("Error creating session:", errSession)
 			return
 		}
