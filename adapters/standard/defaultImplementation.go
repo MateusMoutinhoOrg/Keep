@@ -2,40 +2,47 @@ package standard
 
 type standard struct{}
 
-func (n *standard) WriteString(key, value string) error {
-	return nil
-}
-func (n *standard) WriteBytes(key string, value []byte) error {
-	return nil
-}
-func (n *standard) AppendString(key, value string) error {
-	return nil
-}
-func (n *standard) AppendBytes(key string, value []byte) error {
-	return nil
-}
-func (n *standard) Inc(key string) error {
-	return nil
-}
-func (n *standard) Dec(key string) error {
+func (n *standard) Write(key string, value []byte) error {
 	return nil
 }
 
-func (n *standard) WriteIfNotExists(key string, value string) error {
+func (n *standard) WriteIfKeyNotExists(key string, value []byte) error {
 	return nil
 }
 
-func (n *standard) ReadString(key string, pos uint64, length uint64) (string, error) {
-	return "", nil
+func (n *standard) WriteIfValueEquals(key string, value []byte, oldValue []byte) error {
+	return nil
 }
-func (n *standard) ReadBytes(key string, pos uint64, length uint64) ([]byte, error) {
+
+func (n *standard) Append(key string, value []byte) error {
+	return nil
+}
+
+func (n *standard) InsertAt(key string, position int64, value []byte) error {
+	return nil
+}
+
+func (n *standard) Exists(key string) (bool, error) {
+	return false, nil
+}
+
+func (n *standard) Read(key string) ([]byte, error) {
 	return nil, nil
 }
 
-func (n *standard) Lock(key string) error {
+func (n *standard) ReadAt(key string, position int64, size int64) ([]byte, error) {
+	return nil, nil
+}
+
+func (n *standard) Delete(key string) error {
 	return nil
 }
-func (n *standard) Unlock(key string) error {
+
+func (n *standard) Lock(key string, time int) error {
+	return nil
+}
+
+func (n *standard) UnLock(key string) error {
 	return nil
 }
 

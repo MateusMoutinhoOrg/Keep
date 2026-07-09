@@ -1,19 +1,15 @@
 package deps
 
 type Deps interface {
-	WriteString(key, value string) error
-	WriteBytes(key string, value []byte) error
-	AppendString(key, value string) error
-	AppendBytes(key string, value []byte) error
-	//locks the key,them increase the value
-	Inc(key string) error
-	//locks the key,them decrease the value
-	Dec(key string) error
-	//locks the key,them writes the value if the key is equal to the expected value
-	WriteIfNotExists(key string, value string, expectedValue string) error
-
-	ReadString(key string, pos uint64, length uint64) (string, error)
-	ReadBytes(key string, pos uint64, length uint64) ([]byte, error)
-	Lock(key string) error
-	Unlock(key string) error
+	Write(key string, value []byte) error
+	WriteIfKeyNotExists(key string, value []byte) error
+	WriteIfValueEquals(key string, value []byte, oldValue []byte) error
+	Append(key string, value []byte) error
+	InsertAt(key string, position int64, value []byte) error
+	Exists(key string) (bool, error)
+	Read(key string) ([]byte, error)
+	ReadAt(key string, position int64, size int64) ([]byte, error)
+	Delete(key string) error
+	Lock(key string, time int) error
+	UnLock(key string) error
 }

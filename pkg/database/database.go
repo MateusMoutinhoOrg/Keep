@@ -9,9 +9,19 @@ type Props struct {
 	Schemas []Schema
 }
 
-type Database struct {
+type KeepDatabase struct {
 	Deps  deps.Deps
 	Props Props
 }
 
-func (d *Database) GetSchema(name string) *SchemaInstance { return nil }
+func (d *KeepDatabase) GetSchema(name string) *SchemaInstance {
+	for i := range d.Props.Schemas {
+		if d.Props.Schemas[i].Name == name {
+			return &SchemaInstance{
+				db:     d,
+				schema: &d.Props.Schemas[i],
+			}
+		}
+	}
+	return nil
+}

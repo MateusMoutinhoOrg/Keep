@@ -1,6 +1,9 @@
 package database
 
-type SchemaInstance struct{}
+type SchemaInstance struct {
+	db     *KeepDatabase
+	schema *Schema
+}
 
 func (si *SchemaInstance) FindByKey(key string, keyValue any) *SchemaItem { return nil }
 
