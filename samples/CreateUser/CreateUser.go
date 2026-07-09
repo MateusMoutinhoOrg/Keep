@@ -43,23 +43,6 @@ var Props = database.Props{
 	Schemas: Schemas,
 }
 
-func FixIntegrity(db *database.Database, users *database.SchemaInstance, err database.Error) database.Error {
-	if err.Type == database.KeyConflict {
-		AlreadyExistUser := users.FindByKey(err.Key, err.KeyValue)
-
-		// wil lverify if all Required Keys are present in the user,
-		// if they are present, means its a valid user
-		UserOk := AlreadyExistUser.RequiredKeysExist()
-		// if Email or Username not exist, means is a integrity Error, and these user can be removed
-		if !UserOk {
-			//remove these User since it was not fully created
-			err := AlreadyExistUser.Remove()
-			return err
-		}
-	}
-	return err
-}
-
 func main() {
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
@@ -71,24 +54,9 @@ func main() {
 		"UserName": UserNameToInsert,
 		"Age":      AgeToInsert,
 	})
-
-	if err.Type != 0 {
-		err = FixIntegrity(db, users, err)
-		if err.Type != 0 {
-			fmt.Println(err)
-			return
-		}
-		// try Again
-		createdUser, err = users.NewItem(map[string]any{
-			"Email":    EmailToInsert,
-			"UserName": UserNameToInsert,
-			"Age":      AgeToInsert,
-		})
-		if err.Type != 0 {
-			fmt.Println(err)
-			return
-		}
+	if err != nil {
+		fmt.Println("Error creating user", err)
+		return
 	}
-
 	fmt.Println("User created successfully", createdUser)
 }
