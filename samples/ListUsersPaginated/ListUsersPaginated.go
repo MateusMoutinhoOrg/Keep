@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/native"
+	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
 	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
 )
@@ -66,10 +67,13 @@ var Props = database.Props{
 }
 
 func main() {
+	// Start from a clean database directory so the sample is deterministic
+	os.RemoveAll("testDatabase")
+
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("users")
+	users := db.GetSchema("user")
 
 	// Create 5 users before listing paginated
 	usersToCreate := []map[string]any{

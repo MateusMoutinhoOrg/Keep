@@ -17,9 +17,12 @@ type KeepDatabase struct {
 func (d *KeepDatabase) GetSchema(name string) *SchemaInstance {
 	for i := range d.Props.Schemas {
 		if d.Props.Schemas[i].Name == name {
+			schema := &d.Props.Schemas[i]
 			return &SchemaInstance{
 				db:     d,
-				schema: &d.Props.Schemas[i],
+				schema: schema,
+				items:  schema.Itens,
+				prefix: d.Props.Path + schema.Name,
 			}
 		}
 	}

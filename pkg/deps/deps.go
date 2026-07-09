@@ -1,5 +1,17 @@
 package deps
 
+import "errors"
+
+// Sentinel errors that every Deps implementation must return (possibly
+// wrapped) so the database layer can distinguish expected conditions
+// from real failures. Compare with errors.Is.
+var (
+	ErrKeyNotFound      = errors.New("keep: key not found")
+	ErrKeyAlreadyExists = errors.New("keep: key already exists")
+	ErrValueMismatch    = errors.New("keep: value mismatch")
+	ErrKeyLocked        = errors.New("keep: key is locked")
+)
+
 type Deps interface {
 	Write(key string, value []byte) error
 	WriteIfKeyNotExists(key string, value []byte) error

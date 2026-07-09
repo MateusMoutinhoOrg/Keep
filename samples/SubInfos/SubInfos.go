@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/native"
+	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
 	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
 )
@@ -63,10 +64,13 @@ var Props = database.Props{
 }
 
 func main() {
+	// Start from a clean database directory so the sample is deterministic
+	os.RemoveAll("testDatabase")
+
 	deps := keep_deps.New()
 	keep := keep_lib.New(deps)
 	db := keep.NewDatabase(Props)
-	users := db.GetSchema("users")
+	users := db.GetSchema("user")
 
 	// Create user before searching
 	_, err := users.NewItem(map[string]any{
@@ -84,6 +88,19 @@ func main() {
 	if foundUser == nil {
 		fmt.Println("User not found")
 		return
+	}
+
+	// Create two sessions in the user's "sessions" sub-database
+	sessionsToCreate := []map[string]any{
+		{"token": "token-1", "creation": 1000, "expiration": 2000},
+		{"token": "token-2", "creation": 1500, "expiration": 2500},
+	}
+	for _, s := range sessionsToCreate {
+		_, errSession := foundUser.NewSubItem("sessions", s)
+		if errSession != nil {
+			fmt.Println("Error creating session:", errSession)
+			return
+		}
 	}
 
 	sessions := foundUser.ListAll("sessions")

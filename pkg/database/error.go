@@ -4,6 +4,10 @@ type ErrorType int
 
 const (
 	KeyConflict ErrorType = iota
+	NotFound
+	MissingField
+	InvalidField
+	Internal
 )
 
 type Error struct {
