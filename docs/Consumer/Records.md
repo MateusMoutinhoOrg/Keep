@@ -6,7 +6,7 @@ All operations start from a schema instance:
 users := db.GetSchema("user")
 ```
 
-Each runnable example below has a full version in [samples/](../samples/).
+Each runnable example below has a full version in [examples/](../../examples/).
 
 ## Create — `NewItem`
 
@@ -20,7 +20,7 @@ user, err := users.NewItem(map[string]any{
 
 Fails with `MissingField` if a required field is absent, `InvalidField` if a field is not in the schema or has the wrong type, and `KeyConflict` if a `Key` value is already taken. The returned record has a permanent id (`user.Id()`) that is never reused, even after deletion.
 
-Full example: [samples/CreateUser](../samples/CreateUser/CreateUser.go)
+Full example: [examples/CreateUser](../../examples/CreateUser/CreateUser.go)
 
 ## Find — `FindByKey`
 
@@ -33,7 +33,7 @@ if user == nil {
 }
 ```
 
-Full example: [samples/FindUserByKey](../samples/FindUserByKey/FindUserByKey.go)
+Full example: [examples/FindUserByKey](../../examples/FindUserByKey/FindUserByKey.go)
 
 ## Read — `Get`
 
@@ -43,7 +43,7 @@ age, err := user.Get("age") // int64(27)
 
 `Key` fields come back as `string`, `Int` fields as `int64`. Returns a `NotFound` error if the record never stored that field (possible for non-required fields).
 
-Full example: [samples/RetrieveUserInfo](../samples/RetrieveUserInfo/RetrieveUserInfo.go)
+Full example: [examples/RetrieveUserInfo](../../examples/RetrieveUserInfo/RetrieveUserInfo.go)
 
 ## Update — `Update`
 
@@ -57,7 +57,7 @@ Works for any plain field. Updating a `Key` field re-indexes it and fails with `
 err := user.Update("email", "newmail@gmail.com")
 ```
 
-Full examples: [samples/UpdateUser](../samples/UpdateUser/UpdateUser.go), [samples/UpdateUserKey](../samples/UpdateUserKey/UpdateUserKey.go)
+Full examples: [examples/UpdateUser](../../examples/UpdateUser/UpdateUser.go), [examples/UpdateUserKey](../../examples/UpdateUserKey/UpdateUserKey.go)
 
 ## Delete — `Remove`
 
@@ -70,7 +70,7 @@ if e.Msg != "" {
 
 Removes the record, its unique index entries, and everything inside its sub-databases. Removing an already-removed record is a no-op.
 
-Full example: [samples/DeleteUser](../samples/DeleteUser/DeleteUser.go)
+Full example: [examples/DeleteUser](../../examples/DeleteUser/DeleteUser.go)
 
 ## List — `ListAll` and `List`
 
@@ -83,7 +83,7 @@ page, err := users.List(1, 10)
 
 **List order is not stable.** Deleting a record moves the last record into the freed position (this is what keeps deletion constant-cost). If you need a stable order, store it as a field on the record.
 
-Full examples: [samples/ListAllUsers](../samples/ListAllUsers/ListAllUsers.go), [samples/ListUsersPaginated](../samples/ListUsersPaginated/ListUsersPaginated.go)
+Full examples: [examples/ListAllUsers](../../examples/ListAllUsers/ListAllUsers.go), [examples/ListUsersPaginated](../../examples/ListUsersPaginated/ListUsersPaginated.go)
 
 ## Sub-databases — `NewSubItem` and `ListAll(field)`
 
@@ -102,7 +102,7 @@ for _, s := range user.ListAll("sessions") {
 }
 ```
 
-Full example: [samples/SubInfos](../samples/SubInfos/SubInfos.go)
+Full example: [examples/SubInfos](../../examples/SubInfos/SubInfos.go)
 
 ## Other helpers
 
@@ -112,4 +112,4 @@ Full example: [samples/SubInfos](../samples/SubInfos/SubInfos.go)
 
 ## Concurrency
 
-Keep assumes a **single writer** unless the backend provides atomic operations. Multiple readers are always safe. See [Database Internals](DatabaseSchema.md#concurrency-and-atomicity).
+Keep assumes a **single writer** unless the backend provides atomic operations. Multiple readers are always safe. See [Database Internals](../Developer/DatabaseSchema.md#concurrency-and-atomicity).

@@ -74,4 +74,4 @@ Sub-databases nest to any depth: an item inside `sessions` could itself have a `
 
 ## Naming rules
 
-Collection and field names must not contain the `-` character — it is the separator used internally in the key layout (see [Database Internals](DatabaseSchema.md)).
+Collection and field names must not contain the `-` character — it is the separator used internally in the key layout (see [Database Internals](../Developer/DatabaseSchema.md)).

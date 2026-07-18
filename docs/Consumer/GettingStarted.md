@@ -85,4 +85,4 @@ You can also write your own backend — see [Dependency Injection](DependencyInj
 
 - [Schemas](Schemas.md) — all the field types, including nested sub-databases.
 - [Working with Records](Records.md) — find, update, delete, and list records.
-- [samples/](../samples/) — one runnable program per operation.
+- [examples/](../../examples/) — one runnable program per operation.

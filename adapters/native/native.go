@@ -17,10 +17,24 @@ type native struct {
 	locks map[string]time.Time
 }
 
-func New() *native {
-	return &native{
+// New creates an in-memory deps.Deps.
+func New() deps.Deps {
+	n := &native{
 		data:  make(map[string][]byte),
 		locks: make(map[string]time.Time),
+	}
+	return deps.Deps{
+		Write:               n.Write,
+		WriteIfKeyNotExists: n.WriteIfKeyNotExists,
+		WriteIfValueEquals:  n.WriteIfValueEquals,
+		Append:              n.Append,
+		InsertAt:            n.InsertAt,
+		Exists:              n.Exists,
+		Read:                n.Read,
+		ReadAt:              n.ReadAt,
+		Delete:              n.Delete,
+		Lock:                n.Lock,
+		UnLock:              n.UnLock,
 	}
 }
 

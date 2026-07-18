@@ -12,16 +12,19 @@ var (
 	ErrKeyLocked        = errors.New("keep: key is locked")
 )
 
-type Deps interface {
-	Write(key string, value []byte) error
-	WriteIfKeyNotExists(key string, value []byte) error
-	WriteIfValueEquals(key string, value []byte, oldValue []byte) error
-	Append(key string, value []byte) error
-	InsertAt(key string, position int64, value []byte) error
-	Exists(key string) (bool, error)
-	Read(key string) ([]byte, error)
-	ReadAt(key string, position int64, size int64) ([]byte, error)
-	Delete(key string) error
-	Lock(key string, time int) error
-	UnLock(key string) error
+// Deps holds the injectable functions the library needs from a storage
+// backend. Adapters return a fully populated Deps; consumers can also
+// build one by hand or overwrite individual fields after construction.
+type Deps struct {
+	Write               func(key string, value []byte) error
+	WriteIfKeyNotExists func(key string, value []byte) error
+	WriteIfValueEquals  func(key string, value []byte, oldValue []byte) error
+	Append              func(key string, value []byte) error
+	InsertAt            func(key string, position int64, value []byte) error
+	Exists              func(key string) (bool, error)
+	Read                func(key string) ([]byte, error)
+	ReadAt              func(key string, position int64, size int64) ([]byte, error)
+	Delete              func(key string) error
+	Lock                func(key string, time int) error
+	UnLock              func(key string) error
 }

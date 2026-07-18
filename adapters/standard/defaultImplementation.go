@@ -23,14 +23,29 @@ type standard struct {
 	base string
 }
 
-// New stores files relative to the current working directory.
-func New() *standard {
+// New creates a deps.Deps that stores files relative to the current
+// working directory.
+func New() deps.Deps {
 	return NewWithBase(".")
 }
 
-// NewWithBase stores all keys under the given directory.
-func NewWithBase(base string) *standard {
-	return &standard{base: base}
+// NewWithBase creates a deps.Deps that stores all keys under the given
+// directory.
+func NewWithBase(base string) deps.Deps {
+	s := &standard{base: base}
+	return deps.Deps{
+		Write:               s.Write,
+		WriteIfKeyNotExists: s.WriteIfKeyNotExists,
+		WriteIfValueEquals:  s.WriteIfValueEquals,
+		Append:              s.Append,
+		InsertAt:            s.InsertAt,
+		Exists:              s.Exists,
+		Read:                s.Read,
+		ReadAt:              s.ReadAt,
+		Delete:              s.Delete,
+		Lock:                s.Lock,
+		UnLock:              s.UnLock,
+	}
 }
 
 func (s *standard) path(key string) string {
