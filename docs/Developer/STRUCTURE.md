@@ -62,7 +62,6 @@ Documentation required to use this project.
 
 | File | Description |
 |------|-------------|
-| `GettingStarted.md` | Installation and your first database |
 | `Schemas.md` | Defining collections, field types, and sub-databases |
 | `Records.md` | Create, find, read, update, delete, and list records |
 | `Errors.md` | The error types and how to react to them |

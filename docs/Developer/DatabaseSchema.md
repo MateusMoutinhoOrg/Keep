@@ -1,6 +1,6 @@
 # Dense Record Pattern for Key-Value Stores
 
-> This is the internal design document behind Keep's storage layer (`pkg/database`). You don't need it to *use* the library — start at [Getting Started](../Consumer/GettingStarted.md). Read this if you want to understand how the data is laid out or verify an implementation.
+> This is the internal design document behind Keep's storage layer (`pkg/database`). You don't need it to *use* the library — start at [Library Initialization](../Consumer/UseCases/LibInitialization.md). Read this if you want to understand how the data is laid out or verify an implementation.
 
 A storage pattern for managing collections of records on top of a plain key-value store, using only single-item reads and writes. The pattern never relies on key listing, prefix scans, or range queries, which makes it portable to any KV backend and keeps every operation bounded to a constant number of key accesses.
 

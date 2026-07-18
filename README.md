@@ -106,7 +106,6 @@ go run main.go
 
 | Guide | Description |
 |-------|-------------|
-| [GettingStarted](./docs/Consumer/GettingStarted.md) | Installation and your first database |
 | [Schemas](./docs/Consumer/Schemas.md) | Defining collections, field types, and sub-databases |
 | [Records](./docs/Consumer/Records.md) | Create, find, read, update, delete, and list records |
 | [Errors](./docs/Consumer/Errors.md) | The error types and how to react to them |

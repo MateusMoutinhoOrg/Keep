@@ -1,7 +1,7 @@
 # Library Initialization
 
 ## Description
-This guide describes how to initialize the library using the standard (filesystem) adapter. For a full tour of the concepts, see [Getting Started](../GettingStarted.md).
+This guide describes how to initialize the library using the standard (filesystem) adapter. Requires Go 1.22 or newer. To pick a different backend or write your own, see [Dependency Injection](../DependencyInjection.md).
 
 ## Workflow
 
