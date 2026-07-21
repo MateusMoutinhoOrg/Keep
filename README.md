@@ -98,31 +98,23 @@ go run main.go
 
 ---
 
-### Consumer Documentation
+### Usage Documentation
 
 > For developers who want to **use** this project as a library.
 
-#### Guides
 
-| Guide | Description |
-|-------|-------------|
-| [Schemas](./docs/Consumer/Schemas.md) | Defining collections, field types, and sub-databases |
-| [Records](./docs/Consumer/Records.md) | Create, find, read, update, delete, and list records |
-| [Errors](./docs/Consumer/Errors.md) | The error types and how to react to them |
-| [DependencyInjection](./docs/Consumer/DependencyInjection.md) | Choosing a backend or writing your own |
-| [RequiredApi](./docs/Consumer/RequiredApi.md) | The contract each `Deps` function must honor |
-
-#### Use Cases
-
-| Use Case | Description |
-|----------|-------------|
-| [LibInitialization](./docs/Consumer/UseCases/LibInitialization.md) | How to initialize the library |
-| [CreatingCustomDeps](./docs/Consumer/UseCases/CreatingCustomDeps.md) | How to create custom dependency adapters |
-| [OverwritingDeps](./docs/Consumer/UseCases/OverwritingDeps.md) | How to overwrite specific dependencies |
-| [RunSample](./docs/Consumer/UseCases/RunSample.md) | How to run the provided examples |
-
-#### [Public API](./docs/Consumer/PublicApi.md)
-Index of all public-facing components (structs, functions, and methods), with links to their respective detail files.
+| Name | Description |
+|:-|:-|
+| <a id="usage-public-api"></a>[PublicApi.md](./docs/Usage/PublicApi.md) | **Usage** — Index of all public-facing components (structs, functions, and methods), with links to their respective detail files. |
+| <a id="usage-schemas"></a>[Schemas.md](./docs/Usage/Schemas.md) | **Usage** — Defining collections, field types, and sub-databases |
+| <a id="usage-records"></a>[Records.md](./docs/Usage/Records.md) | **Usage** — Create, find, read, update, delete, and list records |
+| <a id="usage-errors"></a>[Errors.md](./docs/Usage/Errors.md) | **Usage** — The error types and how to react to them |
+| <a id="usage-dependency-injection"></a>[DependencyInjection.md](./docs/Usage/DependencyInjection.md) | **Usage** — Choosing a backend or writing your own |
+| <a id="usage-required-api"></a>[RequiredApi.md](./docs/Usage/RequiredApi.md) | **Usage** — The contract each `Deps` function must honor |
+| <a id="usage-lib-initialization"></a>[LibInitialization.md](./docs/Usage/LibInitialization.md) | **Usage** — How to initialize the library |
+| <a id="usage-creating-custom-deps"></a>[CreatingCustomDeps.md](./docs/Usage/CreatingCustomDeps.md) | **Usage** — How to create custom dependency adapters |
+| <a id="usage-overwriting-deps"></a>[OverwritingDeps.md](./docs/Usage/OverwritingDeps.md) | **Usage** — How to overwrite specific dependencies |
+| <a id="usage-run-sample"></a>[RunSample.md](./docs/Usage/RunSample.md) | **Usage** — How to run the provided examples |
 
 #### Samples
 
@@ -149,25 +141,21 @@ Index of all public-facing components (structs, functions, and methods), with li
 >
 > | Document | Why it's required |
 > |----------|-------------------|
-> | [Rules](./docs/Developer/RULES.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
-> | [Structure](./docs/Developer/STRUCTURE.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
+> | [Rules](./docs/Developer/Rules.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
+> | [Structure](./docs/Developer/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
 
-#### Internals
 
-| Document | Description |
-|----------|-------------|
-| [DatabaseSchema](./docs/Developer/DatabaseSchema.md) | The Dense Record Pattern that powers Keep's storage layer |
-| [DocumentationStandards](./docs/Developer/DocumentationStandards.md) | Documentation standards and conventions |
 
-#### Use Cases
-
-| Use Case | Description |
-|----------|-------------|
-| [HandleDocumentation](./docs/Developer/UseCases/HandleDocumentation.md) | How to add, update, rename, or delete documentation and use cases |
-| [HandleLibFunctions](./docs/Developer/UseCases/HandleLibFunctions.md) | How to add functions and objects to the library and expose them in the public API |
-| [HandleDependencies](./docs/Developer/UseCases/HandleDependencies.md) | How to add dependency requirements and create or update adapters |
-| [HandleSamples](./docs/Developer/UseCases/HandleSamples.md) | How to add and run executable samples |
-| [HandleModule](./docs/Developer/UseCases/HandleModule.md) | How to rename the Go module |
+| Name | Description |
+|:-|:-|
+| <a id="dev-database-schema"></a>[DatabaseSchema.md](./docs/Developer/DatabaseSchema.md) | **Developer** — The Dense Record Pattern that powers Keep's storage layer |
+| <a id="dev-documentation-standards"></a>[DocumentationStandards.md](./docs/Developer/DocumentationStandards.md) | **Developer** — Documentation standards and conventions |
+| <a id="dev-structure"></a>[Structure.md](./docs/Developer/Structure.md) | **Developer** — The project's directory layout and the purpose of each component. |
+| <a id="dev-handle-documentation"></a>[HandleDocumentation.md](./docs/Developer/HandleDocumentation.md) | **Developer** — How to add, update, rename, or delete documentation and use cases |
+| <a id="dev-handle-lib-functions"></a>[HandleLibFunctions.md](./docs/Developer/HandleLibFunctions.md) | **Developer** — How to add functions and objects to the library and expose them in the public API |
+| <a id="dev-handle-dependencies"></a>[HandleDependencies.md](./docs/Developer/HandleDependencies.md) | **Developer** — How to add dependency requirements and create or update adapters |
+| <a id="dev-handle-samples"></a>[HandleSamples.md](./docs/Developer/HandleSamples.md) | **Developer** — How to add and run executable samples |
+| <a id="dev-handle-module"></a>[HandleModule.md](./docs/Developer/HandleModule.md) | **Developer** — How to rename the Go module |
 
 ---
 

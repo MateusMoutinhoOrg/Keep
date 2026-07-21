@@ -1,7 +1,7 @@
 # Documentation Standards
 
 General rules and conventions for writing and maintaining documentation in this project.
-For the step-by-step workflow on adding new documentation, see [HandleDocumentation](./UseCases/HandleDocumentation.md).
+For the step-by-step workflow on adding new documentation, see [HandleDocumentation](./HandleDocumentation.md).
 
 ---
 
@@ -28,7 +28,7 @@ For the step-by-step workflow on adding new documentation, see [HandleDocumentat
 
 ## 3. Cross-Reference Between Documents
 
-- Always use **relative paths** (e.g., `../../Consumer/PublicApi.md`), never absolute filesystem paths.
+- Always use **relative paths** (e.g., `../../Usage/PublicApi.md`), never absolute filesystem paths.
 - Link to the **most specific section** possible using anchors (e.g., `Structure.md#adapters`).
 - When referencing content that is explained elsewhere, **link** to it instead of duplicating the content.
 
@@ -53,7 +53,7 @@ For the step-by-step workflow on adding new documentation, see [HandleDocumentat
 
 ## 5. Use Case Document Format
 
-- Every use case document (in `docs/Developer/UseCases/` or `docs/Consumer/UseCases/`) must follow this structure:
+- Every use case document (in `docs/Developer/` or `docs/Usage/`) must follow this structure:
 
 ```markdown
 ## Title
@@ -124,4 +124,4 @@ Brief explanation of what this guide covers.
 | The object that satisfies the dependency contract | **adapter** |
 | The struct holding injectable functions | **Deps** |
 | A runnable example in `/examples/` | **sample** |
-| A step-by-step guide in `/docs/**/UseCases/` | **use case** |
+| A step-by-step guide | **use case** |

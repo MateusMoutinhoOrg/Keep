@@ -43,13 +43,7 @@ Developer documentation, required only to contribute to this project.
 | `STRUCTURE.md` | Structure of this project |
 | `DocumentationStandards.md` | Documentation standards and conventions for writing project documentation |
 | `DatabaseSchema.md` | The Dense Record Pattern design document behind the storage layer |
-
-#### `/docs/Developer/UseCases/`
-Use case docs for developers contributing to the project.
-
-| File | Description |
-|------|-------------|
-| `HandleDocumentation.md` | How to add, update, rename, or delete documentation and use cases |
+| `HandleDocumentation.md` | How to add, update, rename, or delete documentation |
 | `HandleLibFunctions.md` | How to add functions and objects to the library and expose them in the public API |
 | `HandleDependencies.md` | How to add dependency requirements and create or update adapters |
 | `HandleSamples.md` | How to add and run executable samples |
@@ -57,8 +51,8 @@ Use case docs for developers contributing to the project.
 
 ---
 
-### `/docs/Consumer/`
-Documentation required to use this project.
+### `/docs/Usage/`
+End-user documentation that explains how to integrate and use the library.
 
 | File | Description |
 |------|-------------|
@@ -67,11 +61,15 @@ Documentation required to use this project.
 | `Errors.md` | The error types and how to react to them |
 | `DependencyInjection.md` | Choosing a backend or writing your own |
 | `RequiredApi.md` | The contract each `Deps` function must honor |
+| `LibInitialization.md` | How to initialize the library |
+| `CreatingCustomDeps.md` | How to create custom dependency adapters |
+| `OverwritingDeps.md` | How to overwrite specific dependencies |
+| `RunSample.md` | How to run the provided examples |
 
-#### `/docs/Consumer/PublicApi.md`
+#### `/docs/Usage/PublicApi.md`
 Index of all public-facing components (structs, functions, and methods), with links to their respective detail files.
 
-#### `/docs/Consumer/PublicApi/`
+#### `/docs/Usage/PublicApi/`
 Detailed documentation for each individual public API entry.
 
 | File | Description |
@@ -87,15 +85,6 @@ Detailed documentation for each individual public API entry.
 | `standard.New.md` | Documents the `standard.New` and `standard.NewWithBase` constructors |
 | `native.New.md` | Documents the `native.New` constructor |
 
-#### `/docs/Consumer/UseCases/`
-Use cases documentation, contains all use cases of the project and how to use them.
-
-| File | Description |
-|------|-------------|
-| `LibInitialization.md` | How to initialize the library |
-| `CreatingCustomDeps.md` | How to create custom dependency adapters |
-| `OverwritingDeps.md` | How to overwrite specific dependencies |
-| `RunSample.md` | How to run the provided examples |
 
 ---
 

@@ -18,4 +18,4 @@ When you create, delete, or rename a `.md` file, update the Internal Docs sectio
 
 ## Sample Changes
 
-When you create, delete, or rename a sample (any file inside [examples/](../../examples)), update the Samples section of [README.md](../../README.md).
+When you create, delete, or rename a sample (any file inside [examples/](../../examples/)), update the Samples section of [README.md](../../README.md).

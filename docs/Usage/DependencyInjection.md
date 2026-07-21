@@ -13,7 +13,7 @@ keep := keep_lib.New(deps)  // ...and inject it
 
 `Deps` is a struct whose fields are functions, defined in [pkg/deps/deps.go](../../pkg/deps/deps.go) and documented field-by-field in [Required API](RequiredApi.md). It is a plain key-value API: write, read, delete, exists, plus conditional writes and locks.
 
-Because the fields are plain function values, a backend is just a populated struct — there is no interface to implement, and any individual function can be replaced after construction (see [Overwriting Dependencies](UseCases/OverwritingDeps.md)).
+Because the fields are plain function values, a backend is just a populated struct — there is no interface to implement, and any individual function can be replaced after construction (see [Overwriting Dependencies](OverwritingDeps.md)).
 
 ---
 
@@ -46,7 +46,7 @@ deps := keep_deps.New()
 
 ## Writing your own backend
 
-Build a `deps.Deps` with your own functions and pass it to `keep_lib.New` — the full workflow is in [Creating Custom Deps](UseCases/CreatingCustomDeps.md). Two rules matter:
+Build a `deps.Deps` with your own functions and pass it to `keep_lib.New` — the full workflow is in [Creating Custom Deps](CreatingCustomDeps.md). Two rules matter:
 
 1. **Return the sentinel errors.** The database layer distinguishes "key doesn't exist" from "storage is broken" using the sentinels in `pkg/deps` (`ErrKeyNotFound`, `ErrKeyAlreadyExists`, `ErrValueMismatch`, `ErrKeyLocked`). Wrap them with `fmt.Errorf("%w: ...", ...)` so `errors.Is` matches.
 2. **Only per-key operations are needed.** Keep never lists keys or scans prefixes, so any store with `get`/`set`/`delete` can back it.
