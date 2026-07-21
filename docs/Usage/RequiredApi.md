@@ -1,6 +1,6 @@
 # Required API
 
-The functions a storage backend must provide to power Keep — one per field of the `Deps` struct in [pkg/deps/deps.go](../../pkg/deps/deps.go); see [Dependency Injection](DependencyInjection.md) for how to plug an implementation in.
+The functions a storage backend must provide to power Keep — one per field of the `Deps` struct in [pkg/deps/deps.go](../../pkg/deps/deps.go); see [Dependency Mechanic](DepsMechanic.md) for how to plug an implementation in.
 
 Every function returns an `error` (`nil` on success). Where a specific condition is expected, return the matching sentinel from `pkg/deps`, wrapped so `errors.Is` matches:
 

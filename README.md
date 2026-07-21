@@ -109,11 +109,9 @@ go run main.go
 | <a id="usage-schemas"></a>[Schemas.md](./docs/Usage/Schemas.md) | **Usage** — Defining collections, field types, and sub-databases |
 | <a id="usage-records"></a>[Records.md](./docs/Usage/Records.md) | **Usage** — Create, find, read, update, delete, and list records |
 | <a id="usage-errors"></a>[Errors.md](./docs/Usage/Errors.md) | **Usage** — The error types and how to react to them |
-| <a id="usage-dependency-injection"></a>[DependencyInjection.md](./docs/Usage/DependencyInjection.md) | **Usage** — Choosing a backend or writing your own |
+| <a id="usage-deps-mechanic"></a>[DepsMechanic.md](./docs/Usage/DepsMechanic.md) | **Usage** — Choosing a backend, overwriting deps, or writing your own |
 | <a id="usage-required-api"></a>[RequiredApi.md](./docs/Usage/RequiredApi.md) | **Usage** — The contract each `Deps` function must honor |
 | <a id="usage-lib-initialization"></a>[LibInitialization.md](./docs/Usage/LibInitialization.md) | **Usage** — How to initialize the library |
-| <a id="usage-creating-custom-deps"></a>[CreatingCustomDeps.md](./docs/Usage/CreatingCustomDeps.md) | **Usage** — How to create custom dependency adapters |
-| <a id="usage-overwriting-deps"></a>[OverwritingDeps.md](./docs/Usage/OverwritingDeps.md) | **Usage** — How to overwrite specific dependencies |
 | <a id="usage-run-sample"></a>[RunSample.md](./docs/Usage/RunSample.md) | **Usage** — How to run the provided examples |
 
 #### Samples

@@ -59,11 +59,9 @@ End-user documentation that explains how to integrate and use the library.
 | `Schemas.md` | Defining collections, field types, and sub-databases |
 | `Records.md` | Create, find, read, update, delete, and list records |
 | `Errors.md` | The error types and how to react to them |
-| `DependencyInjection.md` | Choosing a backend or writing your own |
+| `DepsMechanic.md` | Choosing a backend, overwriting deps, or writing your own |
 | `RequiredApi.md` | The contract each `Deps` function must honor |
 | `LibInitialization.md` | How to initialize the library |
-| `CreatingCustomDeps.md` | How to create custom dependency adapters |
-| `OverwritingDeps.md` | How to overwrite specific dependencies |
 | `RunSample.md` | How to run the provided examples |
 
 #### `/docs/Usage/PublicApi.md`
