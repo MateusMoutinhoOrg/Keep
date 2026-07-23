@@ -9,7 +9,7 @@ This guide explains how this injection works, how to write your own backend, and
 
 ## Dependency Injection
 
-The `Deps` struct is defined in `pkg/deps/deps.go` and its fields are documented in [Required API](RequiredApi.md). It is a plain key-value API: write, read, delete, exists, plus conditional writes and locks.
+The `Deps` struct is defined in `pkg/deps/deps.go` and its fields are documented in [Required API](/docs/Reference/RequiredApi.md). It is a plain key-value API: write, read, delete, exists, plus conditional writes and locks.
 
 Because the fields are plain function values, a backend is just a populated struct — there is no interface to implement.
 
@@ -41,7 +41,7 @@ You can run Keep over any storage backend by providing your own implementation f
 ### Workflow
 
 1. Create a function that constructs a `deps.Deps` object.
-2. Provide your own implementation for each function field, following [Required API](RequiredApi.md).
+2. Provide your own implementation for each function field, following [Required API](/docs/Reference/RequiredApi.md).
 
 ```go
 package main

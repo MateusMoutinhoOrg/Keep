@@ -98,62 +98,97 @@ go run main.go
 
 ---
 
-### Usage Documentation
+> [!IMPORTANT]
+> **Must Read before contributing.** The following documents are **required reading** for every developer. Do not open a pull request or make changes without first reading them:
+>
+> | Document | Why it's required |
+> |----------|-------------------|
+> | [Rules](/docs/Reference/RULES.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
+> | [Structure](/docs/Reference/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
+> | [Specs](/docs/Reference/Specs.md) | The index of every specification — needed to know **how** the file you are about to touch must be shaped. |
 
-> For developers who want to **use** this project as a library.
+### Reference Documentation
 
+> Listable material — structures, rules, specifications, and the public API.
 
 | Name | Description |
 |:-|:-|
-| <a id="usage-public-api"></a>[PublicApi.md](./docs/Usage/PublicApi.md) | **Usage** — Index of all public-facing components (structs, functions, and methods), with links to their respective detail files. |
-| <a id="usage-schemas"></a>[Schemas.md](./docs/Usage/Schemas.md) | **Usage** — Defining collections, field types, and sub-databases |
-| <a id="usage-records"></a>[Records.md](./docs/Usage/Records.md) | **Usage** — Create, find, read, update, delete, and list records |
-| <a id="usage-errors"></a>[Errors.md](./docs/Usage/Errors.md) | **Usage** — The error types and how to react to them |
-| <a id="usage-deps-mechanic"></a>[DepsMechanic.md](./docs/Usage/DepsMechanic.md) | **Usage** — Choosing a backend, overwriting deps, or writing your own |
-| <a id="usage-required-api"></a>[RequiredApi.md](./docs/Usage/RequiredApi.md) | **Usage** — The contract each `Deps` function must honor |
-| <a id="usage-lib-initialization"></a>[LibInitialization.md](./docs/Usage/LibInitialization.md) | **Usage** — How to initialize the library |
-| <a id="usage-run-sample"></a>[RunSample.md](./docs/Usage/RunSample.md) | **Usage** — How to run the provided examples |
+| <a id="reference-structure"></a>[Structure.md](/docs/Reference/Structure.md) | **Reference** — The project's directory layout and the purpose of each component. |
+| <a id="reference-rules"></a>[RULES.md](/docs/Reference/RULES.md) | **Reference** — The binding contribution rules and their required companion updates. |
+| <a id="reference-specs"></a>[Specs.md](/docs/Reference/Specs.md) | **Reference** — Lists every specification and the files each one governs. |
+| <a id="reference-public-api"></a>[PublicApi.md](/docs/Reference/PublicApi.md) | **Reference** — Index of all public structs, functions, and methods with detail links. |
+| <a id="reference-required-api"></a>[RequiredApi.md](/docs/Reference/RequiredApi.md) | **Reference** — The contract each `Deps` function must honor to power the library. |
+| <a id="reference-errors"></a>[Errors.md](/docs/Reference/Errors.md) | **Reference** — The error types returned by operations and how to react to them. |
+| <a id="reference-template-file-actions"></a>[TemplateFileActions.md](/docs/Reference/TemplateFileActions.md) | **Reference** — The action each file takes when forking or adapting: copy, create, rewrite, delete. |
+
+---
+
+### Explanation Documentation
+
+> How the project's mechanics and features work.
+
+| Name | Description |
+|:-|:-|
+| <a id="explanation-deps-mechanic"></a>[DepsMechanic.md](/docs/Explanation/DepsMechanic.md) | **Explanation** — Choosing a backend, overwriting deps, or writing your own. |
+| <a id="explanation-schemas"></a>[Schemas.md](/docs/Explanation/Schemas.md) | **Explanation** — Defining collections, field types, and nested sub-databases. |
+| <a id="explanation-records"></a>[Records.md](/docs/Explanation/Records.md) | **Explanation** — Creating, finding, reading, updating, deleting, and listing records. |
+| <a id="explanation-dense-record-pattern"></a>[DenseRecordPattern.md](/docs/Explanation/DenseRecordPattern.md) | **Explanation** — The key layout and procedures behind the storage engine. |
+
+---
+
+### Tutorials
+
+> Workflow guides, grouped by context. Each tutorial covers a single goal.
+
+#### Getting Started
+
+| Name | Description |
+|:-|:-|
+| <a id="tutorial-lib-initialization"></a>[LibInitialization.md](/docs/Tutorials/LibInitialization.md) | **Tutorial** — Install the lib, create deps via an adapter, and run a first program. |
+| <a id="tutorial-run-sample"></a>[RunSample.md](/docs/Tutorials/RunSample.md) | **Tutorial** — Browse and run the executable samples in the examples/ directory. |
+
+#### Library Development
+
+| Name | Description |
+|:-|:-|
+| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to pkg/ and wire it to the injected deps. |
+| <a id="tutorial-add-lib-object"></a>[AddLibObject.md](/docs/Tutorials/AddLibObject.md) | **Tutorial** — Add an object created by the lib, with its deps wired in by the constructor. |
+| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a field to the Deps contract and implement it in every adapter. |
+| <a id="tutorial-add-adapter"></a>[AddAdapter.md](/docs/Tutorials/AddAdapter.md) | **Tutorial** — Create a new opinionated storage backend for the Deps contract. |
+| <a id="tutorial-add-sample"></a>[AddSample.md](/docs/Tutorials/AddSample.md) | **Tutorial** — Create a runnable sample in examples/ and register it in the README. |
+
+#### Documentation
+
+| Name | Description |
+|:-|:-|
+| <a id="tutorial-add-document"></a>[AddDocument.md](/docs/Tutorials/AddDocument.md) | **Tutorial** — Create or update a .md file and register it in README and Structure. |
+| <a id="tutorial-rename-document"></a>[RenameDocument.md](/docs/Tutorials/RenameDocument.md) | **Tutorial** — Rename or move a .md file without leaving broken references behind. |
+| <a id="tutorial-delete-document"></a>[DeleteDocument.md](/docs/Tutorials/DeleteDocument.md) | **Tutorial** — Remove a .md file and clear every reference pointing to it. |
+| <a id="tutorial-expose-public-api"></a>[ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md) | **Tutorial** — Publish a lib function, object, or method in the public API index. |
+
+#### Templating
+
+| Name | Description |
+|:-|:-|
+| <a id="tutorial-rename-module"></a>[RenameModule.md](/docs/Tutorials/RenameModule.md) | **Tutorial** — Rename the Go module path and update all internal imports. |
+| <a id="tutorial-fork-template"></a>[ForkTemplate.md](/docs/Tutorials/ForkTemplate.md) | **Tutorial** — Use this repo as a template to start a new DI library. |
+| <a id="tutorial-adapt-existing-lib"></a>[AdaptExistingLib.md](/docs/Tutorials/AdaptExistingLib.md) | **Tutorial** — Convert a pre-existing library to this DI structure. |
+
+---
 
 #### Samples
 
 | Sample | Description |
 |--------|-------------|
-| [CreateUser](./examples/CreateUser/CreateUser.go) | Insert a record with unique keys |
-| [FindUserByKey](./examples/FindUserByKey/FindUserByKey.go) | Look a record up by a unique field |
-| [RetrieveUserInfo](./examples/RetrieveUserInfo/RetrieveUserInfo.go) | Read individual fields of a record |
-| [UpdateUser](./examples/UpdateUser/UpdateUser.go) | Update a plain field |
-| [UpdateUserKey](./examples/UpdateUserKey/UpdateUserKey.go) | Update a unique indexed field (re-index) |
-| [DeleteUser](./examples/DeleteUser/DeleteUser.go) | Remove a record and its index entries |
-| [ListAllUsers](./examples/ListAllUsers/ListAllUsers.go) | Iterate every record of a collection |
-| [ListUsersPaginated](./examples/ListUsersPaginated/ListUsersPaginated.go) | Paginate through a collection |
-| [SubInfos](./examples/SubInfos/SubInfos.go) | Manage nested sub-database records |
-
----
-
-### Developer Documentation
-
-> For developers who want to **contribute** to or extend this project.
-
-> [!IMPORTANT]
-> **Must Read before contributing.** The following documents are **required reading** for every developer. Do not open a pull request or make changes without first reading both:
->
-> | Document | Why it's required |
-> |----------|-------------------|
-> | [Rules](./docs/Developer/Rules.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
-> | [Structure](./docs/Developer/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
-
-
-
-| Name | Description |
-|:-|:-|
-| <a id="dev-database-schema"></a>[DatabaseSchema.md](./docs/Developer/DatabaseSchema.md) | **Developer** — The Dense Record Pattern that powers Keep's storage layer |
-| <a id="dev-documentation-standards"></a>[DocumentationStandards.md](./docs/Developer/DocumentationStandards.md) | **Developer** — Documentation standards and conventions |
-| <a id="dev-structure"></a>[Structure.md](./docs/Developer/Structure.md) | **Developer** — The project's directory layout and the purpose of each component. |
-| <a id="dev-handle-documentation"></a>[HandleDocumentation.md](./docs/Developer/HandleDocumentation.md) | **Developer** — How to add, update, rename, or delete documentation and use cases |
-| <a id="dev-handle-lib-functions"></a>[HandleLibFunctions.md](./docs/Developer/HandleLibFunctions.md) | **Developer** — How to add functions and objects to the library and expose them in the public API |
-| <a id="dev-handle-dependencies"></a>[HandleDependencies.md](./docs/Developer/HandleDependencies.md) | **Developer** — How to add dependency requirements and create or update adapters |
-| <a id="dev-handle-samples"></a>[HandleSamples.md](./docs/Developer/HandleSamples.md) | **Developer** — How to add and run executable samples |
-| <a id="dev-handle-module"></a>[HandleModule.md](./docs/Developer/HandleModule.md) | **Developer** — How to rename the Go module |
+| [CreateUser](/examples/CreateUser/CreateUser.go) | Insert a record with unique keys |
+| [FindUserByKey](/examples/FindUserByKey/FindUserByKey.go) | Look a record up by a unique field |
+| [RetrieveUserInfo](/examples/RetrieveUserInfo/RetrieveUserInfo.go) | Read individual fields of a record |
+| [UpdateUser](/examples/UpdateUser/UpdateUser.go) | Update a plain field |
+| [UpdateUserKey](/examples/UpdateUserKey/UpdateUserKey.go) | Update a unique indexed field (re-index) |
+| [DeleteUser](/examples/DeleteUser/DeleteUser.go) | Remove a record and its index entries |
+| [ListAllUsers](/examples/ListAllUsers/ListAllUsers.go) | Iterate every record of a collection |
+| [ListUsersPaginated](/examples/ListUsersPaginated/ListUsersPaginated.go) | Paginate through a collection |
+| [SubInfos](/examples/SubInfos/SubInfos.go) | Manage nested sub-database records |
 
 ---
 

@@ -1,6 +1,11 @@
 # Error Handling
 
-Database operations return `*database.Error` (or a plain `database.Error` from `Remove`). It carries a machine-checkable `Type` plus context about which field caused it:
+## Description
+Lists the errors returned by database operations. Every operation returns `*database.Error` (or a plain `database.Error` from `Remove`), carrying a machine-checkable `Type` plus context about which field caused it.
+
+---
+
+## The Error struct
 
 ```go
 type Error struct {
@@ -11,6 +16,8 @@ type Error struct {
 }
 ```
 
+---
+
 ## Error types
 
 | Type | Meaning | Typical cause |
@@ -20,6 +27,8 @@ type Error struct {
 | `database.MissingField` | A required field was not provided | `NewItem` without all `Required` fields |
 | `database.InvalidField` | The field is not in the schema, or the value has the wrong type | Typo in a field name, passing a string to an `Int` field |
 | `database.Internal` | The storage backend failed | I/O error, permissions, corrupted data |
+
+---
 
 ## Reacting to an error
 
@@ -49,6 +58,8 @@ if err != nil && err.Type != database.KeyConflict {
 }
 user := users.FindByKey("email", email)
 ```
+
+---
 
 ## Special cases
 

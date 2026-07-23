@@ -1,7 +1,7 @@
 package database
 
 // Implementation of the Dense Record Pattern described in
-// docs/DatabaseSchema.md. Every operation is expressed as single-key
+// docs/Explanation/DenseRecordPattern.md. Every operation is expressed as single-key
 // reads/writes/deletes against the deps.Deps backend, and assumes a
 // single writer.
 

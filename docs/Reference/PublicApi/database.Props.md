@@ -33,7 +33,7 @@ const (
 
 ## Description
 
-The declarative description of a database, passed to [`KeepLib.NewDatabase`](./keep.KeepLib.md#methods). `Path` is a prefix added to every stored key (a folder, with the standard adapter); each `Schema` is one collection; each `Item` is one field. The full guide, including field types and nested sub-databases, is in [Schemas](../Schemas.md).
+The declarative description of a database, passed to [`KeepLib.NewDatabase`](./keep.KeepLib.md#methods). `Path` is a prefix added to every stored key (a folder, with the standard adapter); each `Schema` is one collection; each `Item` is one field. The full guide, including field types and nested sub-databases, is in [Schemas](/docs/Explanation/Schemas.md).
 
 ## Field Types
 

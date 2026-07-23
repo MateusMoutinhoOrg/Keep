@@ -24,7 +24,7 @@ type Deps struct {
 
 The struct of injectable storage functions every backend must populate. The library performs all storage access through these functions and never touches storage directly. The behavior each function must honor — including the sentinel errors `ErrKeyNotFound`, `ErrKeyAlreadyExists`, `ErrValueMismatch`, and `ErrKeyLocked` — is specified in [Required API](../RequiredApi.md).
 
-Obtain a populated `Deps` from an adapter ([`standard.New`](./standard.New.md), [`native.New`](./native.New.md)), build one by hand, or overwrite individual fields of an adapter's result (see [Dependency Mechanic](../DepsMechanic.md)).
+Obtain a populated `Deps` from an adapter ([`standard.New`](./standard.New.md), [`native.New`](./native.New.md)), build one by hand, or overwrite individual fields of an adapter's result (see [Dependency Mechanic](/docs/Explanation/DepsMechanic.md)).
 
 ## Examples
 

@@ -10,7 +10,7 @@ type SchemaInstance struct { /* internal */ }
 
 ## Description
 
-One collection of records, obtained via [`KeepDatabase.GetSchema`](./database.KeepDatabase.md#methods). It is the entry point for creating, finding, and listing records. The narrative guide with full examples is [Working with Records](../Records.md).
+One collection of records, obtained via [`KeepDatabase.GetSchema`](./database.KeepDatabase.md#methods). It is the entry point for creating, finding, and listing records. The narrative guide with full examples is [Working with Records](/docs/Explanation/Records.md).
 
 ## Methods
 
@@ -45,7 +45,7 @@ Looks a record up by any `Key` field, at constant cost and case-insensitively. R
 func (si *SchemaInstance) ListAll() ([]*SchemaItem, *Error)
 ```
 
-Returns every record of the collection. List order is **not stable** across deletions (see [Working with Records](../Records.md#list--listall-and-list)).
+Returns every record of the collection. List order is **not stable** across deletions (see [Working with Records](/docs/Explanation/Records.md#list--listall-and-list)).
 
 ### `List`
 

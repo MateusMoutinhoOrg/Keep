@@ -1,5 +1,12 @@
 # Working with Records
 
+## Description
+Explains every operation a collection and its records support: creating, finding, reading, updating, deleting, listing, and managing sub-databases. To describe the collections themselves, see [Schemas.md](/docs/Explanation/Schemas.md).
+
+---
+
+## Starting point
+
 All operations start from a schema instance:
 
 ```go
@@ -7,6 +14,8 @@ users := db.GetSchema("user")
 ```
 
 Each runnable example below has a full version in [examples/](../../examples/).
+
+---
 
 ## Create — `NewItem`
 
@@ -22,6 +31,8 @@ Fails with `MissingField` if a required field is absent, `InvalidField` if a fie
 
 Full example: [examples/CreateUser](../../examples/CreateUser/CreateUser.go)
 
+---
+
 ## Find — `FindByKey`
 
 Looks a record up by any `Key` field. Constant cost, case-insensitive.
@@ -35,6 +46,8 @@ if user == nil {
 
 Full example: [examples/FindUserByKey](../../examples/FindUserByKey/FindUserByKey.go)
 
+---
+
 ## Read — `Get`
 
 ```go
@@ -44,6 +57,8 @@ age, err := user.Get("age") // int64(27)
 `Key` fields come back as `string`, `Int` fields as `int64`. Returns a `NotFound` error if the record never stored that field (possible for non-required fields).
 
 Full example: [examples/RetrieveUserInfo](../../examples/RetrieveUserInfo/RetrieveUserInfo.go)
+
+---
 
 ## Update — `Update`
 
@@ -59,6 +74,8 @@ err := user.Update("email", "newmail@gmail.com")
 
 Full examples: [examples/UpdateUser](../../examples/UpdateUser/UpdateUser.go), [examples/UpdateUserKey](../../examples/UpdateUserKey/UpdateUserKey.go)
 
+---
+
 ## Delete — `Remove`
 
 ```go
@@ -72,6 +89,8 @@ Removes the record, its unique index entries, and everything inside its sub-data
 
 Full example: [examples/DeleteUser](../../examples/DeleteUser/DeleteUser.go)
 
+---
+
 ## List — `ListAll` and `List`
 
 ```go
@@ -84,6 +103,8 @@ page, err := users.List(1, 10)
 **List order is not stable.** Deleting a record moves the last record into the freed position (this is what keeps deletion constant-cost). If you need a stable order, store it as a field on the record.
 
 Full examples: [examples/ListAllUsers](../../examples/ListAllUsers/ListAllUsers.go), [examples/ListUsersPaginated](../../examples/ListUsersPaginated/ListUsersPaginated.go)
+
+---
 
 ## Sub-databases — `NewSubItem` and `ListAll(field)`
 
@@ -104,12 +125,16 @@ for _, s := range user.ListAll("sessions") {
 
 Full example: [examples/SubInfos](../../examples/SubInfos/SubInfos.go)
 
+---
+
 ## Other helpers
 
 - `user.Id()` — the record's permanent identifier.
 - `user.CheckKeysPresence([]string{"email", "age"})` — reports whether every named field has a stored value.
 - `fmt.Println(user)` — records print as `{id: 1, email: ..., username: ..., age: ...}`.
 
+---
+
 ## Concurrency
 
-Keep assumes a **single writer** unless the backend provides atomic operations. Multiple readers are always safe. See [Database Internals](../Developer/DatabaseSchema.md#concurrency-and-atomicity).
+Keep assumes a **single writer** unless the backend provides atomic operations. Multiple readers are always safe. See [DenseRecordPattern.md](/docs/Explanation/DenseRecordPattern.md#concurrency-and-atomicity).

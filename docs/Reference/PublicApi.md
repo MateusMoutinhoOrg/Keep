@@ -1,5 +1,6 @@
 # Public API
 
+## Description
 Index of all public-facing components (structs, functions, and methods), with links to their respective detail files.
 
 ---

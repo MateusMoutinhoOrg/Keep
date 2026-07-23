@@ -1,14 +1,23 @@
 # Dense Record Pattern for Key-Value Stores
 
-> This is the internal design document behind Keep's storage layer (`pkg/database`). You don't need it to *use* the library — start at [Library Initialization](../Usage/LibInitialization.md). Read this if you want to understand how the data is laid out or verify an implementation.
+## Description
+The internal design behind Keep's storage layer (`pkg/database`). Not needed to *use* the library — start at [LibInitialization.md](/docs/Tutorials/LibInitialization.md) instead. Read this to understand how the data is laid out, or to verify an implementation.
+
+---
+
+## The pattern
 
 A storage pattern for managing collections of records on top of a plain key-value store, using only single-item reads and writes. The pattern never relies on key listing, prefix scans, or range queries, which makes it portable to any KV backend and keeps every operation bounded to a constant number of key accesses.
+
+---
 
 ## Design Goals
 
 1. **No listing.** Every operation is expressed exclusively as reads, writes, and deletes of individual keys. The pattern must work on backends that offer nothing beyond `get`, `set`, and `delete`.
 2. **Constant-time operations.** Insertion, deletion, and lookup by unique field each touch a fixed, small number of keys, regardless of how many records the collection holds.
 3. **Stable identity.** A record's id never changes and is never reused, even after deletion.
+
+---
 
 ## Key Layout
 
@@ -36,6 +45,8 @@ Hashing the value serves two purposes: it bounds the key length regardless of th
 - `{collection}-{id}-position` — the record's current position in the list. This is the back-pointer that makes constant-time deletion possible.
 - `{collection}-{id}-values-{field}` — one key per field of the record.
 
+---
+
 ## Normalization Rules
 
 Consistency between the index keys and the stored values is mandatory, otherwise lookups silently fail.
@@ -43,6 +54,8 @@ Consistency between the index keys and the stored values is mandatory, otherwise
 - Field names must be spelled identically everywhere they appear (index keys and value keys). Pick one canonical casing per field and never deviate.
 - Values of indexed fields must be normalized before hashing, and the same normalization must be applied at both write time and lookup time. For case-insensitive fields such as email addresses, lowercase the value before hashing.
 - Collection names and field names must not contain the separator character used in the key layout. Either forbid the separator in names outright, or choose a separator that cannot occur in them.
+
+---
 
 ## Insertion
 
@@ -115,6 +128,8 @@ users-2-values-email: user2@gmail.com
 ```
 
 The stored value keeps its original casing (`User2`); only the index entry uses the normalized form (`sha(user2)`).
+
+---
 
 ## Deletion (Swap-With-Last)
 
@@ -204,6 +219,8 @@ Two things worth noticing: `users-last-id` remains 3 even though id 2 is gone, a
 
 The consequence of swap-with-last is that list order is **not stable** — deleting a record moves an unrelated record to a new position. This is the price of constant-time deletion and must be documented as a contract of the pattern.
 
+---
+
 ## Updating an Indexed Field
 
 Updates to non-indexed fields are a single key write. Updates to a **unique indexed field** are the subtle case, because the index must move without leaving orphans:
@@ -244,6 +261,8 @@ users-keys-email-sha(newmail@gmail.com): 1
 users-1-values-email: newmail@gmail.com
 ```
 
+---
+
 ## Lookup
 
 - **By id:** read the `{collection}-{id}-values-{field}` keys directly.
@@ -260,6 +279,8 @@ Finding the user with email `User3@Gmail.com` (note the mixed casing as typed by
 
 Three reads total, regardless of collection size — and the normalization step is what makes the lookup succeed even though the caller typed the email with different casing than it was stored with.
 
+---
+
 ## Concurrency and Atomicity
 
 The pattern's write sequences are safe against crashes (via the write ordering described above) but not, by themselves, against concurrent writers: two simultaneous insertions could both pass the uniqueness check in step 1, or both read the same `last-id`.
@@ -268,6 +289,8 @@ The pattern's write sequences are safe against crashes (via the write ordering d
 - If it does not, the pattern assumes a **single writer**. Multiple readers are always safe, subject to the visibility guarantee provided by writing `size` last on insertion.
 
 This assumption must be stated explicitly by any implementation of the pattern.
+
+---
 
 ## Recovery
 
@@ -291,6 +314,8 @@ users-2-values-email: user2@gmail.com
 ```
 
 Record 2 claims position 2, but `users-size` is 1, so the valid range is only `[1, 1]` — position 2 was never published. A reader iterating the list never sees record 2, and a recovery pass identifies it as garbage (its position > size) and deletes its value keys and index entries. Note that `users-last-id` stays at 2: even a failed insertion consumes its id, preserving the no-reuse guarantee.
+
+---
 
 ## Invariants
 
