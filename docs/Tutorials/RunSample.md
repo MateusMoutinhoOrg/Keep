@@ -12,4 +12,4 @@ Covers running the executable samples in [examples/](../../examples/) to see the
    go run ./examples/CreateUser/CreateUser.go
    ```
 3. Inspect the `testDatabase/` directory the samples create — with the standard adapter, each key becomes a file.
-4. Re-run the sample to exercise the paths that react to already-existing data; the samples never reset the database.
+4. Re-run the sample to exercise the paths that react to already-existing data; the samples never reset the lib.

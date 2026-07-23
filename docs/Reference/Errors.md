@@ -1,7 +1,7 @@
 # Error Handling
 
 ## Description
-Lists the errors returned by database operations. Every operation returns `*database.Error` (or a plain `database.Error` from `Remove`), carrying a machine-checkable `Type` plus context about which field caused it.
+Lists the errors returned by database operations. Every operation returns `*lib.Error` (or a plain `lib.Error` from `Remove`), carrying a machine-checkable `Type` plus context about which field caused it.
 
 ---
 
@@ -22,11 +22,11 @@ type Error struct {
 
 | Type | Meaning | Typical cause |
 |---|---|---|
-| `database.KeyConflict` | A unique `Key` value is already taken | Creating or updating with an email/username that exists |
-| `database.NotFound` | The field has no stored value for this record | Reading a non-required field that was never set |
-| `database.MissingField` | A required field was not provided | `NewItem` without all `Required` fields |
-| `database.InvalidField` | The field is not in the schema, or the value has the wrong type | Typo in a field name, passing a string to an `Int` field |
-| `database.Internal` | The storage backend failed | I/O error, permissions, corrupted data |
+| `lib.KeyConflict` | A unique `Key` value is already taken | Creating or updating with an email/username that exists |
+| `lib.NotFound` | The field has no stored value for this record | Reading a non-required field that was never set |
+| `lib.MissingField` | A required field was not provided | `NewItem` without all `Required` fields |
+| `lib.InvalidField` | The field is not in the schema, or the value has the wrong type | Typo in a field name, passing a string to an `Int` field |
+| `lib.Internal` | The storage backend failed | I/O error, permissions, corrupted data |
 
 ---
 
@@ -38,9 +38,9 @@ Switch on `Type` to decide what to do:
 created, err := users.NewItem(fields)
 if err != nil {
 	switch err.Type {
-	case database.KeyConflict:
+	case lib.KeyConflict:
 		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
-	case database.MissingField:
+	case lib.MissingField:
 		fmt.Printf("field %q is required\n", err.Key)
 	default:
 		fmt.Println("unexpected error:", err)
@@ -53,7 +53,7 @@ A common pattern from the samples — treat "already exists" as fine and reuse t
 
 ```go
 _, err := users.NewItem(fields)
-if err != nil && err.Type != database.KeyConflict {
+if err != nil && err.Type != lib.KeyConflict {
 	return err
 }
 user := users.FindByKey("email", email)

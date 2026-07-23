@@ -1,4 +1,4 @@
-# `database.Error`
+# `lib.Error`
 
 **Type:** Struct
 
@@ -43,9 +43,9 @@ The typed error returned by database operations. Switch on `Type` to react to ea
 created, err := users.NewItem(fields)
 if err != nil {
 	switch err.Type {
-	case database.KeyConflict:
+	case lib.KeyConflict:
 		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
-	case database.MissingField:
+	case lib.MissingField:
 		fmt.Printf("field %q is required\n", err.Key)
 	default:
 		fmt.Println("unexpected error:", err)

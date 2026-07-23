@@ -17,25 +17,24 @@ Covers installing the library and initializing it with the standard (filesystem)
    ```go
    package main
 
-   // 1. Import an adapter, the schema types, and the lib
+   // 1. Import an adapter and the lib
    import (
        "fmt"
 
-       keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-       "github.com/MateusMoutinhoOrg/Keep/pkg/database"
-       keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+       "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+       "github.com/MateusMoutinhoOrg/Keep/pkg/lib"
    )
 
    // 2. Describe your data: one "user" collection with three fields
-   var Props = database.Props{
+   var Props = lib.Props{
        Path: "myDatabase/",
-       Schemas: []database.Schema{
+       Schemas: []lib.Schema{
            {
                Name: "user",
-               Itens: []database.Item{
-                   {Name: "email", Type: database.Key, Required: true},
-                   {Name: "username", Type: database.Key, Required: true},
-                   {Name: "age", Type: database.Int, Required: true},
+               Itens: []lib.Item{
+                   {Name: "email", Type: lib.Key, Required: true},
+                   {Name: "username", Type: lib.Key, Required: true},
+                   {Name: "age", Type: lib.Int, Required: true},
                },
            },
        },
@@ -43,13 +42,13 @@ Covers installing the library and initializing it with the standard (filesystem)
 
    func main() {
        // 3. Create deps via an adapter (the "opinionated" part)
-       deps := keep_deps.New()
+       deps := standard.New()
 
        // 4. Inject deps into the pure library
-       keep := keep_lib.New(deps)
+       keep := lib.New(deps)
 
        // 5. Use the library — it never knows which adapter is behind the scenes
-       db := keep.NewDatabase(Props)
+       db := lib.NewDatabase(Props)
        users := db.GetSchema("user")
 
        created, err := users.NewItem(map[string]any{

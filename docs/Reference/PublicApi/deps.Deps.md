@@ -36,5 +36,5 @@ myDeps.Delete = func(key string) error {
 	return fmt.Errorf("deletes are disabled")
 }
 
-keep := keep_lib.New(myDeps)
+keep := lib.New(myDeps)
 ```

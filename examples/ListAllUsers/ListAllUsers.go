@@ -3,48 +3,47 @@ package main
 import (
 	"fmt"
 
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
-var Schemas = []database.Schema{
+var Schemas = []lib.Schema{
 	{
 		Name: "user",
-		Itens: []database.Item{
+		Itens: []lib.Item{
 			{
-				Type:     database.Key,
+				Type:     lib.Key,
 				Required: true,
 				Name:     "email",
 			},
 			{
-				Type:     database.Key,
+				Type:     lib.Key,
 				Required: true,
 				Name:     "username",
 			},
 			{
 				Name:     "age",
 				Required: true,
-				Type:     database.Int,
+				Type:     lib.Int,
 			},
 
 			{
 				Name: "sessions",
-				Type: database.Database,
-				Itens: []database.Item{
+				Type: lib.Database,
+				Itens: []lib.Item{
 					{
 						Name:     "token",
-						Type:     database.Key,
+						Type:     lib.Key,
 						Required: true,
 					},
 					{
 						Name:     "creation",
-						Type:     database.Int,
+						Type:     lib.Int,
 						Required: true,
 					},
 					{
 						Name:     "expiration",
-						Type:     database.Int,
+						Type:     lib.Int,
 						Required: true,
 					},
 				},
@@ -53,14 +52,14 @@ var Schemas = []database.Schema{
 	},
 }
 
-var Props = database.Props{
+var Props = lib.Props{
 	Path:    "testDatabase/",
 	Schemas: Schemas,
 }
 
 func main() {
-	deps := keep_deps.New()
-	keep := keep_lib.New(deps)
+	deps := standard.New()
+	keep := lib.New(deps)
 	db := keep.NewDatabase(Props)
 	users := db.GetSchema("user")
 
@@ -74,7 +73,7 @@ func main() {
 	for _, u := range usersToCreate {
 		_, err := users.NewItem(u)
 		if err != nil {
-			if err.Type == database.KeyConflict {
+			if err.Type == lib.KeyConflict {
 				// Already created by a previous run, keep going
 				fmt.Printf("User %v already exists, skipping\n", u["email"])
 				continue

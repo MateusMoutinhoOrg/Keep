@@ -1,4 +1,4 @@
-# `database.KeepDatabase`
+# `lib.KeepDatabase`
 
 **Type:** Struct
 
@@ -6,14 +6,14 @@
 
 ```go
 type KeepDatabase struct {
-	Deps  deps.Deps
+	deps  deps.Deps
 	Props Props
 }
 ```
 
 ## Description
 
-A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./database.Props.md)). Always constructed via [`KeepLib.NewDatabase`](./keep.KeepLib.md#methods).
+A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./lib.Props.md)). Always constructed via [`Lib.NewDatabase`](./lib.Lib.md#methods).
 
 ## Methods
 
@@ -31,7 +31,7 @@ Returns the collection whose schema has the given name.
 
 | Returns | Description |
 | :--- | :--- |
-| [`*SchemaInstance`](./database.SchemaInstance.md) | The collection, or `nil` if no schema has that name. |
+| [`*SchemaInstance`](./lib.SchemaInstance.md) | The collection, or `nil` if no schema has that name. |
 
 ## Examples
 

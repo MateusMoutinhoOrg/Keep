@@ -34,8 +34,8 @@ GeneralDoc applies on top of the others: a tutorial follows **both** GeneralDoc 
 |------|------------|-------|
 | Deps | `pkg/deps/deps.go` | [Specs](/docs/Reference/Meta/Deps/Specs.md) · [sample](./Meta/Deps/sample.go) |
 | Adapters | `adapters/<name>/<name>.go` | [Specs](/docs/Reference/Meta/Adapters/Specs.md) · [sample](./Meta/Adapters/sample.go) |
-| LibFunctions | Public functions in `pkg/keep/` and `pkg/database/` | [Specs](/docs/Reference/Meta/LibFunctions/Specs.md) · [sample](./Meta/LibFunctions/sample.go) |
-| LibObjects | Objects created by the lib in `pkg/keep/` and `pkg/database/` | [Specs](/docs/Reference/Meta/LibObjects/Specs.md) · [sample](./Meta/LibObjects/sample.go) |
+| LibFunctions | Public functions in `pkg/lib/` | [Specs](/docs/Reference/Meta/LibFunctions/Specs.md) · [sample](./Meta/LibFunctions/sample.go) |
+| LibObjects | Objects created by the lib in `pkg/lib/` | [Specs](/docs/Reference/Meta/LibObjects/Specs.md) · [sample](./Meta/LibObjects/sample.go) |
 | Examples | `examples/<example>/<example>.go` | [Specs](/docs/Reference/Meta/Examples/Specs.md) · [sample](./Meta/Examples/sample.go) |
 
 ---

@@ -1,11 +1,11 @@
-# `keep.New`
+# `lib.New`
 
 **Type:** Function
 
 ## Signature
 
 ```go
-func New(d deps.Deps) *KeepLib
+func New(d deps.Deps) Lib
 ```
 
 ## Description
@@ -22,7 +22,7 @@ Initializes and returns a new library instance configured with the specified dep
 
 | Type | Description |
 | :--- | :--- |
-| [`*KeepLib`](./keep.KeepLib.md) | A fully initialized, ready-to-use library instance. |
+| [`Lib`](./lib.Lib.md) | A fully initialized, ready-to-use library instance. |
 
 ## Examples
 
@@ -30,16 +30,16 @@ Initializes and returns a new library instance configured with the specified dep
 package main
 
 import (
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
 func main() {
 	// 1. Initialize the desired adapter
-	deps := keep_deps.New()
+	deps := standard.New()
 
 	// 2. Instantiate the library using the configured dependencies
-	keep := keep_lib.New(deps)
+	keep := lib.New(deps)
 
 	// The library instance is now ready for use.
 	_ = keep

@@ -106,22 +106,15 @@ The contract every adapter must satisfy.
 |------|-------------|------|
 | `deps.go` | Declares the `Deps` struct of injectable function fields and the sentinel errors | Deps |
 
-### `/pkg/keep/`
-The library entry point. Accepts a `Deps` implementation and creates databases with it wired in.
+### `/pkg/lib/`
+The whole library: the entry point plus the database engine — schemas, records, and the key layout described in [DenseRecordPattern.md](/docs/Explanation/DenseRecordPattern.md). Every object it creates carries the injected `Deps` in a private `deps` field.
 
 | File | Description | Spec |
 |------|-------------|------|
-| `new.go` | The `New` constructor for `KeepLib` and its `NewDatabase` method | LibObjects |
-
-### `/pkg/database/`
-The database engine: schemas, records, and the key layout described in [DenseRecordPattern.md](/docs/Explanation/DenseRecordPattern.md).
-
-| File | Description | Spec |
-|------|-------------|------|
-| `database.go` | Declares `Props` and `KeepDatabase` with its `GetSchema` method | LibObjects |
-| `schema.go` | Declares the schema description types (`Schema`, `Item`, `ItemType`) | LibObjects |
+| `new.go` | Declares `Lib` and the `New` constructor injecting `Deps` into it | LibObjects |
+| `types.go` | Declares every type the lib creates: `Props`, `Schema`, `Item`, `ItemType`, `KeepDatabase`, `SchemaInstance`, `SchemaItem`, `Error`, `ErrorType` | LibObjects |
+| `database.go` | The `NewDatabase` constructor and `KeepDatabase.GetSchema` | LibObjects |
 | `schema_instance.go` | Collection-level operations (`NewItem`, `FindByKey`, `ListAll`, `List`) | LibFunctions |
 | `schema_item.go` | Record-level operations (`Get`, `Update`, `Remove`, sub-database methods) | LibFunctions |
 | `dense.go` | The key layout and procedures backing every operation | LibFunctions |
-| `error.go` | Declares the typed `Error` struct and its `ErrorType` values | LibObjects |
-| `database_test.go` | Runs every operation against both built-in adapters | |
+| `lib_test.go` | Runs every operation against both built-in adapters | |

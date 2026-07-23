@@ -108,7 +108,7 @@ Full examples: [examples/ListAllUsers](../../examples/ListAllUsers/ListAllUsers.
 
 ## Sub-databases — `NewSubItem` and `ListAll(field)`
 
-For fields of type `database.Database` (see [Schemas](Schemas.md)):
+For fields of type `lib.Database` (see [Schemas](Schemas.md)):
 
 ```go
 session, err := user.NewSubItem("sessions", map[string]any{

@@ -1,37 +1,37 @@
-package database_test
+package lib_test
 
 import (
 	"testing"
 
 	"github.com/MateusMoutinhoOrg/Keep/adapters/native"
 	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
 	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
-var userSchema = database.Schema{
+var userSchema = lib.Schema{
 	Name: "users",
-	Itens: []database.Item{
-		{Name: "email", Type: database.Key, Required: true},
-		{Name: "username", Type: database.Key, Required: true},
-		{Name: "age", Type: database.Int, Required: true},
+	Itens: []lib.Item{
+		{Name: "email", Type: lib.Key, Required: true},
+		{Name: "username", Type: lib.Key, Required: true},
+		{Name: "age", Type: lib.Int, Required: true},
 		{
 			Name: "sessions",
-			Type: database.Database,
-			Itens: []database.Item{
-				{Name: "token", Type: database.Key, Required: true},
-				{Name: "creation", Type: database.Int, Required: true},
+			Type: lib.Database,
+			Itens: []lib.Item{
+				{Name: "token", Type: lib.Key, Required: true},
+				{Name: "creation", Type: lib.Int, Required: true},
 			},
 		},
 	},
 }
 
-func newUsers(t *testing.T, d deps.Deps) *database.SchemaInstance {
+func newUsers(t *testing.T, d deps.Deps) *lib.SchemaInstance {
 	t.Helper()
-	db := keep.New(d).NewDatabase(database.Props{
+	keep := lib.New(d)
+	db := keep.NewDatabase(lib.Props{
 		Path:    "testdb/",
-		Schemas: []database.Schema{userSchema},
+		Schemas: []lib.Schema{userSchema},
 	})
 	users := db.GetSchema("users")
 	if users == nil {
@@ -40,7 +40,7 @@ func newUsers(t *testing.T, d deps.Deps) *database.SchemaInstance {
 	return users
 }
 
-func mustCreate(t *testing.T, users *database.SchemaInstance, email, username string, age int) *database.SchemaItem {
+func mustCreate(t *testing.T, users *lib.SchemaInstance, email, username string, age int) *lib.SchemaItem {
 	t.Helper()
 	item, err := users.NewItem(map[string]any{"email": email, "username": username, "age": age})
 	if err != nil {
@@ -89,7 +89,7 @@ func TestUniquenessConflict(t *testing.T) {
 		users := newUsers(t, d)
 		mustCreate(t, users, "a@x.com", "alice", 30)
 		_, err := users.NewItem(map[string]any{"email": "A@X.com", "username": "other", "age": 1})
-		if err == nil || err.Type != database.KeyConflict {
+		if err == nil || err.Type != lib.KeyConflict {
 			t.Fatalf("want KeyConflict, got %v", err)
 		}
 	})
@@ -99,7 +99,7 @@ func TestMissingRequiredField(t *testing.T) {
 	runWithAdapters(t, func(t *testing.T, d deps.Deps) {
 		users := newUsers(t, d)
 		_, err := users.NewItem(map[string]any{"email": "a@x.com", "username": "alice"})
-		if err == nil || err.Type != database.MissingField {
+		if err == nil || err.Type != lib.MissingField {
 			t.Fatalf("want MissingField, got %v", err)
 		}
 	})
@@ -113,7 +113,7 @@ func TestUpdateIndexedField(t *testing.T) {
 
 		alice := users.FindByKey("email", "a@x.com")
 		// Conflict with bob's email must be rejected.
-		if e := alice.Update("email", "b@x.com"); e == nil || e.Type != database.KeyConflict {
+		if e := alice.Update("email", "b@x.com"); e == nil || e.Type != lib.KeyConflict {
 			t.Fatalf("want KeyConflict, got %v", e)
 		}
 		// Legit re-index: old lookup dies, new lookup works.

@@ -25,13 +25,13 @@ Creates a [`deps.Deps`](./deps.Deps.md) backed by the filesystem: each key becom
 
 | Type | Description |
 | :--- | :--- |
-| [`deps.Deps`](./deps.Deps.md) | A fully populated dependency struct ready to be passed to [`keep.New`](./keep.New.md). |
+| [`deps.Deps`](./deps.Deps.md) | A fully populated dependency struct ready to be passed to [`lib.New`](./lib.New.md). |
 
 ## Examples
 
 ```go
-import keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+import "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 
-deps := keep_deps.New()               // relative to the working directory
-deps  = keep_deps.NewWithBase("/srv") // under a specific directory
+deps := standard.New()               // relative to the working directory
+deps  = standard.NewWithBase("/srv") // under a specific directory
 ```

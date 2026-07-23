@@ -15,7 +15,7 @@ Keep lets you define schemas with typed fields, unique indexed keys, and nested 
 
 It uses a **Dependency Injection** pattern in which:
 
-- **`/pkg/`** contains the pure library logic — it never imports concrete implementations.
+- **`/pkg/lib/`** contains the pure library logic — it never imports concrete implementations.
 - **`/adapters/`** contains opinionated, concrete implementations of the dependency contract.
 - **`/pkg/deps/`** defines the `Deps` struct of injectable functions that all adapters must satisfy.
 
@@ -44,20 +44,19 @@ package main
 import (
 	"fmt"
 
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/database"
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
-var Props = database.Props{
+var Props = lib.Props{
 	Path: "myDatabase/",
-	Schemas: []database.Schema{
+	Schemas: []lib.Schema{
 		{
 			Name: "user",
-			Itens: []database.Item{
-				{Name: "email", Type: database.Key, Required: true},
-				{Name: "username", Type: database.Key, Required: true},
-				{Name: "age", Type: database.Int, Required: true},
+			Itens: []lib.Item{
+				{Name: "email", Type: lib.Key, Required: true},
+				{Name: "username", Type: lib.Key, Required: true},
+				{Name: "age", Type: lib.Int, Required: true},
 			},
 		},
 	},
@@ -65,10 +64,10 @@ var Props = database.Props{
 
 func main() {
 	// 1. Create deps via an adapter (the "opinionated" part)
-	deps := keep_deps.New() // filesystem backend
+	deps := standard.New() // filesystem backend
 
 	// 2. Inject deps into the pure library
-	keep := keep_lib.New(deps)
+	keep := lib.New(deps)
 
 	// 3. Use the library — it never knows which adapter is behind the scenes
 	db := keep.NewDatabase(Props)
@@ -147,12 +146,21 @@ go run main.go
 | <a id="tutorial-lib-initialization"></a>[LibInitialization.md](/docs/Tutorials/LibInitialization.md) | **Tutorial** — Install the lib, create deps via an adapter, and run a first program. |
 | <a id="tutorial-run-sample"></a>[RunSample.md](/docs/Tutorials/RunSample.md) | **Tutorial** — Browse and run the executable samples in the examples/ directory. |
 
+#### Using the Database
+
+| Name | Description |
+|:-|:-|
+| <a id="tutorial-define-database"></a>[DefineDatabase.md](/docs/Tutorials/DefineDatabase.md) | **Tutorial** — Describe a database with its collections and open it in a program. |
+| <a id="tutorial-add-schema-field"></a>[AddSchemaField.md](/docs/Tutorials/AddSchemaField.md) | **Tutorial** — Add a field to a collection that already holds records. |
+| <a id="tutorial-add-nested-collection"></a>[AddNestedCollection.md](/docs/Tutorials/AddNestedCollection.md) | **Tutorial** — Give a record its own nested collection of sub-records. |
+
 #### Library Development
 
 | Name | Description |
 |:-|:-|
-| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to pkg/ and wire it to the injected deps. |
+| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to pkg/lib/ and wire it to the injected deps. |
 | <a id="tutorial-add-lib-object"></a>[AddLibObject.md](/docs/Tutorials/AddLibObject.md) | **Tutorial** — Add an object created by the lib, with its deps wired in by the constructor. |
+| <a id="tutorial-add-database-operation"></a>[AddDatabaseOperation.md](/docs/Tutorials/AddDatabaseOperation.md) | **Tutorial** — Add an engine operation without breaking the dense key layout. |
 | <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a field to the Deps contract and implement it in every adapter. |
 | <a id="tutorial-add-adapter"></a>[AddAdapter.md](/docs/Tutorials/AddAdapter.md) | **Tutorial** — Create a new opinionated storage backend for the Deps contract. |
 | <a id="tutorial-add-sample"></a>[AddSample.md](/docs/Tutorials/AddSample.md) | **Tutorial** — Create a runnable sample in examples/ and register it in the README. |

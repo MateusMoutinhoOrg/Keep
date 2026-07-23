@@ -6,7 +6,7 @@ Covers creating a new opinionated implementation of the `Deps` contract under [a
 ### Rules
 - Each adapter lives in its own directory under [adapters/](../../adapters/) and uses a package named after that directory.
 - Each adapter exposes a single `New(...) deps.Deps` factory that assigns **every** field of the `Deps` struct.
-- An adapter may import [pkg/deps](../../pkg/deps/) but never [pkg/keep](../../pkg/keep/) or [pkg/database](../../pkg/database/).
+- An adapter may import [pkg/deps](../../pkg/deps/) but never [pkg/lib](../../pkg/lib/).
 - Every function must honor the contract described in [RequiredApi.md](/docs/Reference/RequiredApi.md), including the sentinel errors it has to return.
 - The adapter file must follow its specification — locate it in [Specs.md](/docs/Reference/Specs.md).
 

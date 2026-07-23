@@ -17,13 +17,13 @@ To inject a built-in adapter:
 
 ```go
 import (
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard" // filesystem adapter
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/standard" // filesystem adapter
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
 func main() {
-	deps := keep_deps.New()     // pick a backend...
-	keep := keep_lib.New(deps)  // ...and inject it
+	deps := standard.New()     // pick a backend...
+	keep := lib.New(deps)  // ...and inject it
 	_ = keep
 }
 ```
@@ -50,7 +50,7 @@ import (
 	"fmt"
 
 	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
 func createMyCustomDeps() deps.Deps {
@@ -73,7 +73,7 @@ func createMyCustomDeps() deps.Deps {
 
 func main() {
 	myDeps := createMyCustomDeps()
-	keep := keep_lib.New(myDeps)
+	keep := lib.New(myDeps)
 	_ = keep
 }
 ```
@@ -95,12 +95,12 @@ package main
 import (
 	"fmt"
 
-	keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	keep_lib "github.com/MateusMoutinhoOrg/Keep/pkg/keep"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
 )
 
 func main() {
-	myDeps := keep_deps.New()
+	myDeps := standard.New()
 
 	defaultWrite := myDeps.Write
 	myDeps.Write = func(key string, value []byte) error {
@@ -108,7 +108,7 @@ func main() {
 		return defaultWrite(key, value)
 	}
 
-	keep := keep_lib.New(myDeps)
+	keep := lib.New(myDeps)
 	_ = keep
 }
 ```

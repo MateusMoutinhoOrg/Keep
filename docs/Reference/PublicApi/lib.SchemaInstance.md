@@ -1,4 +1,4 @@
-# `database.SchemaInstance`
+# `lib.SchemaInstance`
 
 **Type:** Struct
 
@@ -10,7 +10,7 @@ type SchemaInstance struct { /* internal */ }
 
 ## Description
 
-One collection of records, obtained via [`KeepDatabase.GetSchema`](./database.KeepDatabase.md#methods). It is the entry point for creating, finding, and listing records. The narrative guide with full examples is [Working with Records](/docs/Explanation/Records.md).
+One collection of records, obtained via [`KeepDatabase.GetSchema`](./lib.KeepDatabase.md#methods). It is the entry point for creating, finding, and listing records. The narrative guide with full examples is [Working with Records](/docs/Explanation/Records.md).
 
 ## Methods
 
@@ -28,8 +28,8 @@ Inserts a record. Fails with `MissingField` if a required field is absent, `Inva
 
 | Returns | Description |
 | :--- | :--- |
-| [`*SchemaItem`](./database.SchemaItem.md) | The created record, with a permanent, never-reused id. |
-| [`*Error`](./database.Error.md) | `nil` on success. |
+| [`*SchemaItem`](./lib.SchemaItem.md) | The created record, with a permanent, never-reused id. |
+| [`*Error`](./lib.Error.md) | `nil` on success. |
 
 ### `FindByKey`
 

@@ -1,4 +1,4 @@
-package database
+package lib
 
 import (
 	"errors"
@@ -8,13 +8,6 @@ import (
 	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
 )
 
-type SchemaItem struct {
-	db     *KeepDatabase
-	items  []Item
-	prefix string
-	id     int64
-}
-
 // Id returns the record's permanent, never-reused identifier.
 func (s *SchemaItem) Id() int64 { return s.id }
 
@@ -22,7 +15,7 @@ func (s *SchemaItem) Id() int64 { return s.id }
 // value for this record.
 func (s *SchemaItem) CheckKeysPresence(keys []string) bool {
 	for _, key := range keys {
-		exists, err := s.db.Deps.Exists(valueKey(s.prefix, s.id, key))
+		exists, err := s.deps.Exists(valueKey(s.prefix, s.id, key))
 		if err != nil || !exists {
 			return false
 		}
@@ -40,7 +33,7 @@ func (s *SchemaItem) Get(fieldName string) (any, *Error) {
 		return nil, &Error{Type: InvalidField, Key: fieldName,
 			Msg: fmt.Sprintf("field %q is a sub-database, use ListAll(%q)", fieldName, fieldName)}
 	}
-	raw, err := s.db.Deps.Read(valueKey(s.prefix, s.id, fieldName))
+	raw, err := s.deps.Read(valueKey(s.prefix, s.id, fieldName))
 	if errors.Is(err, deps.ErrKeyNotFound) {
 		return nil, &Error{Type: NotFound, Key: fieldName,
 			Msg: fmt.Sprintf("field %q has no value for this record", fieldName)}
@@ -69,7 +62,7 @@ func (s *SchemaItem) Update(fieldName string, value any) *Error {
 	if e != nil {
 		return e
 	}
-	d := s.db.Deps
+	d := s.deps
 	vk := valueKey(s.prefix, s.id, fieldName)
 
 	if item.Type != Key {
@@ -125,7 +118,7 @@ func (s *SchemaItem) Update(fieldName string, value any) *Error {
 // the list dense at constant cost. Note that this moves the last record
 // into the freed position, so list order is not stable.
 func (s *SchemaItem) Remove() Error {
-	d := s.db.Deps
+	d := s.deps
 
 	// Step 1: read the victim's position; missing means already gone.
 	position, err := readPosition(d, s.prefix, s.id)
@@ -190,7 +183,7 @@ func (s *SchemaItem) Remove() Error {
 	for i := range s.items {
 		item := &s.items[i]
 		if item.Type == Database {
-			if e := clearCollection(s.db, item.Itens, subPrefix(s.prefix, s.id, item.Name)); e != nil {
+			if e := clearCollection(s.deps, item.Itens, subPrefix(s.prefix, s.id, item.Name)); e != nil {
 				return *e
 			}
 			continue
@@ -211,7 +204,7 @@ func (s *SchemaItem) ListAll(fieldName string) []*SchemaItem {
 	if item == nil || item.Type != Database {
 		return nil
 	}
-	result, e := listRange(s.db, item.Itens, subPrefix(s.prefix, s.id, fieldName), 1, 0)
+	result, e := listRange(s.deps, item.Itens, subPrefix(s.prefix, s.id, fieldName), 1, 0)
 	if e != nil {
 		return nil
 	}
@@ -226,7 +219,7 @@ func (s *SchemaItem) NewSubItem(fieldName string, fields map[string]any) (*Schem
 		return nil, &Error{Type: InvalidField, Key: fieldName,
 			Msg: fmt.Sprintf("field %q is not a sub-database of the schema", fieldName)}
 	}
-	return newItem(s.db, item.Itens, subPrefix(s.prefix, s.id, fieldName), fields)
+	return newItem(s.deps, item.Itens, subPrefix(s.prefix, s.id, fieldName), fields)
 }
 
 func readPosition(d deps.Deps, prefix string, id int64) (int64, error) {

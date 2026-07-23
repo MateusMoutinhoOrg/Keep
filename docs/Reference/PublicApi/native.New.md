@@ -16,12 +16,12 @@ Creates a [`deps.Deps`](./deps.Deps.md) backed by process memory. Data lives onl
 
 | Type | Description |
 | :--- | :--- |
-| [`deps.Deps`](./deps.Deps.md) | A fully populated dependency struct ready to be passed to [`keep.New`](./keep.New.md). |
+| [`deps.Deps`](./deps.Deps.md) | A fully populated dependency struct ready to be passed to [`lib.New`](./lib.New.md). |
 
 ## Examples
 
 ```go
-import keep_deps "github.com/MateusMoutinhoOrg/Keep/adapters/native"
+import "github.com/MateusMoutinhoOrg/Keep/adapters/native"
 
-deps := keep_deps.New() // zero-setup database, gone when the process exits
+deps := standard.New() // zero-setup database, gone when the process exits
 ```

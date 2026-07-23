@@ -7,12 +7,12 @@ Explains how a database is described: its collections, their typed fields, and t
 
 ## Collections
 
-A schema describes one collection of records: its name and the fields (`Itens`) each record can hold. Schemas are passed to the database through `database.Props`.
+A schema describes one collection of records: its name and the fields (`Itens`) each record can hold. Schemas are passed to the database through `lib.Props`.
 
 ```go
-var Props = database.Props{
+var Props = lib.Props{
 	Path:    "myDatabase/",
-	Schemas: []database.Schema{ /* ... */ },
+	Schemas: []lib.Schema{ /* ... */ },
 }
 ```
 
@@ -21,15 +21,15 @@ var Props = database.Props{
 
 ---
 
-## Fields (`database.Item`)
+## Fields (`lib.Item`)
 
 Every field has a `Name`, a `Type`, and an optional `Required` flag. Required fields must be present when creating a record.
 
 | Type | Holds | Notes |
 |---|---|---|
-| `database.Key` | `string` | Unique and indexed: two records can never share the same value, and `FindByKey` can look records up by it. Uniqueness is case-insensitive (`User@x.com` and `user@x.com` conflict). |
-| `database.Int` | `int`, `int32`, or `int64` | Plain integer field, always read back as `int64`. |
-| `database.Database` | a nested collection | The field is itself a sub-database with its own `Itens`. See below. |
+| `lib.Key` | `string` | Unique and indexed: two records can never share the same value, and `FindByKey` can look records up by it. Uniqueness is case-insensitive (`User@x.com` and `user@x.com` conflict). |
+| `lib.Int` | `int`, `int32`, or `int64` | Plain integer field, always read back as `int64`. |
+| `lib.Database` | a nested collection | The field is itself a sub-database with its own `Itens`. See below. |
 
 ---
 
@@ -38,20 +38,20 @@ Every field has a `Name`, a `Type`, and an optional `Required` flag. Required fi
 A `user` collection where each user owns a nested `sessions` collection:
 
 ```go
-var Schemas = []database.Schema{
+var Schemas = []lib.Schema{
 	{
 		Name: "user",
-		Itens: []database.Item{
-			{Name: "email", Type: database.Key, Required: true},
-			{Name: "username", Type: database.Key, Required: true},
-			{Name: "age", Type: database.Int, Required: true},
+		Itens: []lib.Item{
+			{Name: "email", Type: lib.Key, Required: true},
+			{Name: "username", Type: lib.Key, Required: true},
+			{Name: "age", Type: lib.Int, Required: true},
 			{
 				Name: "sessions",
-				Type: database.Database,
-				Itens: []database.Item{
-					{Name: "token", Type: database.Key, Required: true},
-					{Name: "creation", Type: database.Int, Required: true},
-					{Name: "expiration", Type: database.Int, Required: true},
+				Type: lib.Database,
+				Itens: []lib.Item{
+					{Name: "token", Type: lib.Key, Required: true},
+					{Name: "creation", Type: lib.Int, Required: true},
+					{Name: "expiration", Type: lib.Int, Required: true},
 				},
 			},
 		},

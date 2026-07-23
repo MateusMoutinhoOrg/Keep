@@ -1,4 +1,4 @@
-# `database.SchemaItem`
+# `lib.SchemaItem`
 
 **Type:** Struct
 
@@ -10,7 +10,7 @@ type SchemaItem struct { /* internal */ }
 
 ## Description
 
-One record of a collection, returned by the [`SchemaInstance`](./database.SchemaInstance.md) methods. The narrative guide with full examples is [Working with Records](/docs/Explanation/Records.md).
+One record of a collection, returned by the [`SchemaInstance`](./lib.SchemaInstance.md) methods. The narrative guide with full examples is [Working with Records](/docs/Explanation/Records.md).
 
 ## Methods
 

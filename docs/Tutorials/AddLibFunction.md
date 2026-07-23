@@ -1,21 +1,21 @@
 # Add a Library Function
 
 ## Description
-Covers adding a function to the pure library in [pkg/keep/](../../pkg/keep/) and [pkg/database/](../../pkg/database/), and wiring it to the injected dependencies. To add an object created by the library, follow [AddLibObject.md](/docs/Tutorials/AddLibObject.md) instead.
+Covers adding a function to the pure library in [pkg/lib/](../../pkg/lib/), and wiring it to the injected dependencies. To add an object created by the library, follow [AddLibObject.md](/docs/Tutorials/AddLibObject.md) instead.
 
 ### Rules
-- Library code must never import anything from [adapters/](../../adapters/) — reach storage only through the injected `Deps`.
+- Library code must never import anything from [adapters/](../../adapters/) — reach storage only through the private `deps` field the object carries.
 - Storage access must respect the invariants of the [Dense Record Pattern](/docs/Explanation/DenseRecordPattern.md): single-key reads and writes, no key listing.
-- Adding a file to [pkg/](../../pkg/) requires updating [Structure.md](/docs/Reference/Structure.md).
+- Adding a file to [pkg/lib/](../../pkg/lib/) requires updating [Structure.md](/docs/Reference/Structure.md).
 
 ---
 
 ## Workflow
-1. Define the function in the layer it belongs to — entry-point behavior in [pkg/keep/](../../pkg/keep/), collection or record operations in [pkg/database/](../../pkg/database/):
+1. Define the function in the file of the object it hangs off — entry-point behavior on `Lib`, collection operations on `SchemaInstance`, record operations on `SchemaItem`:
    ```go
    // Count returns the number of live records in the collection.
    func (si *SchemaInstance) Count() (int64, *Error) {
-       size, err := readCount(si.db.Deps, sizeKey(si.prefix))
+       size, err := readCount(si.deps, sizeKey(si.prefix))
        if err != nil {
            return 0, internalError(err)
        }

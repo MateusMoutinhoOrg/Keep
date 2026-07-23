@@ -1,7 +1,7 @@
 # Dense Record Pattern for Key-Value Stores
 
 ## Description
-The internal design behind Keep's storage layer (`pkg/database`). Not needed to *use* the library — start at [LibInitialization.md](/docs/Tutorials/LibInitialization.md) instead. Read this to understand how the data is laid out, or to verify an implementation.
+The internal design behind Keep's storage layer (`pkg/lib`). Not needed to *use* the library — start at [LibInitialization.md](/docs/Tutorials/LibInitialization.md) instead. Read this to understand how the data is laid out, or to verify an implementation.
 
 ---
 

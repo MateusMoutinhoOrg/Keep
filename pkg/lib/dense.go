@@ -1,4 +1,4 @@
-package database
+package lib
 
 // Implementation of the Dense Record Pattern described in
 // docs/Explanation/DenseRecordPattern.md. Every operation is expressed as single-key
@@ -125,8 +125,7 @@ func writeInt(d deps.Deps, key string, value int64) error {
 
 // newItem inserts a record into the collection identified by prefix,
 // following the insertion procedure of the dense record pattern.
-func newItem(db *KeepDatabase, items []Item, prefix string, fields map[string]any) (*SchemaItem, *Error) {
-	d := db.Deps
+func newItem(d deps.Deps, items []Item, prefix string, fields map[string]any) (*SchemaItem, *Error) {
 
 	// Validate provided fields against the schema.
 	for name := range fields {
@@ -229,13 +228,13 @@ func newItem(db *KeepDatabase, items []Item, prefix string, fields map[string]an
 		return nil, internalError(err)
 	}
 
-	return &SchemaItem{db: db, items: items, prefix: prefix, id: id}, nil
+	return &SchemaItem{deps: d, items: items, prefix: prefix, id: id}, nil
 }
 
 // listRange reads records from the dense list starting at `from`
 // (1-based). A chunk of 0 means "until the end of the list".
-func listRange(db *KeepDatabase, items []Item, prefix string, from int64, chunk int64) ([]*SchemaItem, *Error) {
-	d := db.Deps
+func listRange(d deps.Deps, items []Item, prefix string, from int64, chunk int64) ([]*SchemaItem, *Error) {
+
 	size, err := readCount(d, sizeKey(prefix))
 	if err != nil {
 		return nil, internalError(err)
@@ -253,7 +252,7 @@ func listRange(db *KeepDatabase, items []Item, prefix string, from int64, chunk 
 		if err != nil {
 			return nil, internalError(err)
 		}
-		result = append(result, &SchemaItem{db: db, items: items, prefix: prefix, id: id})
+		result = append(result, &SchemaItem{deps: d, items: items, prefix: prefix, id: id})
 	}
 	return result, nil
 }
@@ -261,8 +260,8 @@ func listRange(db *KeepDatabase, items []Item, prefix string, from int64, chunk 
 // clearCollection removes every record of a collection (used when a
 // parent record owning a sub-database is deleted). Records are removed
 // from the last position backwards so no swap is ever needed.
-func clearCollection(db *KeepDatabase, items []Item, prefix string) *Error {
-	d := db.Deps
+func clearCollection(d deps.Deps, items []Item, prefix string) *Error {
+
 	for {
 		size, err := readCount(d, sizeKey(prefix))
 		if err != nil {
@@ -275,7 +274,7 @@ func clearCollection(db *KeepDatabase, items []Item, prefix string) *Error {
 		if err != nil {
 			return internalError(err)
 		}
-		item := &SchemaItem{db: db, items: items, prefix: prefix, id: id}
+		item := &SchemaItem{deps: d, items: items, prefix: prefix, id: id}
 		if e := item.Remove(); e.Msg != "" {
 			return &e
 		}
