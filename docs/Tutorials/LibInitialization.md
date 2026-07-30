@@ -13,7 +13,7 @@ Covers installing the library and initializing it with the standard (filesystem)
 ## Workflow
 1. Install the lib:
    ```bash
-   go get github.com/MateusMoutinhoOrg/Keep@v0.0.1
+   go get github.com/MateusMoutinhoOrg/Keep@v0.0.2
    ```
 2. Create a file called `main.go` with the following code:
    ```go
