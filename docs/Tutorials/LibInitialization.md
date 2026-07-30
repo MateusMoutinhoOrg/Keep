@@ -1,10 +1,12 @@
 # Library Initialization
 
 ## Description
-Covers installing the library and initializing it with the standard (filesystem) adapter in a new program. To pick a different backend or write your own, see [DepsMechanic.md](/docs/Explanation/DepsMechanic.md).
+Covers installing the library and initializing it with the standard (filesystem) adapter in a new program. To pick a different backend or write your own, see [DepsMechanic.md](/docs/Explanations/DepsMechanic.md); the shipped ones are listed in [Adapters.md](/docs/References/Adapters.md).
 
 ### Rules
 - Requires Go 1.22 or newer.
+- The `sandbox` package is named `lib`, so import it under that alias: `lib "github.com/MateusMoutinhoOrg/Keep/sandbox"`.
+- The schema description and the typed error come from `sandbox/contracts/api`.
 
 ---
 
@@ -17,38 +19,33 @@ Covers installing the library and initializing it with the standard (filesystem)
    ```go
    package main
 
-   // 1. Import an adapter and the lib
+   // 1. Import an adapter, the lib, and the api contracts
    import (
        "fmt"
 
        "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-       "github.com/MateusMoutinhoOrg/Keep/pkg/lib"
+       lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+       "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
    )
 
    // 2. Describe your data: one "user" collection with three fields
-   var Props = lib.Props{
-       Path: "myDatabase/",
-       Schemas: []lib.Schema{
-           {
-               Name: "user",
-               Itens: []lib.Item{
-                   {Name: "email", Type: lib.Key, Required: true},
-                   {Name: "username", Type: lib.Key, Required: true},
-                   {Name: "age", Type: lib.Int, Required: true},
-               },
-           },
-       },
-   }
+   var Props = lib.NewProps("myDatabase/",
+       lib.NewSchema("user",
+           lib.NewKeyItem("email", true),
+           lib.NewKeyItem("username", true),
+           lib.NewIntItem("age", true),
+       ),
+   )
 
    func main() {
        // 3. Create deps via an adapter (the "opinionated" part)
        deps := standard.New()
 
-       // 4. Inject deps into the pure library
+       // 4. Inject deps into the closed sandbox
        keep := lib.New(deps)
 
        // 5. Use the library — it never knows which adapter is behind the scenes
-       db := lib.NewDatabase(Props)
+       db := keep.NewDatabase(Props)
        users := db.GetSchema("user")
 
        created, err := users.NewItem(map[string]any{
@@ -67,4 +64,4 @@ Covers installing the library and initializing it with the standard (filesystem)
    ```bash
    go run main.go
    ```
-4. Describe the rest of your data with [Schemas.md](/docs/Explanation/Schemas.md), and operate on it with [Records.md](/docs/Explanation/Records.md).
+4. Describe the rest of your data with [Schemas.md](/docs/Explanations/Schemas.md), and operate on it with [Records.md](/docs/Explanations/Records.md).

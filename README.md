@@ -11,17 +11,23 @@ A storage-independent database built on top of plain key-value operations.
 
 ## Overview
 
-Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small struct of functions.
+Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small interface.
 
-It uses a **Dependency Injection** pattern in which:
+It uses a **Dependency Injection** pattern built around a closed sandbox:
 
-- **`/pkg/lib/`** contains the pure library logic — it never imports concrete implementations.
-- **`/adapters/`** contains opinionated, concrete implementations of the dependency contract.
-- **`/pkg/deps/`** defines the `Deps` struct of injectable functions that all adapters must satisfy.
+```
+adapters/  ──▶  sandbox/  ◀──  examples/ , tests/
+(reaches the OS)  (closed)     (wire the two together)
+```
+
+- **`/sandbox/`** is the database engine, and it is **closed**: it may not import an adapter, a third-party module, or any OS-bound stdlib package. Every effect arrives through the injected `Deps` — see [SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).
+- **`/sandbox/contracts/deps/`** defines the `Deps` interface that all adapters must implement.
+- **`/sandbox/contracts/api/`** defines every interface and constant the library exchanges — **interfaces only**, so nothing crossing the boundary is ever a struct of the library.
+- **`/adapters/`** sits outside the sandbox and holds the opinionated, concrete backends — the only place OS-bound code is allowed.
 
 What you get on top of that:
 
-- **Storage independent** — bring your own backend by populating a small struct, or use the built-in ones ([filesystem](adapters/standard/), [in-memory](adapters/native/)).
+- **Storage independent** — bring your own backend by implementing a small interface, or use the built-in ones ([filesystem](adapters/standard/), [in-memory](adapters/native/)).
 - **Constant-time operations** — create, lookup by key, and delete each touch a fixed number of keys, no matter how many records exist.
 - **Unique keys** — fields of type `Key` are indexed and enforced unique (case-insensitive).
 - **Nested collections** — a record can own sub-databases (e.g. a user owning its sessions).
@@ -45,28 +51,23 @@ import (
 	"fmt"
 
 	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
+	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-var Props = lib.Props{
-	Path: "myDatabase/",
-	Schemas: []lib.Schema{
-		{
-			Name: "user",
-			Itens: []lib.Item{
-				{Name: "email", Type: lib.Key, Required: true},
-				{Name: "username", Type: lib.Key, Required: true},
-				{Name: "age", Type: lib.Int, Required: true},
-			},
-		},
-	},
-}
+var Props = lib.NewProps("myDatabase/",
+	lib.NewSchema("user",
+		lib.NewKeyItem("email", true),
+		lib.NewKeyItem("username", true),
+		lib.NewIntItem("age", true),
+	),
+)
 
 func main() {
 	// 1. Create deps via an adapter (the "opinionated" part)
 	deps := standard.New() // filesystem backend
 
-	// 2. Inject deps into the pure library
+	// 2. Inject deps into the closed sandbox
 	keep := lib.New(deps)
 
 	// 3. Use the library — it never knows which adapter is behind the scenes
@@ -102,9 +103,9 @@ go run main.go
 >
 > | Document | Why it's required |
 > |----------|-------------------|
-> | [Rules](/docs/Reference/RULES.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
-> | [Structure](/docs/Reference/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
-> | [Specs](/docs/Reference/Specs.md) | The index of every specification — needed to know **how** the file you are about to touch must be shaped. |
+> | [Rules](/docs/References/RULES.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
+> | [Structure](/docs/References/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
+> | [Specs](/docs/References/Specs.md) | The index of every specification — needed to know **how** the file you are about to touch must be shaped. |
 
 ### Reference Documentation
 
@@ -112,13 +113,14 @@ go run main.go
 
 | Name | Description |
 |:-|:-|
-| <a id="reference-structure"></a>[Structure.md](/docs/Reference/Structure.md) | **Reference** — The project's directory layout and the purpose of each component. |
-| <a id="reference-rules"></a>[RULES.md](/docs/Reference/RULES.md) | **Reference** — The binding contribution rules and their required companion updates. |
-| <a id="reference-specs"></a>[Specs.md](/docs/Reference/Specs.md) | **Reference** — Lists every specification and the files each one governs. |
-| <a id="reference-public-api"></a>[PublicApi.md](/docs/Reference/PublicApi.md) | **Reference** — Index of all public structs, functions, and methods with detail links. |
-| <a id="reference-required-api"></a>[RequiredApi.md](/docs/Reference/RequiredApi.md) | **Reference** — The contract each `Deps` function must honor to power the library. |
-| <a id="reference-errors"></a>[Errors.md](/docs/Reference/Errors.md) | **Reference** — The error types returned by operations and how to react to them. |
-| <a id="reference-template-file-actions"></a>[TemplateFileActions.md](/docs/Reference/TemplateFileActions.md) | **Reference** — The action each file takes when forking or adapting: copy, create, rewrite, delete. |
+| <a id="reference-structure"></a>[Structure.md](/docs/References/Structure.md) | **Reference** — The project's directory layout and the purpose of each component. |
+| <a id="reference-rules"></a>[RULES.md](/docs/References/RULES.md) | **Reference** — The binding contribution rules and their required companion updates. |
+| <a id="reference-specs"></a>[Specs.md](/docs/References/Specs.md) | **Reference** — Lists every specification and the files each one governs. |
+| <a id="reference-public-api"></a>[PublicApi.md](/docs/References/PublicApi.md) | **Reference** — Index of all public interfaces, functions, and methods with detail links. |
+| <a id="reference-adapters"></a>[Adapters.md](/docs/References/Adapters.md) | **Reference** — Every shipped storage backend and when to use each one. |
+| <a id="reference-required-api"></a>[RequiredApi.md](/docs/References/RequiredApi.md) | **Reference** — The contract each `Deps` method must honor to power the library. |
+| <a id="reference-errors"></a>[Errors.md](/docs/References/Errors.md) | **Reference** — The error types returned by operations and how to react to them. |
+| <a id="reference-template-file-actions"></a>[TemplateFileActions.md](/docs/References/TemplateFileActions.md) | **Reference** — The action each file takes when forking or adapting: copy, create, rewrite, delete. |
 
 ---
 
@@ -128,10 +130,11 @@ go run main.go
 
 | Name | Description |
 |:-|:-|
-| <a id="explanation-deps-mechanic"></a>[DepsMechanic.md](/docs/Explanation/DepsMechanic.md) | **Explanation** — Choosing a backend, overwriting deps, or writing your own. |
-| <a id="explanation-schemas"></a>[Schemas.md](/docs/Explanation/Schemas.md) | **Explanation** — Defining collections, field types, and nested sub-databases. |
-| <a id="explanation-records"></a>[Records.md](/docs/Explanation/Records.md) | **Explanation** — Creating, finding, reading, updating, deleting, and listing records. |
-| <a id="explanation-dense-record-pattern"></a>[DenseRecordPattern.md](/docs/Explanation/DenseRecordPattern.md) | **Explanation** — The key layout and procedures behind the storage engine. |
+| <a id="explanation-sandbox-isolation"></a>[SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md) | **Explanation** — Why the engine lives in a closed sandbox and what the wall forbids. |
+| <a id="explanation-deps-mechanic"></a>[DepsMechanic.md](/docs/Explanations/DepsMechanic.md) | **Explanation** — Choosing a backend, overriding deps, or writing your own. |
+| <a id="explanation-schemas"></a>[Schemas.md](/docs/Explanations/Schemas.md) | **Explanation** — Defining collections, field types, and nested sub-databases. |
+| <a id="explanation-records"></a>[Records.md](/docs/Explanations/Records.md) | **Explanation** — Creating, finding, reading, updating, deleting, and listing records. |
+| <a id="explanation-dense-record-pattern"></a>[DenseRecordPattern.md](/docs/Explanations/DenseRecordPattern.md) | **Explanation** — The key layout and procedures behind the storage engine. |
 
 ---
 
@@ -158,10 +161,10 @@ go run main.go
 
 | Name | Description |
 |:-|:-|
-| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to pkg/lib/ and wire it to the injected deps. |
+| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to sandbox/internal/ and wire it to the injected deps. |
 | <a id="tutorial-add-lib-object"></a>[AddLibObject.md](/docs/Tutorials/AddLibObject.md) | **Tutorial** — Add an object created by the lib, with its deps wired in by the constructor. |
 | <a id="tutorial-add-database-operation"></a>[AddDatabaseOperation.md](/docs/Tutorials/AddDatabaseOperation.md) | **Tutorial** — Add an engine operation without breaking the dense key layout. |
-| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a field to the Deps contract and implement it in every adapter. |
+| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a method to the Deps contract and implement it in every adapter. |
 | <a id="tutorial-add-adapter"></a>[AddAdapter.md](/docs/Tutorials/AddAdapter.md) | **Tutorial** — Create a new opinionated storage backend for the Deps contract. |
 | <a id="tutorial-add-sample"></a>[AddSample.md](/docs/Tutorials/AddSample.md) | **Tutorial** — Create a runnable sample in examples/ and register it in the README. |
 

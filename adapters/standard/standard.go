@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/deps"
 )
 
 // standard is the filesystem-backed implementation: each key becomes a
@@ -33,19 +33,7 @@ func New() deps.Deps {
 // directory.
 func NewWithBase(base string) deps.Deps {
 	s := &standard{base: base}
-	return deps.Deps{
-		Write:               s.Write,
-		WriteIfKeyNotExists: s.WriteIfKeyNotExists,
-		WriteIfValueEquals:  s.WriteIfValueEquals,
-		Append:              s.Append,
-		InsertAt:            s.InsertAt,
-		Exists:              s.Exists,
-		Read:                s.Read,
-		ReadAt:              s.ReadAt,
-		Delete:              s.Delete,
-		Lock:                s.Lock,
-		UnLock:              s.UnLock,
-	}
+	return s
 }
 
 func (s *standard) path(key string) string {

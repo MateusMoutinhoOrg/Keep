@@ -4,62 +4,26 @@ import (
 	"fmt"
 
 	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/pkg/lib"
+	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
 const (
 	EmailToSearch = "mateus@gmail.com"
 )
 
-var Schemas = []lib.Schema{
-	{
-		Name: "user",
-		Itens: []lib.Item{
-			{
-				Type:     lib.Key,
-				Required: true,
-				Name:     "email",
-			},
-			{
-				Type:     lib.Key,
-				Required: true,
-				Name:     "username",
-			},
-			{
-				Name:     "age",
-				Required: true,
-				Type:     lib.Int,
-			},
-
-			{
-				Name: "sessions",
-				Type: lib.Database,
-				Itens: []lib.Item{
-					{
-						Name:     "token",
-						Type:     lib.Key,
-						Required: true,
-					},
-					{
-						Name:     "creation",
-						Type:     lib.Int,
-						Required: true,
-					},
-					{
-						Name:     "expiration",
-						Type:     lib.Int,
-						Required: true,
-					},
-				},
-			},
-		},
-	},
-}
-
-var Props = lib.Props{
-	Path:    "testDatabase/",
-	Schemas: Schemas,
-}
+var Props = lib.NewProps("testDatabase/",
+	lib.NewSchema("user",
+		lib.NewKeyItem("email", true),
+		lib.NewKeyItem("username", true),
+		lib.NewIntItem("age", true),
+		lib.NewDatabaseItem("sessions",
+			lib.NewKeyItem("token", true),
+			lib.NewIntItem("creation", true),
+			lib.NewIntItem("expiration", true),
+		),
+	),
+)
 
 func main() {
 	deps := standard.New()
@@ -74,7 +38,7 @@ func main() {
 		"age":      27,
 	})
 	if err != nil {
-		if err.Type != lib.KeyConflict {
+		if err.Type() != api.KeyConflict {
 			fmt.Println("Error creating user before find:", err)
 			return
 		}

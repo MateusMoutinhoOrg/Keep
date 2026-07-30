@@ -1,27 +1,23 @@
 # Add a Nested Collection
 
 ## Description
-Covers giving a record its own collection of sub-records — a user owning its sessions, an order owning its items. To add a plain field instead, follow [AddSchemaField.md](/docs/Tutorials/AddSchemaField.md). How nesting is stored is explained in [Schemas.md](/docs/Explanation/Schemas.md).
+Covers giving a record its own collection of sub-records — a user owning its sessions, an order owning its items. To add a plain field instead, follow [AddSchemaField.md](/docs/Tutorials/AddSchemaField.md). How nesting is stored is explained in [Schemas.md](/docs/Explanations/Schemas.md).
 
 ### Rules
-- A nested collection is a field of type `lib.Database` whose `Itens` describe the sub-records' own fields.
+- A nested collection is a field of type `api.DatabaseItem` whose `Itens` describe the sub-records' own fields.
 - Sub-records are reached only through their owner (`NewSubItem`, `ListAll(fieldName)`) — a nested collection is never returned by `GetSchema`.
-- Uniqueness of a `lib.Key` field inside a nested collection is scoped to the owning record, not to the whole database.
+- Uniqueness of a `api.KeyItem` field inside a nested collection is scoped to the owning record, not to the whole database.
 - Removing the owner removes every sub-record with it; there is no orphan cleanup to write.
 
 ---
 
 ## Workflow
-1. Add the field to the owner's schema, describing the sub-records' fields in its `Itens`:
+1. Add the field to the owner's schema with `lib.NewDatabaseItem`, describing the sub-records' fields as its remaining arguments:
    ```go
-   {
-       Name: "sessions",
-       Type: lib.Database,
-       Itens: []lib.Item{
-           {Name: "token", Type: lib.Key, Required: true},
-           {Name: "creation", Type: lib.Int, Required: true},
-       },
-   }
+   lib.NewDatabaseItem("sessions",
+       lib.NewKeyItem("token", true),
+       lib.NewIntItem("creation", true),
+   )
    ```
 2. Insert sub-records through the owning record:
    ```go
@@ -37,7 +33,7 @@ Covers giving a record its own collection of sub-records — a user owning its s
        fmt.Println(token)
    }
    ```
-4. Handle the failures of the operation, following [Errors.md](/docs/Reference/Errors.md) — a duplicated `token` for the same user returns `KeyConflict`, and setting the `sessions` field directly returns `InvalidField`.
+4. Handle the failures of the operation, following [Errors.md](/docs/References/Errors.md) — a duplicated `token` for the same user returns `KeyConflict`, and setting the `sessions` field directly returns `InvalidField`.
 5. If the nesting demonstrates a use case not yet covered, add a sample following [AddSample.md](/docs/Tutorials/AddSample.md) — [SubInfos](/examples/SubInfos/SubInfos.go) is the existing one.
 6. Build the project and run the tests:
    ```bash

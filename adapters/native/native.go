@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MateusMoutinhoOrg/Keep/pkg/deps"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/deps"
 )
 
 // native is a pure in-memory backend. Data lives only for the lifetime
@@ -23,19 +23,7 @@ func New() deps.Deps {
 		data:  make(map[string][]byte),
 		locks: make(map[string]time.Time),
 	}
-	return deps.Deps{
-		Write:               n.Write,
-		WriteIfKeyNotExists: n.WriteIfKeyNotExists,
-		WriteIfValueEquals:  n.WriteIfValueEquals,
-		Append:              n.Append,
-		InsertAt:            n.InsertAt,
-		Exists:              n.Exists,
-		Read:                n.Read,
-		ReadAt:              n.ReadAt,
-		Delete:              n.Delete,
-		Lock:                n.Lock,
-		UnLock:              n.UnLock,
-	}
+	return n
 }
 
 func (n *native) Write(key string, value []byte) error {

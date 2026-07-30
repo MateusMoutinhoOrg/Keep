@@ -4,16 +4,16 @@
 Covers adding a field to a collection that already holds records, without breaking the records written before the change. To describe a database from scratch, follow [DefineDatabase.md](/docs/Tutorials/DefineDatabase.md); to add a nested collection instead of a plain field, follow [AddNestedCollection.md](/docs/Tutorials/AddNestedCollection.md).
 
 ### Rules
-- Records are stored field by field, so old records simply have no value for the new field — reading it returns a `NotFound` [Error](/docs/Reference/Errors.md), never a corrupted record.
+- Records are stored field by field, so old records simply have no value for the new field — reading it returns a `NotFound` [Error](/docs/References/Errors.md), never a corrupted record.
 - Marking a new field `Required: true` only affects `NewItem` calls made after the change; it never rewrites existing records.
-- Adding a `lib.Key` field to a collection with existing records leaves those records unindexed for it — they will not be found by `FindByKey` until the value is written.
+- Adding a `api.KeyItem` field to a collection with existing records leaves those records unindexed for it — they will not be found by `FindByKey` until the value is written.
 
 ---
 
 ## Workflow
-1. Add the `lib.Item` to the collection's `Itens`, in the same `Props` used by every program touching this database:
+1. Add the `api.Item` to the collection's `Itens`, in the same `Props` used by every program touching this database:
    ```go
-   {Name: "nickname", Type: lib.Key, Required: false},
+   {Name: "nickname", Type: api.KeyItem, Required: false},
    ```
 2. Decide how old records get the value:
    - leave it absent and treat `NotFound` as "not set", or
@@ -32,10 +32,10 @@ Covers adding a field to a collection that already holds records, without breaki
          }
      }
      ```
-3. Handle the field's absence wherever it is read, following [Errors.md](/docs/Reference/Errors.md):
+3. Handle the field's absence wherever it is read, following [Errors.md](/docs/References/Errors.md):
    ```go
    nickname, e := user.Get("nickname")
-   if e != nil && e.Type == lib.NotFound {
+   if e != nil && e.Type() == api.NotFound {
        nickname = ""
    }
    ```

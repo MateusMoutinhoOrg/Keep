@@ -4,7 +4,7 @@
 Covers renaming or moving an existing `.md` file in [docs/](../) without leaving broken references behind.
 
 ### Rules
-- Renaming a `.md` file requires updating the [README.md](/README.md) Doc Index and [Structure.md](/docs/Reference/Structure.md) in the same commit.
+- Renaming a `.md` file requires updating the [README.md](/README.md) Doc Index and [Structure.md](/docs/References/Structure.md) in the same commit.
 - Moving a document to another category must respect the category boundaries described in [AddDocument.md](/docs/Tutorials/AddDocument.md).
 
 ---
@@ -15,6 +15,6 @@ Covers renaming or moving an existing `.md` file in [docs/](../) without leaving
    ```bash
    grep -rn "OldName.md" --include="*.md" .
    ```
-3. Update each reference to the new **relative path**, following the cross-reference rules of the GeneralDoc specification — locate it in [Specs.md](/docs/Reference/Specs.md).
+3. Update each reference to the new **relative path**, following the cross-reference rules of the GeneralDoc specification — locate it in [Specs.md](/docs/References/Specs.md).
 4. Update the document's entry in the [README.md](/README.md) Doc Index — link, anchor ID, and context group.
-5. Update the file's entry in [Structure.md](/docs/Reference/Structure.md).
+5. Update the file's entry in [Structure.md](/docs/References/Structure.md).
