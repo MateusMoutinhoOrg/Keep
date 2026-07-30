@@ -12,12 +12,16 @@ Covers giving a record its own collection of sub-records — a user owning its s
 ---
 
 ## Workflow
-1. Add the field to the owner's schema with `lib.NewDatabaseItem`, describing the sub-records' fields as its remaining arguments:
+1. In `createProps`, build the sub-records' fields first, then the `lib.NewDatabaseItem` holding them, and pass it to the owner's schema alongside its plain fields:
    ```go
-   lib.NewDatabaseItem("sessions",
-       lib.NewKeyItem("token", true),
-       lib.NewIntItem("creation", true),
-   )
+   //========================Sessions==========================
+   token := lib.NewKeyItem("token", true)
+   creation := lib.NewIntItem("creation", true)
+   sessions := lib.NewDatabaseItem("sessions", token, creation)
+
+   //========================User==========================
+   email := lib.NewKeyItem("email", true)
+   user := lib.NewSchema("user", email, sessions)
    ```
 2. Insert sub-records through the owning record:
    ```go

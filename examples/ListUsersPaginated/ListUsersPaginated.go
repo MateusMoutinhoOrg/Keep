@@ -15,23 +15,28 @@ const (
 	ChunkSize = 10
 )
 
-var Props = lib.NewProps("testDatabase/",
-	lib.NewSchema("user",
-		lib.NewKeyItem("email", true),
-		lib.NewKeyItem("username", true),
-		lib.NewIntItem("age", true),
-		lib.NewDatabaseItem("sessions",
-			lib.NewKeyItem("token", true),
-			lib.NewIntItem("creation", true),
-			lib.NewIntItem("expiration", true),
-		),
-	),
-)
+func createProps() api.Props {
 
+	//========================Sessions==========================
+	token := lib.NewKeyItem("token", true)
+	creation := lib.NewIntItem("creation", true)
+	expiration := lib.NewIntItem("expiration", true)
+	sessions := lib.NewDatabaseItem("sessions", token, creation, expiration)
+
+	//========================User==========================
+	email := lib.NewKeyItem("email", true)
+	username := lib.NewKeyItem("username", true)
+	age := lib.NewIntItem("age", true)
+	user := lib.NewSchema("user", email, username, age, sessions)
+
+	//========================Props==========================
+	return lib.NewProps("testDatabase/", user)
+}
 func main() {
 	deps := standard.New()
 	keep := lib.New(deps)
-	db := keep.NewDatabase(Props)
+	props := createProps()
+	db := keep.NewDatabase(props)
 	users := db.GetSchema("user")
 
 	// Create 5 users before listing paginated

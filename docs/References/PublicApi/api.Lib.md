@@ -41,5 +41,6 @@ import (
 )
 
 keep := lib.New(standard.New())
-db := keep.NewDatabase(Props)
+props := createProps() // see api.Props.md
+db := keep.NewDatabase(props)
 ```

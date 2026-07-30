@@ -44,7 +44,8 @@ Returns the [`Props`](./api.Props.md) description the database was created from.
 ## Examples
 
 ```go
-db := keep.NewDatabase(Props)
+props := createProps() // see api.Props.md
+db := keep.NewDatabase(props)
 users := db.GetSchema("user")
 if users == nil {
 	panic("schema not declared in Props")

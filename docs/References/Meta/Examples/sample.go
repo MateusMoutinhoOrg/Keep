@@ -7,20 +7,19 @@ import (
 	"fmt"
 
 	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox"
+	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-var Props = lib.Props{
-	Path: "testDatabase/",
-	Schemas: []lib.Schema{
-		{
-			Name: "user",
-			Itens: []lib.Item{
-				{Name: "email", Type: lib.Key, Required: true},
-				{Name: "age", Type: lib.Int, Required: true},
-			},
-		},
-	},
+func createProps() api.Props {
+
+	//========================User==========================
+	email := lib.NewKeyItem("email", true)
+	age := lib.NewIntItem("age", true)
+	user := lib.NewSchema("user", email, age)
+
+	//========================Props==========================
+	return lib.NewProps("testDatabase/", user)
 }
 
 func main() {
@@ -31,7 +30,8 @@ func main() {
 	keep := lib.New(deps)
 
 	// 3. Exercise the library — it never knows which adapter is behind it.
-	db := keep.NewDatabase(Props)
+	props := createProps()
+	db := keep.NewDatabase(props)
 	users := db.GetSchema("user")
 
 	created, err := users.NewItem(map[string]any{"email": "a@x.com", "age": 30})

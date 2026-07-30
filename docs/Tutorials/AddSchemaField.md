@@ -11,9 +11,10 @@ Covers adding a field to a collection that already holds records, without breaki
 ---
 
 ## Workflow
-1. Add the `api.Item` to the collection's `Itens`, in the same `Props` used by every program touching this database:
+1. Name the new `api.Item` in the `createProps` function every program touching this database shares, and pass it to the collection's `lib.NewSchema` call:
    ```go
-   {Name: "nickname", Type: api.KeyItem, Required: false},
+   nickname := lib.NewKeyItem("nickname", false)
+   user := lib.NewSchema("user", email, age, nickname)
    ```
 2. Decide how old records get the value:
    - leave it absent and treat `NotFound` as "not set", or

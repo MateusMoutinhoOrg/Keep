@@ -60,14 +60,21 @@ All five live in the `sandbox` package, imported as `lib`.
 ```go
 import lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
 
-var Props = lib.NewProps("myDatabase/",
-	lib.NewSchema("user",
-		lib.NewKeyItem("email", true),
-		lib.NewIntItem("age", true),
-		lib.NewDatabaseItem("sessions",
-			lib.NewKeyItem("token", true),
-			lib.NewIntItem("creation", true),
-		),
-	),
-)
+func createProps() api.Props {
+
+	//========================Sessions==========================
+	token := lib.NewKeyItem("token", true)
+	creation := lib.NewIntItem("creation", true)
+	sessions := lib.NewDatabaseItem("sessions", token, creation)
+
+	//========================User==========================
+	email := lib.NewKeyItem("email", true)
+	age := lib.NewIntItem("age", true)
+	user := lib.NewSchema("user", email, age, sessions)
+
+	//========================Props==========================
+	return lib.NewProps("myDatabase/", user)
+}
 ```
+
+Each constructor is called with its parts already named, innermost collection first — the same shape every sample in `examples/` uses.

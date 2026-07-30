@@ -29,13 +29,17 @@ Covers installing the library and initializing it with the standard (filesystem)
    )
 
    // 2. Describe your data: one "user" collection with three fields
-   var Props = lib.NewProps("myDatabase/",
-       lib.NewSchema("user",
-           lib.NewKeyItem("email", true),
-           lib.NewKeyItem("username", true),
-           lib.NewIntItem("age", true),
-       ),
-   )
+   func createProps() api.Props {
+
+       //========================User==========================
+       email := lib.NewKeyItem("email", true)
+       username := lib.NewKeyItem("username", true)
+       age := lib.NewIntItem("age", true)
+       user := lib.NewSchema("user", email, username, age)
+
+       //========================Props==========================
+       return lib.NewProps("myDatabase/", user)
+   }
 
    func main() {
        // 3. Create deps via an adapter (the "opinionated" part)
@@ -45,7 +49,8 @@ Covers installing the library and initializing it with the standard (filesystem)
        keep := lib.New(deps)
 
        // 5. Use the library — it never knows which adapter is behind the scenes
-       db := keep.NewDatabase(Props)
+       props := createProps()
+       db := keep.NewDatabase(props)
        users := db.GetSchema("user")
 
        created, err := users.NewItem(map[string]any{

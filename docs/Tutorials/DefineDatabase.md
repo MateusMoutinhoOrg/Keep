@@ -11,19 +11,21 @@ Covers describing a database — its key prefix and its collections — and open
 ---
 
 ## Workflow
-1. Declare the collections with `lib.NewSchema`, one constructor call per field. `Props`, `Schema`, and `Item` are interfaces, so they are built through these constructors rather than composite literals:
+1. Write a `createProps` function returning `api.Props`, and name every field before handing it to `lib.NewSchema`. `Props`, `Schema`, and `Item` are interfaces, so they are built through these constructors rather than composite literals:
    ```go
-   var Schemas = []api.Schema{
-       lib.NewSchema("user",
-           lib.NewKeyItem("email", true),
-           lib.NewKeyItem("username", true),
-           lib.NewIntItem("age", true),
-       ),
-   }
+   func createProps() api.Props {
+
+       //========================User==========================
+       email := lib.NewKeyItem("email", true)
+       username := lib.NewKeyItem("username", true)
+       age := lib.NewIntItem("age", true)
+       user := lib.NewSchema("user", email, username, age)
    ```
-2. Wrap them in a `api.Props` with `lib.NewProps`, choosing the prefix every key of this database is written under:
+2. Close the function by wrapping the schemas in a `api.Props` with `lib.NewProps`, choosing the prefix every key of this database is written under:
    ```go
-   var Props = lib.NewProps("myDatabase/", Schemas...)
+       //========================Props==========================
+       return lib.NewProps("myDatabase/", user)
+   }
    ```
 3. Build the dependencies with an adapter and inject them into the lib, following [LibInitialization.md](/docs/Tutorials/LibInitialization.md):
    ```go
@@ -31,7 +33,8 @@ Covers describing a database — its key prefix and its collections — and open
    ```
 4. Open the database and take the collection to operate on:
    ```go
-   db := keep.NewDatabase(Props)
+   props := createProps()
+   db := keep.NewDatabase(props)
    users := db.GetSchema("user")
    if users == nil {
        panic("schema not declared in Props")

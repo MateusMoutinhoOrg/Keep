@@ -12,10 +12,13 @@ A schema describes one collection of records: its name and the fields (`Itens`) 
 `Props`, `Schema`, and `Item` are **interfaces**, so they are built with the constructors the `lib` package exports rather than composite literals:
 
 ```go
-var Props = lib.NewProps("myDatabase/",
-	lib.NewSchema("user" /* , fields... */),
-)
+func createProps() api.Props {
+	user := lib.NewSchema("user" /* , fields... */)
+	return lib.NewProps("myDatabase/", user)
+}
 ```
+
+Naming each part before passing it on keeps the description readable as it grows — the nested collection below is built the same way, one variable at a time.
 
 - The first argument is a prefix added to every key the database stores. With the standard (filesystem) adapter it behaves like a folder.
 - `GetSchema(name)` returns the collection, or `nil` if no schema has that name.
@@ -38,19 +41,26 @@ Every field has a name, a type, and — for plain fields — a `required` flag. 
 
 A `user` collection where each user owns a nested `sessions` collection:
 
+Build the innermost collection first, then the schema that owns it:
+
 ```go
-var Props = lib.NewProps("myDatabase/",
-	lib.NewSchema("user",
-		lib.NewKeyItem("email", true),
-		lib.NewKeyItem("username", true),
-		lib.NewIntItem("age", true),
-		lib.NewDatabaseItem("sessions",
-			lib.NewKeyItem("token", true),
-			lib.NewIntItem("creation", true),
-			lib.NewIntItem("expiration", true),
-		),
-	),
-)
+func createProps() api.Props {
+
+	//========================Sessions==========================
+	token := lib.NewKeyItem("token", true)
+	creation := lib.NewIntItem("creation", true)
+	expiration := lib.NewIntItem("expiration", true)
+	sessions := lib.NewDatabaseItem("sessions", token, creation, expiration)
+
+	//========================User==========================
+	email := lib.NewKeyItem("email", true)
+	username := lib.NewKeyItem("username", true)
+	age := lib.NewIntItem("age", true)
+	user := lib.NewSchema("user", email, username, age, sessions)
+
+	//========================Props==========================
+	return lib.NewProps("myDatabase/", user)
+}
 ```
 
 ---

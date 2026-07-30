@@ -14,10 +14,23 @@ Covers creating a runnable sample in [examples/](../../examples/) that demonstra
 ## Workflow
 1. Create a directory inside [examples/](../../examples/) named after the operation being demonstrated (e.g. `examples/CountUsers/`).
 2. Inside it, create the sample file with the same name as the directory (e.g. `CountUsers.go`).
-3. Write a runnable `package main` program that builds deps through an adapter, injects them with `lib.New`, and exercises the feature. Store data under `testDatabase/` and comment the key parts:
+3. Write a runnable `package main` program that describes the data in a `createProps` function, builds deps through an adapter, injects them with `lib.New`, and exercises the feature. Store data under `testDatabase/` and comment the key parts:
+   ```go
+   func createProps() api.Props {
+
+       //========================User==========================
+       email := lib.NewKeyItem("email", true)
+       age := lib.NewIntItem("age", true)
+       user := lib.NewSchema("user", email, age)
+
+       //========================Props==========================
+       return lib.NewProps("testDatabase/", user)
+   }
+   ```
    ```go
    deps := standard.New()             // filesystem adapter
-   db := lib.New(deps).NewDatabase(Props)
+   props := createProps()
+   db := lib.New(deps).NewDatabase(props)
    users := db.GetSchema("user")
    ```
 4. If the sample needs setup instructions, add a `README.md` in the sample's directory.
