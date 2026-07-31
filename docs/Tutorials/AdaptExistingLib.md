@@ -5,9 +5,9 @@ Covers converting a library that already exists into this project's dependency-i
 
 ### Rules
 - Read [RULES.md](/docs/References/RULES.md) and [Structure.md](/docs/References/Structure.md) before starting.
-- Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `pkg/`, concrete implementations in `adapters/`.
+- Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `sandbox/`, concrete implementations in `adapters/`.
 - Every file of the template has one action — **Copy**, **Create**, **Rewrite**, or **Delete**. Take it from [TemplateFileActions.md](/docs/References/TemplateFileActions.md); the steps below follow that order.
-- The pre-existing package layout does **not** survive: all library logic ends up in `sandbox/internal/`, calling every OS-bound and third-party dependency through `l.deps`. Code left in its original packages, or still calling `os`/`net`/third-party APIs directly, is not adapted.
+- The pre-existing package layout does **not** survive: all library logic ends up in `sandbox/internal/` as factories, calling every OS-bound and third-party dependency through the carrier's `Deps` field. Code left in its original packages, or still calling `os`/`net`/third-party APIs directly, is not adapted.
 - Every file created or rewritten — code and `.md` alike — must follow its specification, located through [Specs.md](/docs/References/Specs.md). A file that ignores its specification is not adapted.
 - The adaptation is not complete until the final checklist in the last workflow step passes.
 
@@ -18,8 +18,8 @@ Covers converting a library that already exists into this project's dependency-i
 2. Copy every **[Copy](/docs/References/TemplateFileActions.md#copy)** file into the library unchanged — the specifications, rules, tutorials, explanations, and [sandbox/new.go](../../sandbox/new.go).
 3. Rewrite `sandbox/contracts/deps/deps.go` with the OS-bound and third-party calls the library must receive as dependencies, following [AddDependency.md](/docs/Tutorials/AddDependency.md).
 4. Rewrite `adapters/standard/standard.go` so the default adapter satisfies that contract with the library's current behavior, following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
-5. Declare every interface the library exchanges — inputs and outputs alike — in `sandbox/contracts/api/api.go`, add a constructor in `sandbox/description.go` for each input interface, then implement them under `sandbox/internal/<object>/`, following [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
-6. Rewrite the existing library code into `sandbox/internal/`: move each source file in, hang its public functions off `Lib` (or off objects it creates), and replace **every** OS-bound or third-party call with a call through `l.deps.<Field>()`, following [AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) and [AddLibObject.md](/docs/Tutorials/AddLibObject.md). Do not keep the code in its original packages or leave direct calls in place.
+5. Declare every struct the library exchanges — inputs and outputs alike — in `sandbox/contracts/api/api.go`, plain data for the ones with no behavior and a struct of function fields (leading with `Deps`) for the ones with behavior, then fill the latter with factories under `sandbox/internal/<object>/`, following [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
+6. Rewrite the existing library code into `sandbox/internal/`: move each source file in, turn its public functions into `<Field>Factory` functions assigned from the object's constructor, and replace **every** OS-bound or third-party call with a call through the carrier's `Deps.<Field>()`, following [AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) and [AddLibObject.md](/docs/Tutorials/AddLibObject.md). Do not keep the code in its original packages or leave direct calls in place.
 7. Create any additional adapter in `adapters/`, following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
 8. Create the samples in `examples/` demonstrating the converted entry points, following [AddSample.md](/docs/Tutorials/AddSample.md).
 9. Create the detail pages in `docs/References/PublicApi/` and rewrite `docs/References/PublicApi.md`, following [ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md).
@@ -33,8 +33,8 @@ Covers converting a library that already exists into this project's dependency-i
 go build ./...
 ```
 Then confirm every item below — the adaptation is only done when all pass:
-- All library logic lives in `sandbox/internal/`; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through `l.deps`.
-- `sandbox/contracts/deps/deps.go` declares one method per injected call, and **every** adapter in `adapters/` implements every method.
+- All library logic lives in `sandbox/internal/` as factories; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through the carrier's `Deps` field.
+- `sandbox/contracts/deps/deps.go` declares one function field per injected call, and **every** adapter in `adapters/` fills every field with a factory.
 - Tutorials and reference pages specific to this library exist under `docs/Tutorials/` and `docs/References/`.
 - Every created or rewritten file matches its specification from [Specs.md](/docs/References/Specs.md).
 - The `README.md` Doc Index lists every `.md` file and the Samples section lists every sample.

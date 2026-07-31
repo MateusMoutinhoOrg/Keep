@@ -10,7 +10,7 @@ Explains every operation a collection and its records support: creating, finding
 All operations start from a schema instance:
 
 ```go
-users := db.GetSchema("user")
+users, ok := db.GetSchema("user")
 ```
 
 Each runnable example below has a full version in [examples/](../../examples/).
@@ -27,7 +27,7 @@ user, err := users.NewItem(map[string]any{
 })
 ```
 
-Fails with `MissingField` if a required field is absent, `InvalidField` if a field is not in the schema or has the wrong type, and `KeyConflict` if a `Key` value is already taken. The returned record has a permanent id (`user.Id()`) that is never reused, even after deletion.
+Fails with `MissingField` if a required field is absent, `InvalidField` if a field is not in the schema or has the wrong type, and `KeyConflict` if a `Key` value is already taken. The returned record has a permanent id (`user.Id`) that is never reused, even after deletion.
 
 Full example: [examples/CreateUser](../../examples/CreateUser/CreateUser.go)
 
@@ -38,8 +38,8 @@ Full example: [examples/CreateUser](../../examples/CreateUser/CreateUser.go)
 Looks a record up by any `Key` field. Constant cost, case-insensitive.
 
 ```go
-user := users.FindByKey("email", "mateus@gmail.com")
-if user == nil {
+user, ok := users.FindByKey("email", "mateus@gmail.com")
+if !ok {
 	fmt.Println("not found")
 }
 ```
@@ -81,7 +81,7 @@ Full examples: [examples/UpdateUser](../../examples/UpdateUser/UpdateUser.go), [
 ```go
 e := user.Remove()
 if e != nil {
-	fmt.Println("error removing:", e)
+	fmt.Println("error removing:", e.Message)
 }
 ```
 
@@ -108,7 +108,7 @@ Full examples: [examples/ListAllUsers](../../examples/ListAllUsers/ListAllUsers.
 
 ## Sub-databases — `NewSubItem` and `ListAll(field)`
 
-For fields of type `api.DatabaseItem` (see [Schemas](Schemas.md)):
+For fields of type `database.Database` (see [Schemas](Schemas.md)):
 
 ```go
 session, err := user.NewSubItem("sessions", map[string]any{
@@ -129,9 +129,9 @@ Full example: [examples/SubInfos](../../examples/SubInfos/SubInfos.go)
 
 ## Other helpers
 
-- `user.Id()` — the record's permanent identifier.
+- `user.Id` — the record's permanent identifier (a plain data field, not a function).
 - `user.CheckKeysPresence([]string{"email", "age"})` — reports whether every named field has a stored value.
-- `fmt.Println(user)` — records print as `{id: 1, email: ..., username: ..., age: ...}`.
+- `user.String()` — renders the record's plain fields as `{id: 1, email: ..., username: ..., age: ...}`.
 
 ---
 

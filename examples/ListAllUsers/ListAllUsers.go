@@ -3,34 +3,41 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-func createProps() api.Props {
-
-	//========================Sessions==========================
-	token := lib.NewKeyItem("token", true)
-	creation := lib.NewIntItem("creation", true)
-	expiration := lib.NewIntItem("expiration", true)
-	sessions := lib.NewDatabaseItem("sessions", token, creation, expiration)
-
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	username := lib.NewKeyItem("username", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, username, age, sessions)
-
-	//========================Props==========================
-	return lib.NewProps("testDatabase/", user)
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "username", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{Name: "token", Type: database.Key, Required: true},
+					{Name: "creation", Type: database.Int, Required: true},
+					{Name: "expiration", Type: database.Int, Required: true},
+				},
+			},
+		},
+	},
 }
+
+var Props = database.Props{
+	Path:    "testDatabase/",
+	Schemas: Schemas,
+}
+
 func main() {
-	deps := standard.New()
-	keep := lib.New(deps)
-	props := createProps()
-	db := keep.NewDatabase(props)
-	users := db.GetSchema("user")
+	deps := keepadapter.New()
+	keep := keeplib.New(deps)
+	db := keep.NewDatabase(Props)
+	users, _ := db.GetSchema("user")
 
 	// Create 3 users before listing
 	usersToCreate := []map[string]any{
@@ -42,12 +49,12 @@ func main() {
 	for _, u := range usersToCreate {
 		_, err := users.NewItem(u)
 		if err != nil {
-			if err.Type() == api.KeyConflict {
+			if err.Type == database.KeyConflict {
 				// Already created by a previous run, keep going
 				fmt.Printf("User %v already exists, skipping\n", u["email"])
 				continue
 			}
-			fmt.Println("Error creating user before listing all:", err)
+			fmt.Println("Error creating user before listing all:", err.Message)
 			return
 		}
 	}
@@ -55,10 +62,10 @@ func main() {
 	// Iterate all records in the dense list (positions 1..size)
 	allUsers, err := users.ListAll()
 	if err != nil {
-		fmt.Println("Error listing users", err)
+		fmt.Println("Error listing users", err.Message)
 		return
 	}
 	for _, user := range allUsers {
-		fmt.Println("User:", user)
+		fmt.Println("User:", user.String())
 	}
 }

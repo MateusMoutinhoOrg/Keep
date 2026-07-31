@@ -1,29 +1,38 @@
 # `api.KeepDatabase`
 
-**Type:** Interface
+**Type:** Struct (struct of function fields)
 
 ## Definition
 
 ```go
-type KeepDatabase interface {
-	GetSchema(name string) SchemaInstance
-	Props() api.Props
+type KeepDatabase struct {
+	Deps      deps.Deps
+	Props     api.Props
+	GetSchema func(name string) (api.SchemaInstance, bool)
 }
 ```
 
 ## Description
 
-A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./api.Props.md)). Always constructed via [`Lib.NewDatabase`](./api.Lib.md#methods). The struct implementing it lives in `sandbox/internal/database/` and is unreachable from outside the sandbox.
+A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./api.Props.md), carried directly as a field). Always constructed via [`Lib.NewDatabase`](./api.Lib.md#fields). `GetSchema` is a function field filled by `GetSchemaFactory` in `sandbox/internal/database/`.
 
-## Methods
+## Fields
+
+### `Props`
+
+```go
+Props api.Props
+```
+
+The description the database was created from — read directly, no accessor method needed since `Props` is a plain data struct.
 
 ### `GetSchema`
 
 ```go
-func GetSchema(name string) api.SchemaInstance
+GetSchema func(name string) (api.SchemaInstance, bool)
 ```
 
-Returns the collection whose schema has the given name.
+Returns the collection whose schema has the given name. `ok` is `false` when no schema has that name — there is no nil form to check, because `SchemaInstance` is a struct.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
@@ -31,23 +40,16 @@ Returns the collection whose schema has the given name.
 
 | Returns | Description |
 | :--- | :--- |
-| [`api.SchemaInstance`](./api.SchemaInstance.md) | The collection, or `nil` if no schema has that name. |
-
-### `Props`
-
-```go
-func Props() api.Props
-```
-
-Returns the [`Props`](./api.Props.md) description the database was created from.
+| [`api.SchemaInstance`](./api.SchemaInstance.md) | The collection. |
+| `bool` | `false` when no schema has that name. |
 
 ## Examples
 
 ```go
-props := createProps() // see api.Props.md
+props := database.Props{Path: "myDatabase/", Schemas: schemas} // see api.Props.md
 db := keep.NewDatabase(props)
-users := db.GetSchema("user")
-if users == nil {
+users, ok := db.GetSchema("user")
+if !ok {
 	panic("schema not declared in Props")
 }
 ```

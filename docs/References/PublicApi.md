@@ -1,13 +1,13 @@
 # Public API
 
 ## Description
-Index of all public-facing components (interfaces, functions, and methods), with links to their respective detail files.
+Index of all public-facing components (structs, fields, and functions), with links to their respective detail files.
 
-The library's whole surface is **interfaces and primitives**. `sandbox/contracts/api` declares every interface and constant, and holds no struct at all; the structs implementing them live in `sandbox/internal/` and are unreachable from outside the sandbox. Because the description types are interfaces too, they are built with the constructors the `sandbox` package exports rather than composite literals.
+The library's whole surface is **structs of function fields and plain data structs, never behaviorless interfaces**. `sandbox/contracts/api` declares every type — a struct type that carries behavior leads with a `Deps` field and fills the rest as function fields, each assigned by a factory in `sandbox/internal/`; a struct type with no behavior (`Item`, `Schema`, `Props`, `Error`) is plain data. Because none of them are interfaces, every one is buildable directly with a composite literal — there is no separate constructor package. See [StructContracts.md](/docs/Explanations/StructContracts.md).
 
 ---
 
-## Interfaces
+## Structs
 
 ### [api.Lib](./PublicApi/api.Lib.md)
 The main library entry point. Obtained via `lib.New`; creates databases with the injected deps wired in.
@@ -22,23 +22,20 @@ One collection of records; the entry point for creating, finding, and listing re
 One record; reads, updates, removes, and manages sub-database records.
 
 ### [api.Props / api.Schema / api.Item](./PublicApi/api.Props.md)
-The declarative description of a database: its key prefix and its collections with typed fields.
+The declarative description of a database: its key prefix and its collections with typed fields. Plain data — build with a composite literal.
 
 ### [api.Error](./PublicApi/api.Error.md)
-The typed error returned by database operations, and `nil` on success.
+The typed failure returned by database operations, as `*api.Error` (`nil` on success). Plain data — no methods, read `Type`/`Key`/`KeyValue`/`Message` as fields.
 
 ### [deps.Deps](./PublicApi/deps.Deps.md)
-The contract of injectable storage operations every backend must implement.
+The contract of injectable storage operations every backend must fill.
 
 ---
 
 ## Functions
 
 ### [lib.New](./PublicApi/lib.New.md)
-Injects a `Deps` implementation into the library and returns the `api.Lib` entry point.
-
-### [lib.NewProps / lib.NewSchema / lib.NewKeyItem / lib.NewIntItem / lib.NewDatabaseItem](./PublicApi/api.Props.md#constructors)
-The constructors building a database description, since `Props`, `Schema`, and `Item` are interfaces.
+Injects a filled `Deps` into the library and returns the `api.Lib` entry point.
 
 ### [standard.New / standard.NewWithBase](./PublicApi/standard.New.md)
 Creates a `deps.Deps` backed by the filesystem.
@@ -48,19 +45,19 @@ Creates a `deps.Deps` backed by process memory.
 
 ---
 
-## Methods
+## Fields
 
-### [api.Lib.NewDatabase](./PublicApi/api.Lib.md#methods)
+### [api.Lib.NewDatabase](./PublicApi/api.Lib.md#fields)
 Creates a `KeepDatabase` from a `Props` description with the lib's deps wired in.
 
-### [api.KeepDatabase methods](./PublicApi/api.KeepDatabase.md#methods)
-`GetSchema` and `Props`.
+### [api.KeepDatabase fields](./PublicApi/api.KeepDatabase.md#fields)
+`Props` (plain data) and `GetSchema` (function field, `(SchemaInstance, bool)`).
 
-### [api.SchemaInstance methods](./PublicApi/api.SchemaInstance.md#methods)
+### [api.SchemaInstance fields](./PublicApi/api.SchemaInstance.md#fields)
 `NewItem`, `FindByKey`, `ListAll`, and `List`.
 
-### [api.SchemaItem methods](./PublicApi/api.SchemaItem.md#methods)
-`Id`, `Get`, `Update`, `Remove`, `ListAll`, `NewSubItem`, `CheckKeysPresence`, and `String`.
+### [api.SchemaItem fields](./PublicApi/api.SchemaItem.md#fields)
+`Id` (plain data), `Get`, `Update`, `Remove`, `ListAll`, `NewSubItem`, `CheckKeysPresence`, and `String`.
 
-### [api.Error methods](./PublicApi/api.Error.md)
-`Error`, `Type`, `Key`, and `KeyValue`.
+### [api.Error fields](./PublicApi/api.Error.md)
+`Type`, `Key`, `KeyValue`, and `Message` — plain data, no methods.

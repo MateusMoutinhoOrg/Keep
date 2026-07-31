@@ -8,14 +8,15 @@ Defines the required shape of a runnable example in `examples/<example>/<example
 - The file is named after its directory (`<example>/<example>.go`) and declares `package main` with a `main` function.
 - An example wires the two layers together: it constructs `deps.Deps` through an adapter's `New(...)` factory, then passes it to `lib.New(...)`.
 - An example may import `adapters/<name>`, `sandbox`, and `sandbox/contracts/api`; it must never reconstruct dependencies by hand — that is the adapter's job.
-- The description is built by a `createProps() api.Props` function, never a package-level `var` and never a composite literal: name each field in its own variable, build the innermost nested collection first, and pass the named values to `lib.NewSchema` / `lib.NewProps`. Separate the groups with a `//========================<Name>==========================` banner comment.
+- The description is built as package-level `Schemas` and `Props` values, using composite literals directly — `Props`, `Schema`, and `Item` are plain structs with no behavior, so no constructor call is needed.
+- Follow the project's [Import Aliases](/docs/References/RULES.md#import-aliases): `keepadapter` for the adapter, `keeplib` for `sandbox`, `database` for `sandbox/contracts/api`.
 - Keep examples minimal and runnable via `go run ./examples/<example>/<example>.go`; add explanatory comments on the key wiring steps.
 - Adding, renaming, or deleting an example requires updating the Samples section of [README.md](/README.md) — see [AddSample.md](/docs/Tutorials/AddSample.md).
 
 ## Structure
 1. **Package clause**: `package main`.
-2. **Imports**: an adapter (e.g. `adapters/standard`), `sandbox`, and `sandbox/contracts/api`.
-3. **`createProps` function**: returns the `api.Props` description, one named variable per field.
-4. **`main` function**: build deps via the adapter, inject them with `lib.New`, call `createProps()`, then exercise the library.
+2. **Imports**: an adapter (e.g. `keepadapter "adapters/standard"`), `keeplib "sandbox"`, and `database "sandbox/contracts/api"`.
+3. **`Schemas` and `Props` package-level values**: the `database.Props` description, built directly with composite literals.
+4. **`main` function**: build deps via the adapter, inject them with `keeplib.New`, then exercise the library against `Props`.
 
 > **Note**: For a concrete example, refer to [sample.go](./sample.go).

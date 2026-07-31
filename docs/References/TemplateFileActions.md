@@ -34,9 +34,8 @@ Written from scratch for the library being built or adapted. Nothing of the temp
 | `docs/References/<Name>.md` | Any reference page the new library needs beyond the public API index | [ReferenceDocs](/docs/References/Meta/ReferenceDocs/Specs.md) |
 | `docs/Tutorials/<Goal>.md` | One tutorial per workflow specific to the new library — the template tutorials carried over by **[Copy](#copy)** do **not** fulfil this | [TutorialDocs](/docs/References/Meta/TutorialDocs/Specs.md) |
 | `examples/<example>/<example>.go` | One runnable sample per demonstrated use case | [Examples](/docs/References/Meta/Examples/Specs.md) |
-| `sandbox/internal/*` | The library logic, calling every dependency through the object's `Deps` field | [LibFunctions](/docs/References/Meta/LibFunctions/Specs.md) · [LibObjects](/docs/References/Meta/LibObjects/Specs.md) |
-| `sandbox/contracts/api/api.go` | Every interface and constant the new library exchanges | [Outputs](/docs/References/Meta/Outputs/Specs.md) |
-| `sandbox/description.go` | The constructors building the new library's input interfaces | |
+| `sandbox/internal/*` | The library's factories, filling the `api` structs' function fields, calling every dependency through the carrier's `Deps` field | [LibFunctions](/docs/References/Meta/LibFunctions/Specs.md) · [LibObjects](/docs/References/Meta/LibObjects/Specs.md) |
+| `sandbox/contracts/api/api.go` | Every type and constant the new library exchanges | [Outputs](/docs/References/Meta/Outputs/Specs.md) |
 | `docs/References/Adapters.md` | The list of adapters the new library ships | [AdaptersDoc](/docs/References/Meta/AdaptersDoc/Specs.md) |
 
 ---
@@ -51,7 +50,7 @@ Kept in place, with their content replaced by the new library's. The file keeps 
 | `adapters/standard/standard.go` | The default adapter, satisfying the new `Deps` contract | [Adapters](/docs/References/Meta/Adapters/Specs.md) |
 | `docs/References/PublicApi.md` | The index of the new public API entries | [ReferenceDocs](/docs/References/Meta/ReferenceDocs/Specs.md) |
 | `docs/References/Structure.md` | The layout of the new library | [Structure](/docs/References/Meta/Structure/Specs.md) |
-| `sandbox/contracts/deps/deps.go` | The `Deps` methods the new library requires | [Deps](/docs/References/Meta/Deps/Specs.md) |
+| `sandbox/contracts/deps/deps.go` | The `Deps` function fields the new library requires | [Deps](/docs/References/Meta/Deps/Specs.md) |
 
 ---
 

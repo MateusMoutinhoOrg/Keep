@@ -10,18 +10,18 @@ func New() deps.Deps
 
 ## Description
 
-Creates a [`deps.Deps`](./deps.Deps.md) backed by process memory. Data lives only for the lifetime of the process, which makes it ideal for tests and prototypes. All operations are safe for concurrent use through an internal mutex. See [Adapters](../Adapters.md) for how it compares with the other shipped backends.
+Creates a [`deps.Deps`](./deps.Deps.md) backed by process memory. Data lives only for the lifetime of the process, which makes it ideal for tests and prototypes. All operations are safe for concurrent use through an internal mutex. It builds the adapter instance and runs every field factory over it, so each closure reads the adapter's state at call time. See [Adapters](../Adapters.md) for how it compares with the other shipped backends.
 
 ## Returns
 
 | Type | Description |
 | :--- | :--- |
-| [`deps.Deps`](./deps.Deps.md) | An implementation of the storage contract ready to be passed to [`lib.New`](./lib.New.md). |
+| [`deps.Deps`](./deps.Deps.md) | A filled storage contract ready to be passed to [`lib.New`](./lib.New.md). |
 
 ## Examples
 
 ```go
-import "github.com/MateusMoutinhoOrg/Keep/adapters/native"
+import keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/native"
 
-deps := native.New() // zero-setup database, gone when the process exits
+deps := keepadapter.New() // zero-setup database, gone when the process exits
 ```

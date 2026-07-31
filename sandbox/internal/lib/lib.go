@@ -6,17 +6,18 @@ import (
 	"github.com/MateusMoutinhoOrg/Keep/sandbox/internal/database"
 )
 
-// Lib implements api.Lib. It holds the injected Deps and propagates
-// them to every database it creates.
-type Lib struct {
-	Deps deps.Deps
+// NewDatabaseFactory fills api.Lib.NewDatabase.
+func NewDatabaseFactory(l *api.Lib) func(props api.Props) api.KeepDatabase {
+	return func(props api.Props) api.KeepDatabase {
+		return database.New(l.Deps, props)
+	}
 }
 
-// NewDatabase creates a database from a Props description, with the
-// lib's injected dependencies wired in.
-func (l *Lib) NewDatabase(props api.Props) api.KeepDatabase {
-	return &database.KeepDatabase{
-		Deps:        l.Deps,
-		Description: props,
-	}
+// New builds the api.Lib entry point, storing the injected deps on it
+// and running every lib factory over it to fill its function fields.
+// Adding a function field to api.Lib means adding its factory call here.
+func New(d deps.Deps) api.Lib {
+	l := api.Lib{Deps: d}
+	l.NewDatabase = NewDatabaseFactory(&l)
+	return l
 }

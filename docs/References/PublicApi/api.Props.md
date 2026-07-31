@@ -1,80 +1,75 @@
 # `api.Props`, `api.Schema`, `api.Item`
 
-**Type:** Interfaces (schema description)
+**Type:** Structs (plain data, no behavior)
 
 ## Definition
 
 ```go
-type Props interface {
-	Path() string
-	Schemas() []Schema
+type Props struct {
+	Path    string
+	Schemas []Schema
 }
 
-type Schema interface {
-	Name() string
-	Itens() []Item
+type Schema struct {
+	Name  string
+	Itens []Item
 }
 
-type Item interface {
-	Name() string
-	Type() int // one of KeyItem, IntItem, DatabaseItem
-	Required() bool
-	Itens() []Item // only for Type() == DatabaseItem
+type Item struct {
+	Name     string
+	Type     int // one of Key, Int, Database
+	Required bool
+	Itens    []Item // only when Type == Database
 }
 
 const (
-	KeyItem = iota
-	IntItem
-	DatabaseItem
+	Key = iota
+	Int
+	Database
 )
 ```
 
 ## Description
 
-The declarative description of a database, passed to [`Lib.NewDatabase`](./api.Lib.md#methods). `Path` is a prefix added to every stored key (a folder, with the standard adapter); each `Schema` is one collection; each `Item` is one field.
+The declarative description of a database, passed to [`Lib.NewDatabase`](./api.Lib.md#fields). `Path` is a prefix added to every stored key (a folder, with the standard adapter); each `Schema` is one collection; each `Item` is one field.
 
-They are **interfaces**, not structs, because every value crossing the library boundary must be a primitive or an interface. An interface cannot be built with a composite literal, so you build one with the constructors below. The full guide, including field types and nested sub-databases, is in [Schemas](/docs/Explanations/Schemas.md).
-
-## Constructors
-
-```go
-func NewProps(path string, schemas ...api.Schema) api.Props
-func NewSchema(name string, itens ...api.Item) api.Schema
-func NewKeyItem(name string, required bool) api.Item
-func NewIntItem(name string, required bool) api.Item
-func NewDatabaseItem(name string, itens ...api.Item) api.Item
-```
-
-All five live in the `sandbox` package, imported as `lib`.
+They are **plain structs**, not interfaces: `Item`, `Schema`, `Props`, and `Error` carry no behavior and no `Deps` field, so they are built directly with a composite literal — there is no `lib.NewSchema` / `lib.NewKeyItem` / `lib.NewProps` constructor to call (`sandbox/description.go` was removed along with them). The full guide, including field types and nested sub-databases, is in [Schemas](/docs/Explanations/Schemas.md).
 
 ## Field Types
 
-| Constructor | `Type()` | Holds | Notes |
-| :--- | :--- | :--- | :--- |
-| `lib.NewKeyItem` | `api.KeyItem` | `string` | Unique and indexed, case-insensitive; usable with `FindByKey`. |
-| `lib.NewIntItem` | `api.IntItem` | `int`, `int32`, or `int64` | Always read back as `int64`. |
-| `lib.NewDatabaseItem` | `api.DatabaseItem` | a nested collection | The field is a sub-database with its own `Itens()`. |
+| `Type` value | Holds | Notes |
+| :--- | :--- | :--- |
+| `database.Key` | `string` | Unique and indexed, case-insensitive; usable with `FindByKey`. |
+| `database.Int` | `int`, `int32`, or `int64` | Always read back as `int64`. |
+| `database.Database` | a nested collection | The field is a sub-database with its own `Itens`. |
 
 ## Examples
 
 ```go
-import lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+import database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 
-func createProps() api.Props {
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{Name: "token", Type: database.Key, Required: true},
+					{Name: "creation", Type: database.Int, Required: true},
+				},
+			},
+		},
+	},
+}
 
-	//========================Sessions==========================
-	token := lib.NewKeyItem("token", true)
-	creation := lib.NewIntItem("creation", true)
-	sessions := lib.NewDatabaseItem("sessions", token, creation)
-
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, age, sessions)
-
-	//========================Props==========================
-	return lib.NewProps("myDatabase/", user)
+var Props = database.Props{
+	Path:    "myDatabase/",
+	Schemas: Schemas,
 }
 ```
 
-Each constructor is called with its parts already named, innermost collection first — the same shape every sample in `examples/` uses.
+Every sample under `examples/` builds `Props` this way: a package-level `Schemas` value listing each collection, and a `Props` value wrapping it with the key prefix.

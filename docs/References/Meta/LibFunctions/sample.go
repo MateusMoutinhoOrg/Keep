@@ -11,8 +11,9 @@ import (
 // Count returns the number of live records in the collection. Storage is
 // reached through the deps passed in, with a single key read and no
 // listing, and it references no object type — so any object can call it
-// without creating an import cycle.
-func Count(d deps.Deps, prefix string) (int64, api.Error) {
+// without creating an import cycle. It is a plain function, not a
+// factory: dense fills no api struct's fields.
+func Count(d deps.Deps, prefix string) (int64, *api.Error) {
 	size, err := ReadCount(d, SizeKey(prefix))
 	if err != nil {
 		return 0, InternalError(err)

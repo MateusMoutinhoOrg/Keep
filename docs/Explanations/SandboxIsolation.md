@@ -31,33 +31,35 @@ A file under `sandbox/` may not import:
 | `adapters/…` | The engine would bind itself to one concrete backend, and injection would be pointless. |
 | `examples/…`, `tests/…` | Consumers of the library are never part of it. |
 | Any third-party module | A dependency the caller cannot replace is a dependency the caller cannot test around. |
-| OS-bound stdlib (`os`, `net`, `os/exec`, `syscall`, …) | The effect belongs in an adapter, reached through a `Deps` method. |
+| OS-bound stdlib (`os`, `net`, `os/exec`, `syscall`, …) | The effect belongs in an adapter, reached through a `Deps` field. |
 
-Everything the engine needs from the outside world is declared as a method on `Deps`:
+Everything the engine needs from the outside world is declared as a function field on `Deps`:
 
 ```go
 // sandbox/contracts/deps/deps.go — the only door in the wall
-type Deps interface {
-	Write(key string, value []byte) error   // instead of os.WriteFile
-	Read(key string) ([]byte, error)        // instead of os.ReadFile
-	Exists(key string) (bool, error)        // instead of os.Stat
-	Delete(key string) error                // instead of os.Remove
-	// … one method per remaining requirement
+type Deps struct {
+	Write  func(key string, value []byte) error // instead of os.WriteFile
+	Read   func(key string) ([]byte, error)      // instead of os.ReadFile
+	Exists func(key string) (bool, error)        // instead of os.Stat
+	Delete func(key string) error                // instead of os.Remove
+	// … one field per remaining requirement
 }
 ```
 
-Inside the sandbox, the same behaviors are reached only through the object's `Deps` field:
+Inside the sandbox, the same behaviors are reached only through the object's `Deps` field, from inside a factory's closure:
 
 ```go
 // sandbox/internal/schemaitem/schemaitem.go — no os, no net, no third party
-func (s *SchemaItem) CheckKeysPresence(keys []string) bool {
-	for _, key := range keys {
-		exists, err := s.Deps.Exists(dense.ValueKey(s.Prefix, s.RecordID, key))
-		if err != nil || !exists {
-			return false
+func CheckKeysPresenceFactory(s *api.SchemaItem) func(keys []string) bool {
+	return func(keys []string) bool {
+		for _, key := range keys {
+			exists, err := s.Deps.Exists(dense.ValueKey(s.Prefix, s.Id, key))
+			if err != nil || !exists {
+				return false
+			}
 		}
+		return true
 	}
-	return true
 }
 ```
 
@@ -74,8 +76,8 @@ So the outside world sees exactly three packages:
 | Package | Who imports it | For what |
 |---------|----------------|----------|
 | `sandbox` (package `lib`) | consumers, examples, tests | `lib.New(deps) api.Lib` — the single wiring point |
-| `sandbox/contracts/deps` | adapters, consumers | the contract to implement |
-| `sandbox/contracts/api` | consumers, examples, tests | every interface and constant the library exchanges |
+| `sandbox/contracts/deps` | adapters, consumers | the contract to fill |
+| `sandbox/contracts/api` | consumers, examples, tests | every type and constant the library exchanges |
 
 Everything else in `sandbox/` is unreachable, which is why `KeepDatabase`, `SchemaInstance`, `SchemaItem`, and the dense-record helpers can be renamed or restructured without breaking a single consumer.
 
@@ -88,21 +90,21 @@ Everything else in `sandbox/` is unreachable, which is why `KeepDatabase`, `Sche
 ```go
 // sandbox/new.go
 func New(d deps.Deps) api.Lib {
-	return &internallib.Lib{Deps: d}
+	return internallib.New(d)
 }
 ```
 
-It accepts an interface and returns an interface. The caller decides which implementation flows in, so the engine never learns what is behind the contract:
+It accepts a filled `deps.Deps` struct and returns the filled `api.Lib` struct. The caller decides which implementation flows in, so the engine never learns what is behind the contract:
 
 ```go
 import (
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
 )
 
 // This line is in examples/, outside the wall — the only place
 // an adapter and the sandbox meet.
-keep := lib.New(standard.New())
+keep := keeplib.New(keepadapter.New())
 ```
 
 For how the injected value then travels through the object graph, see [DepsMechanic.md](/docs/Explanations/DepsMechanic.md).

@@ -3,38 +3,45 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
 const (
 	EmailToSearch = "mateus@gmail.com"
 )
 
-func createProps() api.Props {
-
-	//========================Sessions==========================
-	token := lib.NewKeyItem("token", true)
-	creation := lib.NewIntItem("creation", true)
-	expiration := lib.NewIntItem("expiration", true)
-	sessions := lib.NewDatabaseItem("sessions", token, creation, expiration)
-
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	username := lib.NewKeyItem("username", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, username, age, sessions)
-
-	//========================Props==========================
-	return lib.NewProps("testDatabase/", user)
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "username", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{Name: "token", Type: database.Key, Required: true},
+					{Name: "creation", Type: database.Int, Required: true},
+					{Name: "expiration", Type: database.Int, Required: true},
+				},
+			},
+		},
+	},
 }
+
+var Props = database.Props{
+	Path:    "testDatabase/",
+	Schemas: Schemas,
+}
+
 func main() {
-	deps := standard.New()
-	keep := lib.New(deps)
-	props := createProps()
-	db := keep.NewDatabase(props)
-	users := db.GetSchema("user")
+	deps := keepadapter.New()
+	keep := keeplib.New(deps)
+	db := keep.NewDatabase(Props)
+	users, _ := db.GetSchema("user")
 
 	// Create user before searching (skip if it already exists from a previous run)
 	_, err := users.NewItem(map[string]any{
@@ -43,16 +50,16 @@ func main() {
 		"age":      27,
 	})
 	if err != nil {
-		if err.Type() != api.KeyConflict {
-			fmt.Println("Error creating user:", err)
+		if err.Type != database.KeyConflict {
+			fmt.Println("Error creating user:", err.Message)
 			return
 		}
 		fmt.Println("User already exists, reusing it")
 	}
 
 	// Find the user by email
-	foundUser := users.FindByKey("email", EmailToSearch)
-	if foundUser == nil {
+	foundUser, ok := users.FindByKey("email", EmailToSearch)
+	if !ok {
 		fmt.Println("User not found")
 		return
 	}
@@ -65,12 +72,12 @@ func main() {
 	for _, s := range sessionsToCreate {
 		_, errSession := foundUser.NewSubItem("sessions", s)
 		if errSession != nil {
-			if errSession.Type() == api.KeyConflict {
+			if errSession.Type == database.KeyConflict {
 				// Already created by a previous run, keep going
 				fmt.Printf("Session %v already exists, skipping\n", s["token"])
 				continue
 			}
-			fmt.Println("Error creating session:", errSession)
+			fmt.Println("Error creating session:", errSession.Message)
 			return
 		}
 	}
@@ -79,19 +86,19 @@ func main() {
 	for _, session := range sessions {
 		token, err := session.Get("token")
 		if err != nil {
-			fmt.Println("Error getting token", err)
+			fmt.Println("Error getting token", err.Message)
 			continue
 		}
 
 		creation, err := session.Get("creation")
 		if err != nil {
-			fmt.Println("Error getting creation", err)
+			fmt.Println("Error getting creation", err.Message)
 			continue
 		}
 
 		expiration, err := session.Get("expiration")
 		if err != nil {
-			fmt.Println("Error getting expiration", err)
+			fmt.Println("Error getting expiration", err.Message)
 			continue
 		}
 

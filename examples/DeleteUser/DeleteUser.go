@@ -3,38 +3,45 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
 const (
 	EmailToDelete = "mateus@gmail.com"
 )
 
-func createProps() api.Props {
-
-	//========================Sessions==========================
-	token := lib.NewKeyItem("token", true)
-	creation := lib.NewIntItem("creation", true)
-	expiration := lib.NewIntItem("expiration", true)
-	sessions := lib.NewDatabaseItem("sessions", token, creation, expiration)
-
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	username := lib.NewKeyItem("username", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, username, age, sessions)
-
-	//========================Props==========================
-	return lib.NewProps("testDatabase/", user)
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "username", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+			{
+				Name: "sessions",
+				Type: database.Database,
+				Itens: []database.Item{
+					{Name: "token", Type: database.Key, Required: true},
+					{Name: "creation", Type: database.Int, Required: true},
+					{Name: "expiration", Type: database.Int, Required: true},
+				},
+			},
+		},
+	},
 }
+
+var Props = database.Props{
+	Path:    "testDatabase/",
+	Schemas: Schemas,
+}
+
 func main() {
-	deps := standard.New()
-	keep := lib.New(deps)
-	props := createProps()
-	db := keep.NewDatabase(props)
-	users := db.GetSchema("user")
+	deps := keepadapter.New()
+	keep := keeplib.New(deps)
+	db := keep.NewDatabase(Props)
+	users, _ := db.GetSchema("user")
 
 	// Create the user first before deleting (skip if it survived a previous run)
 	_, err := users.NewItem(map[string]any{
@@ -43,24 +50,23 @@ func main() {
 		"age":      27,
 	})
 	if err != nil {
-		if err.Type() != api.KeyConflict {
-			fmt.Println("Error creating user before delete:", err)
+		if err.Type != database.KeyConflict {
+			fmt.Println("Error creating user before delete:", err.Message)
 			return
 		}
 		fmt.Println("User already exists, deleting the existing one")
 	}
 
 	// First, find the user by key
-	foundUser := users.FindByKey("email", EmailToDelete)
-	if foundUser == nil {
+	foundUser, ok := users.FindByKey("email", EmailToDelete)
+	if !ok {
 		fmt.Println("User not found")
 		return
 	}
 
 	// Then, remove the user (swap-with-last deletion)
-	errRemove := foundUser.Remove()
-	if errRemove != nil {
-		fmt.Println("Error deleting user:", errRemove)
+	if errRemove := foundUser.Remove(); errRemove != nil {
+		fmt.Println("Error deleting user:", errRemove.Message)
 		return
 	}
 	fmt.Println("User deleted successfully")

@@ -4,4 +4,4 @@
 
 - Before creating or editing any file, locate its specification in [docs/References/Specs.md](/docs/References/Specs.md). Never browse `docs/References/Meta/` looking for a spec — the index is the entry point.
 
-- [sandbox/](/sandbox/) is a closed sandbox: it may not import `adapters/`, `examples/`, `tests/`, a third-party module, or an OS-bound stdlib package. Every such effect is a `Deps` method — see [docs/Explanations/SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).
+- [sandbox/](/sandbox/) is a closed sandbox: it may not import `adapters/`, `examples/`, `tests/`, a third-party module, or an OS-bound stdlib package. Every such effect is a `Deps` function field — see [docs/Explanations/SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).

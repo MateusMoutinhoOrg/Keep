@@ -12,7 +12,7 @@ Covers publishing a library function, object, or method in the public API index 
 
 ## Workflow
 1. Open [PublicApi.md](/docs/References/PublicApi.md).
-2. Add the function, struct, or method to the section matching its kind, with a one-line description.
-3. Create the detail page under [docs/References/PublicApi/](/docs/References/PublicApi/), named `<pkg>.<Symbol>.md` (e.g., `lib.NewExampleObject.md`), following [AddDocument.md](/docs/Tutorials/AddDocument.md).
+2. Add the function, struct, or field to the section matching its kind, with a one-line description.
+3. Create the detail page under [docs/References/PublicApi/](/docs/References/PublicApi/), named `<pkg>.<Symbol>.md` (e.g., `api.SchemaInstance.md`), following [AddDocument.md](/docs/Tutorials/AddDocument.md). Document a struct's function fields under a `## Fields` section, and any plain data field directly.
 4. Link the new detail page from its entry in [PublicApi.md](/docs/References/PublicApi.md).
 5. Register the detail page in [Structure.md](/docs/References/Structure.md).

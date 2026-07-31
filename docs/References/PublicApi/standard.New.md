@@ -11,7 +11,7 @@ func NewWithBase(base string) deps.Deps
 
 ## Description
 
-Creates a [`deps.Deps`](./deps.Deps.md) backed by the filesystem: each key becomes a file (path segments split on `/`, each segment escaped so keys can contain arbitrary characters). Data survives across process restarts. See [Adapters](../Adapters.md) for how it compares with the other shipped backends.
+Creates a [`deps.Deps`](./deps.Deps.md) backed by the filesystem: each key becomes a file (path segments split on `/`, each segment escaped so keys can contain arbitrary characters). Data survives across process restarts. Each builds the adapter instance and runs every field factory over it, so each closure reads the adapter's state at call time. See [Adapters](../Adapters.md) for how it compares with the other shipped backends.
 
 `New` stores files relative to the current working directory; `NewWithBase` stores all keys under the given directory, creating it as needed.
 
@@ -25,13 +25,13 @@ Creates a [`deps.Deps`](./deps.Deps.md) backed by the filesystem: each key becom
 
 | Type | Description |
 | :--- | :--- |
-| [`deps.Deps`](./deps.Deps.md) | An implementation of the storage contract ready to be passed to [`lib.New`](./lib.New.md). |
+| [`deps.Deps`](./deps.Deps.md) | A filled storage contract ready to be passed to [`lib.New`](./lib.New.md). |
 
 ## Examples
 
 ```go
-import "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+import keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 
-deps := standard.New()               // relative to the working directory
-deps  = standard.NewWithBase("/srv") // under a specific directory
+deps := keepadapter.New()               // relative to the working directory
+deps  = keepadapter.NewWithBase("/srv") // under a specific directory
 ```

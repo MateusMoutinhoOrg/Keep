@@ -6,37 +6,40 @@ Covers describing a database — its key prefix and its collections — and open
 ### Rules
 - A database is a value, not a migration: the `Props` description is the only source of truth and is passed on every run.
 - `Path` is prefixed to every stored key, so two databases sharing a backend must not share a `Path`.
-- Fields of type `api.KeyItem` are unique and indexed case-insensitively; every collection meant to be looked up needs at least one.
+- Fields of type `database.Key` are unique and indexed case-insensitively; every collection meant to be looked up needs at least one.
 
 ---
 
 ## Workflow
-1. Write a `createProps` function returning `api.Props`, and name every field before handing it to `lib.NewSchema`. `Props`, `Schema`, and `Item` are interfaces, so they are built through these constructors rather than composite literals:
+1. Declare a package-level `Schemas` value listing every collection and its fields. `Props`, `Schema`, and `Item` are plain structs, so they are built directly with composite literals:
    ```go
-   func createProps() api.Props {
-
-       //========================User==========================
-       email := lib.NewKeyItem("email", true)
-       username := lib.NewKeyItem("username", true)
-       age := lib.NewIntItem("age", true)
-       user := lib.NewSchema("user", email, username, age)
+   var Schemas = []database.Schema{
+       {
+           Name: "user",
+           Itens: []database.Item{
+               {Name: "email", Type: database.Key, Required: true},
+               {Name: "username", Type: database.Key, Required: true},
+               {Name: "age", Type: database.Int, Required: true},
+           },
+       },
+   }
    ```
-2. Close the function by wrapping the schemas in a `api.Props` with `lib.NewProps`, choosing the prefix every key of this database is written under:
+2. Wrap the schemas in a `Props` value, choosing the prefix every key of this database is written under:
    ```go
-       //========================Props==========================
-       return lib.NewProps("myDatabase/", user)
+   var Props = database.Props{
+       Path:    "myDatabase/",
+       Schemas: Schemas,
    }
    ```
 3. Build the dependencies with an adapter and inject them into the lib, following [LibInitialization.md](/docs/Tutorials/LibInitialization.md):
    ```go
-   keep := lib.New(standard.New())
+   keep := keeplib.New(keepadapter.New())
    ```
 4. Open the database and take the collection to operate on:
    ```go
-   props := createProps()
-   db := keep.NewDatabase(props)
-   users := db.GetSchema("user")
-   if users == nil {
+   db := keep.NewDatabase(Props)
+   users, ok := db.GetSchema("user")
+   if !ok {
        panic("schema not declared in Props")
    }
    ```

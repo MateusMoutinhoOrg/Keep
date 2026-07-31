@@ -5,7 +5,7 @@ Covers using this repository as a GitHub template to start a **new** dependency-
 
 ### Rules
 - Read [RULES.md](/docs/References/RULES.md) and [Structure.md](/docs/References/Structure.md) before starting.
-- Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `pkg/`, concrete implementations in `adapters/`.
+- Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `sandbox/`, concrete implementations in `adapters/`.
 - Every file of the template has one action — **Copy**, **Create**, **Rewrite**, or **Delete**. Take it from [TemplateFileActions.md](/docs/References/TemplateFileActions.md); the steps below follow that order.
 - Every file created or rewritten — code and `.md` alike — must follow its specification, located through [Specs.md](/docs/References/Specs.md).
 - The fork is not complete until the final checklist in the last workflow step passes.
@@ -18,8 +18,8 @@ Covers using this repository as a GitHub template to start a **new** dependency-
 3. Leave every **[Copy](/docs/References/TemplateFileActions.md#copy)** file untouched — they describe the structure, not the library.
 4. Rewrite [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go) with the dependencies the new library requires, following [AddDependency.md](/docs/Tutorials/AddDependency.md).
 5. Rewrite [adapters/standard/standard.go](../../adapters/standard/standard.go) so the default adapter satisfies the new contract, following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
-6. Declare every interface the new library exchanges — inputs and outputs alike — in [sandbox/contracts/api/api.go](../../sandbox/contracts/api/api.go), add a constructor in [sandbox/description.go](../../sandbox/description.go) for each input interface, then implement them under `sandbox/internal/<object>/`, following [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
-7. Create the new library logic in [sandbox/internal/](../../sandbox/internal/), following [AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) and [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
+6. Declare every struct the new library exchanges — inputs and outputs alike — in [sandbox/contracts/api/api.go](../../sandbox/contracts/api/api.go), plain data for the ones with no behavior and a struct of function fields (leading with `Deps`) for the ones with behavior, then fill the latter with factories under `sandbox/internal/<object>/`, following [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
+7. Create the new library logic as factories in [sandbox/internal/](../../sandbox/internal/), following [AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) and [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
 8. Create any additional adapter in [adapters/](../../adapters/), following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
 9. Create the new samples in [examples/](../../examples/), following [AddSample.md](/docs/Tutorials/AddSample.md).
 10. Create the new detail pages in [docs/References/PublicApi/](/docs/References/PublicApi/) and rewrite [PublicApi.md](/docs/References/PublicApi.md), following [ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md).
@@ -33,8 +33,8 @@ Covers using this repository as a GitHub template to start a **new** dependency-
 go build ./...
 ```
 Then confirm every item below — the fork is only done when all pass:
-- All library logic lives in `sandbox/internal/`; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through `l.deps`.
-- `sandbox/contracts/deps/deps.go` declares one method per injected call, and **every** adapter in `adapters/` implements every method.
+- All library logic lives in `sandbox/internal/` as factories; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through the carrier's `Deps` field.
+- `sandbox/contracts/deps/deps.go` declares one function field per injected call, and **every** adapter in `adapters/` fills every field with a factory.
 - Tutorials and reference pages specific to this library exist under `docs/Tutorials/` and `docs/References/`.
 - Every created or rewritten file matches its specification from [Specs.md](/docs/References/Specs.md).
 - The `README.md` Doc Index lists every `.md` file and the Samples section lists every sample.

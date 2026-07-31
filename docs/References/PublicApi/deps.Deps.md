@@ -1,42 +1,39 @@
 # `deps.Deps`
 
-**Type:** Interface
+**Type:** Struct (struct of function fields)
 
 ## Definition
 
 ```go
-type Deps interface {
-	Write(key string, value []byte) error
-	WriteIfKeyNotExists(key string, value []byte) error
-	WriteIfValueEquals(key string, value []byte, oldValue []byte) error
-	Append(key string, value []byte) error
-	InsertAt(key string, position int64, value []byte) error
-	Exists(key string) (bool, error)
-	Read(key string) ([]byte, error)
-	ReadAt(key string, position int64, size int64) ([]byte, error)
-	Delete(key string) error
-	Lock(key string, time int) error
-	UnLock(key string) error
+type Deps struct {
+	Write               func(key string, value []byte) error
+	WriteIfKeyNotExists func(key string, value []byte) error
+	WriteIfValueEquals  func(key string, value []byte, oldValue []byte) error
+	Append              func(key string, value []byte) error
+	InsertAt            func(key string, position int64, value []byte) error
+	Exists              func(key string) (bool, error)
+	Read                func(key string) ([]byte, error)
+	ReadAt              func(key string, position int64, size int64) ([]byte, error)
+	Delete              func(key string) error
+	Lock                func(key string, time int) error
+	UnLock              func(key string) error
 }
 ```
 
 ## Description
 
-The contract every storage backend must satisfy. The library performs all storage access through these methods and never touches storage directly — that is what keeps the engine inside its [closed sandbox](/docs/Explanations/SandboxIsolation.md). The behavior each method must honor — including the sentinel errors `ErrKeyNotFound`, `ErrKeyAlreadyExists`, `ErrValueMismatch`, and `ErrKeyLocked` — is specified in [Required API](../RequiredApi.md).
+The contract every storage backend must satisfy. It is a struct of function fields, not an interface: an adapter fills every field with the behavior it provides, and the library calls those fields directly. The library performs all storage access through them and never touches storage itself — that is what keeps the engine inside its [closed sandbox](/docs/Explanations/SandboxIsolation.md). The behavior each field must honor — including the sentinel errors `ErrKeyNotFound`, `ErrKeyAlreadyExists`, `ErrValueMismatch`, and `ErrKeyLocked` — is specified in [Required API](../RequiredApi.md).
 
-Obtain an implementation from an adapter ([`standard.New`](./standard.New.md), [`native.New`](./native.New.md)) — the shipped ones are listed in [Adapters](../Adapters.md) — or write your own. Since `Deps` is an interface, individual behaviors are overridden by **embedding** an existing implementation and shadowing the methods you want to change (see [Dependency Mechanic](/docs/Explanations/DepsMechanic.md)).
+Obtain a filled `Deps` from an adapter ([`standard.New`](./standard.New.md), [`native.New`](./native.New.md)) — the shipped ones are listed in [Adapters](../Adapters.md) — or write your own. Since `Deps` is a struct, overriding one behavior is a plain field assignment rather than an embedding trick (see [DepsMechanic.md](/docs/Explanations/DepsMechanic.md)).
 
 ## Examples
 
 ```go
-// Embed an adapter and shadow one method to change its behavior.
-type readOnly struct {
-	deps.Deps // every other method is inherited
-}
-
-func (readOnly) Delete(key string) error {
+// Take an adapter's Deps and override one field.
+myDeps := standard.New()
+myDeps.Delete = func(key string) error {
 	return fmt.Errorf("deletes are disabled")
 }
 
-keep := lib.New(readOnly{Deps: standard.New()})
+keep := keeplib.New(myDeps)
 ```

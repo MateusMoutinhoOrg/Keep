@@ -14,24 +14,28 @@ Covers creating a runnable sample in [examples/](../../examples/) that demonstra
 ## Workflow
 1. Create a directory inside [examples/](../../examples/) named after the operation being demonstrated (e.g. `examples/CountUsers/`).
 2. Inside it, create the sample file with the same name as the directory (e.g. `CountUsers.go`).
-3. Write a runnable `package main` program that describes the data in a `createProps` function, builds deps through an adapter, injects them with `lib.New`, and exercises the feature. Store data under `testDatabase/` and comment the key parts:
+3. Write a runnable `package main` program that describes the data as package-level `Schemas` and `Props` values, builds deps through an adapter, injects them with `lib.New`, and exercises the feature. Store data under `testDatabase/`:
    ```go
-   func createProps() api.Props {
+   var Schemas = []database.Schema{
+       {
+           Name: "user",
+           Itens: []database.Item{
+               {Name: "email", Type: database.Key, Required: true},
+               {Name: "age", Type: database.Int, Required: true},
+           },
+       },
+   }
 
-       //========================User==========================
-       email := lib.NewKeyItem("email", true)
-       age := lib.NewIntItem("age", true)
-       user := lib.NewSchema("user", email, age)
-
-       //========================Props==========================
-       return lib.NewProps("testDatabase/", user)
+   var Props = database.Props{
+       Path:    "testDatabase/",
+       Schemas: Schemas,
    }
    ```
    ```go
-   deps := standard.New()             // filesystem adapter
-   props := createProps()
-   db := lib.New(deps).NewDatabase(props)
-   users := db.GetSchema("user")
+   deps := keepadapter.New()             // filesystem adapter
+   keep := keeplib.New(deps)
+   db := keep.NewDatabase(Props)
+   users, _ := db.GetSchema("user")
    ```
 4. If the sample needs setup instructions, add a `README.md` in the sample's directory.
 5. Add the sample to the Samples section of the [README.md](/README.md).

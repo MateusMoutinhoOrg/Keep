@@ -6,15 +6,14 @@ Covers adding a field to a collection that already holds records, without breaki
 ### Rules
 - Records are stored field by field, so old records simply have no value for the new field — reading it returns a `NotFound` [Error](/docs/References/Errors.md), never a corrupted record.
 - Marking a new field `Required: true` only affects `NewItem` calls made after the change; it never rewrites existing records.
-- Adding a `api.KeyItem` field to a collection with existing records leaves those records unindexed for it — they will not be found by `FindByKey` until the value is written.
+- Adding a `database.Key` field to a collection with existing records leaves those records unindexed for it — they will not be found by `FindByKey` until the value is written.
 
 ---
 
 ## Workflow
-1. Name the new `api.Item` in the `createProps` function every program touching this database shares, and pass it to the collection's `lib.NewSchema` call:
+1. Add the new `database.Item` to the collection's `Itens` in the `Schemas` value every program touching this database shares:
    ```go
-   nickname := lib.NewKeyItem("nickname", false)
-   user := lib.NewSchema("user", email, age, nickname)
+   {Name: "nickname", Type: database.Key, Required: false}
    ```
 2. Decide how old records get the value:
    - leave it absent and treat `NotFound` as "not set", or
@@ -36,7 +35,7 @@ Covers adding a field to a collection that already holds records, without breaki
 3. Handle the field's absence wherever it is read, following [Errors.md](/docs/References/Errors.md):
    ```go
    nickname, e := user.Get("nickname")
-   if e != nil && e.Type() == api.NotFound {
+   if e != nil && e.Type == database.NotFound {
        nickname = ""
    }
    ```

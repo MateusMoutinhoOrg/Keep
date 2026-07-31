@@ -1,28 +1,31 @@
 # `api.Lib`
 
-**Type:** Interface
+**Type:** Struct (struct of function fields)
 
 ## Definition
 
 ```go
-type Lib interface {
-	NewDatabase(props api.Props) KeepDatabase
+type Lib struct {
+	Deps        deps.Deps
+	NewDatabase func(props api.Props) api.KeepDatabase
 }
 ```
 
 ## Description
 
-The library entry point, handed back by [`lib.New`](./lib.New.md). It holds the injected dependency adapter and creates databases with it wired in. The struct implementing it lives in `sandbox/internal/lib/` and is unreachable from outside the sandbox — callers only ever see this interface.
+The library entry point, handed back by [`lib.New`](./lib.New.md). It carries the injected `Deps` and one function field, `NewDatabase`, filled by a factory in `sandbox/internal/lib/` (`NewDatabaseFactory`). Consumers never build it directly — `lib.New` is the only constructor.
 
-## Methods
+Because it is a struct of function fields rather than an interface, replacing its behavior for a test is a plain field assignment (`l.NewDatabase = func(...) api.KeepDatabase { ... }`) rather than a wrapper type. See [StructContracts.md](/docs/Explanations/StructContracts.md).
+
+## Fields
 
 ### `NewDatabase`
 
 ```go
-func NewDatabase(props api.Props) api.KeepDatabase
+NewDatabase func(props api.Props) api.KeepDatabase
 ```
 
-Creates a [`KeepDatabase`](./api.KeepDatabase.md) from a [`Props`](./api.Props.md) description, with the lib's deps wired in.
+Creates a [`KeepDatabase`](./api.KeepDatabase.md) from a [`Props`](./api.Props.md) description, with the lib's `Deps` propagated into it.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
@@ -36,11 +39,12 @@ Creates a [`KeepDatabase`](./api.KeepDatabase.md) from a [`Props`](./api.Props.m
 
 ```go
 import (
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-keep := lib.New(standard.New())
-props := createProps() // see api.Props.md
+keep := keeplib.New(keepadapter.New())
+props := database.Props{Path: "myDatabase/", Schemas: schemas} // see api.Props.md
 db := keep.NewDatabase(props)
 ```

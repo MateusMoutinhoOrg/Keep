@@ -1,13 +1,13 @@
 # Required API
 
 ## Description
-Lists the operations a storage backend must provide to power Keep — one per method of the `Deps` interface in [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go). See [DepsMechanic.md](/docs/Explanations/DepsMechanic.md) for how to plug an implementation in.
+Lists the operations a storage backend must provide to power Keep — one per function field of the `Deps` struct in [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go). Each field is filled by a factory in the adapter's `New` constructor — see [DepsMechanic.md](/docs/Explanations/DepsMechanic.md) for how to plug an implementation in.
 
 ---
 
 ## Sentinel errors
 
-Every method returns an `error` (`nil` on success). Where a specific condition is expected, return the matching sentinel from `sandbox/contracts/deps`, wrapped so `errors.Is` matches:
+Every field's closure returns an `error` (`nil` on success). Where a specific condition is expected, return the matching sentinel from `sandbox/contracts/deps`, wrapped so `errors.Is` matches:
 
 | Sentinel | When |
 |---|---|
@@ -18,7 +18,7 @@ Every method returns an `error` (`nil` on success). Where a specific condition i
 
 ---
 
-## Functions
+## Fields
 
 ### `Write(key string, value []byte) error`
 Store `value` under `key`, overwriting any existing value.

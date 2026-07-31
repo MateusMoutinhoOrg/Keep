@@ -11,9 +11,9 @@ A storage-independent database built on top of plain key-value operations.
 
 ## Overview
 
-Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small interface.
+Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small struct.
 
-It uses a **Dependency Injection** pattern built around a closed sandbox:
+It uses a **Dependency Injection** pattern built around a closed sandbox, wired entirely through **structs of function fields** rather than interfaces — see [StructContracts.md](/docs/Explanations/StructContracts.md):
 
 ```
 adapters/  ──▶  sandbox/  ◀──  examples/ , tests/
@@ -21,13 +21,13 @@ adapters/  ──▶  sandbox/  ◀──  examples/ , tests/
 ```
 
 - **`/sandbox/`** is the database engine, and it is **closed**: it may not import an adapter, a third-party module, or any OS-bound stdlib package. Every effect arrives through the injected `Deps` — see [SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).
-- **`/sandbox/contracts/deps/`** defines the `Deps` interface that all adapters must implement.
-- **`/sandbox/contracts/api/`** defines every interface and constant the library exchanges — **interfaces only**, so nothing crossing the boundary is ever a struct of the library.
+- **`/sandbox/contracts/deps/`** defines the `Deps` struct of function fields that all adapters must fill.
+- **`/sandbox/contracts/api/`** declares every type the library exchanges — structs only, never interfaces, so nothing crossing the boundary is ever hidden behind a method set.
 - **`/adapters/`** sits outside the sandbox and holds the opinionated, concrete backends — the only place OS-bound code is allowed.
 
 What you get on top of that:
 
-- **Storage independent** — bring your own backend by implementing a small interface, or use the built-in ones ([filesystem](adapters/standard/), [in-memory](adapters/native/)).
+- **Storage independent** — bring your own backend by filling a small struct of function fields, or use the built-in ones ([filesystem](adapters/standard/), [in-memory](adapters/native/)).
 - **Constant-time operations** — create, lookup by key, and delete each touch a fixed number of keys, no matter how many records exist.
 - **Unique keys** — fields of type `Key` are indexed and enforced unique (case-insensitive).
 - **Nested collections** — a record can own sub-databases (e.g. a user owning its sessions).
@@ -50,34 +50,37 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-func createProps() api.Props {
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "username", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+		},
+	},
+}
 
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	username := lib.NewKeyItem("username", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, username, age)
-
-	//========================Props==========================
-	return lib.NewProps("myDatabase/", user)
+var Props = database.Props{
+	Path:    "myDatabase/",
+	Schemas: Schemas,
 }
 
 func main() {
 	// 1. Create deps via an adapter (the "opinionated" part)
-	deps := standard.New() // filesystem backend
+	deps := keepadapter.New() // filesystem backend
 
 	// 2. Inject deps into the closed sandbox
-	keep := lib.New(deps)
+	keep := keeplib.New(deps)
 
 	// 3. Use the library — it never knows which adapter is behind the scenes
-	props := createProps()
-	db := keep.NewDatabase(props)
-	users := db.GetSchema("user")
+	db := keep.NewDatabase(Props)
+	users, _ := db.GetSchema("user")
 
 	created, err := users.NewItem(map[string]any{
 		"email":    "mateus@gmail.com",
@@ -85,13 +88,15 @@ func main() {
 		"age":      27,
 	})
 	if err != nil {
-		fmt.Println("error creating user:", err)
+		fmt.Println("error creating user:", err.Message)
 		return
 	}
-	fmt.Println("created:", created)
+	fmt.Println("created:", created.String())
 
-	found := users.FindByKey("email", "mateus@gmail.com")
-	fmt.Println("found:", found)
+	found, ok := users.FindByKey("email", "mateus@gmail.com")
+	if ok {
+		fmt.Println("found:", found.String())
+	}
 }
 ```
 
@@ -121,9 +126,9 @@ go run main.go
 | <a id="reference-structure"></a>[Structure.md](/docs/References/Structure.md) | **Reference** — The project's directory layout and the purpose of each component. |
 | <a id="reference-rules"></a>[RULES.md](/docs/References/RULES.md) | **Reference** — The binding contribution rules and their required companion updates. |
 | <a id="reference-specs"></a>[Specs.md](/docs/References/Specs.md) | **Reference** — Lists every specification and the files each one governs. |
-| <a id="reference-public-api"></a>[PublicApi.md](/docs/References/PublicApi.md) | **Reference** — Index of all public interfaces, functions, and methods with detail links. |
+| <a id="reference-public-api"></a>[PublicApi.md](/docs/References/PublicApi.md) | **Reference** — Index of all public structs, fields, and functions with detail links. |
 | <a id="reference-adapters"></a>[Adapters.md](/docs/References/Adapters.md) | **Reference** — Every shipped storage backend and when to use each one. |
-| <a id="reference-required-api"></a>[RequiredApi.md](/docs/References/RequiredApi.md) | **Reference** — The contract each `Deps` method must honor to power the library. |
+| <a id="reference-required-api"></a>[RequiredApi.md](/docs/References/RequiredApi.md) | **Reference** — The contract each `Deps` field must honor to power the library. |
 | <a id="reference-errors"></a>[Errors.md](/docs/References/Errors.md) | **Reference** — The error types returned by operations and how to react to them. |
 | <a id="reference-template-file-actions"></a>[TemplateFileActions.md](/docs/References/TemplateFileActions.md) | **Reference** — The action each file takes when forking or adapting: copy, create, rewrite, delete. |
 
@@ -136,6 +141,7 @@ go run main.go
 | Name | Description |
 |:-|:-|
 | <a id="explanation-sandbox-isolation"></a>[SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md) | **Explanation** — Why the engine lives in a closed sandbox and what the wall forbids. |
+| <a id="explanation-struct-contracts"></a>[StructContracts.md](/docs/Explanations/StructContracts.md) | **Explanation** — Why every contract is a struct of function fields filled by factories, not an interface. |
 | <a id="explanation-deps-mechanic"></a>[DepsMechanic.md](/docs/Explanations/DepsMechanic.md) | **Explanation** — Choosing a backend, overriding deps, or writing your own. |
 | <a id="explanation-schemas"></a>[Schemas.md](/docs/Explanations/Schemas.md) | **Explanation** — Defining collections, field types, and nested sub-databases. |
 | <a id="explanation-records"></a>[Records.md](/docs/Explanations/Records.md) | **Explanation** — Creating, finding, reading, updating, deleting, and listing records. |
@@ -166,10 +172,10 @@ go run main.go
 
 | Name | Description |
 |:-|:-|
-| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function to sandbox/internal/ and wire it to the injected deps. |
+| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function field to an object in sandbox/internal/ via a factory. |
 | <a id="tutorial-add-lib-object"></a>[AddLibObject.md](/docs/Tutorials/AddLibObject.md) | **Tutorial** — Add an object created by the lib, with its deps wired in by the constructor. |
 | <a id="tutorial-add-database-operation"></a>[AddDatabaseOperation.md](/docs/Tutorials/AddDatabaseOperation.md) | **Tutorial** — Add an engine operation without breaking the dense key layout. |
-| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a method to the Deps contract and implement it in every adapter. |
+| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a field to the Deps contract and fill it in every adapter. |
 | <a id="tutorial-add-adapter"></a>[AddAdapter.md](/docs/Tutorials/AddAdapter.md) | **Tutorial** — Create a new opinionated storage backend for the Deps contract. |
 | <a id="tutorial-add-sample"></a>[AddSample.md](/docs/Tutorials/AddSample.md) | **Tutorial** — Create a runnable sample in examples/ and register it in the README. |
 
@@ -180,7 +186,7 @@ go run main.go
 | <a id="tutorial-add-document"></a>[AddDocument.md](/docs/Tutorials/AddDocument.md) | **Tutorial** — Create or update a .md file and register it in README and Structure. |
 | <a id="tutorial-rename-document"></a>[RenameDocument.md](/docs/Tutorials/RenameDocument.md) | **Tutorial** — Rename or move a .md file without leaving broken references behind. |
 | <a id="tutorial-delete-document"></a>[DeleteDocument.md](/docs/Tutorials/DeleteDocument.md) | **Tutorial** — Remove a .md file and clear every reference pointing to it. |
-| <a id="tutorial-expose-public-api"></a>[ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md) | **Tutorial** — Publish a lib function, object, or method in the public API index. |
+| <a id="tutorial-expose-public-api"></a>[ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md) | **Tutorial** — Publish a lib function, object, or field in the public API index. |
 
 #### Templating
 

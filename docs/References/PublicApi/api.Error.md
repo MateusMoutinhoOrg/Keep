@@ -1,15 +1,15 @@
 # `api.Error`
 
-**Type:** Interface
+**Type:** Struct (plain data, no behavior)
 
 ## Definition
 
 ```go
-type Error interface {
-	error          // Error() string
-	Type() int     // the cause
-	Key() string   // the field involved
-	KeyValue() any // the value involved, when relevant
+type Error struct {
+	Type     int    // the cause
+	Key      string // the field involved
+	KeyValue any    // the value involved, when relevant
+	Message  string // human-readable description
 }
 
 const (
@@ -23,9 +23,9 @@ const (
 
 ## Description
 
-The typed error returned by database operations, and `nil` when the operation succeeded. Switch on `Type()` to react to each failure; the full guide is [Error Handling](../Errors.md).
+The typed failure returned by database operations, as `*api.Error` — `nil` when the operation succeeded. Switch on `Type` to react to each failure; the full guide is [Error Handling](../Errors.md).
 
-It is an **interface**, not a struct, because every value crossing the library boundary must be a primitive or an interface. It embeds the standard `error`, so it can be returned, printed, and compared as one.
+It is a **plain struct**, not an interface: `Error` carries no behavior, so callers read `Type`, `Key`, `KeyValue`, and `Message` as fields rather than calling methods, and there is no `Error() string` method. `*Error` stays a pointer so `if err != nil` still works as the success/failure check.
 
 ## Error Types
 
@@ -40,17 +40,17 @@ It is an **interface**, not a struct, because every value crossing the library b
 ## Examples
 
 ```go
-import "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+import database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 
 created, err := users.NewItem(fields)
 if err != nil {
-	switch err.Type() {
-	case api.KeyConflict:
-		fmt.Printf("%q %v is already taken\n", err.Key(), err.KeyValue())
-	case api.MissingField:
-		fmt.Printf("field %q is required\n", err.Key())
+	switch err.Type {
+	case database.KeyConflict:
+		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
+	case database.MissingField:
+		fmt.Printf("field %q is required\n", err.Key)
 	default:
-		fmt.Println("unexpected error:", err)
+		fmt.Println("unexpected error:", err.Message)
 	}
 }
 ```

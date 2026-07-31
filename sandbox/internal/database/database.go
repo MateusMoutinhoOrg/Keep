@@ -6,28 +6,25 @@ import (
 	"github.com/MateusMoutinhoOrg/Keep/sandbox/internal/schemainstance"
 )
 
-// KeepDatabase implements api.KeepDatabase. It holds the Props it was
-// described with and the injected Deps, propagating both to every
-// collection it hands back.
-type KeepDatabase struct {
-	Deps        deps.Deps
-	Description api.Props
-}
-
-// Props returns the description the database was created from.
-func (d *KeepDatabase) Props() api.Props { return d.Description }
-
-// GetSchema returns the collection with the given name, or nil when no
-// schema of the database has that name.
-func (d *KeepDatabase) GetSchema(name string) api.SchemaInstance {
-	for _, schema := range d.Description.Schemas() {
-		if schema.Name() == name {
-			return &schemainstance.SchemaInstance{
-				Deps:   d.Deps,
-				Items:  schema.Itens(),
-				Prefix: d.Description.Path() + schema.Name(),
+// GetSchemaFactory fills api.KeepDatabase.GetSchema. ok is false when no
+// schema of the database has the given name.
+func GetSchemaFactory(kd *api.KeepDatabase) func(name string) (api.SchemaInstance, bool) {
+	return func(name string) (api.SchemaInstance, bool) {
+		for _, schema := range kd.Props.Schemas {
+			if schema.Name == name {
+				return schemainstance.New(kd.Deps, schema.Itens, kd.Props.Path+schema.Name), true
 			}
 		}
+		return api.SchemaInstance{}, false
 	}
-	return nil
+}
+
+// New builds an api.KeepDatabase, storing the injected Deps and the
+// Props it was described with, and runs every factory over it to fill
+// its function fields. Adding a function field to api.KeepDatabase
+// means adding its factory call here.
+func New(d deps.Deps, props api.Props) api.KeepDatabase {
+	kd := api.KeepDatabase{Deps: d, Props: props}
+	kd.GetSchema = GetSchemaFactory(&kd)
+	return kd
 }

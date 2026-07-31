@@ -32,48 +32,46 @@ The closed sandbox — the whole database engine. It holds its own entry point, 
 | File | Description | Spec |
 |------|-------------|------|
 | `new.go` | The `New` constructor wiring `Deps` into the internal `Lib` | |
-| `description.go` | The `NewProps`, `NewSchema`, `NewKeyItem`, `NewIntItem`, and `NewDatabaseItem` constructors callers build a description with | |
 
 ### `/sandbox/contracts/`
-The interfaces the rest of the project is wired through — the only part of the sandbox anything outside it may import. Contracts import nothing from `adapters/` or `sandbox/internal/`.
+The struct contracts the rest of the project is wired through — the only part of the sandbox anything outside it may import. Contracts import nothing from `adapters/` or `sandbox/internal/`.
 
 #### `/sandbox/contracts/deps/`
-The contract every adapter must satisfy. Its behavioral requirements are spelled out in [RequiredApi.md](/docs/References/RequiredApi.md).
+The contract every adapter must fill. Its behavioral requirements are spelled out in [RequiredApi.md](/docs/References/RequiredApi.md).
 
 | File | Description | Spec |
 |------|-------------|------|
-| `deps.go` | The `Deps` interface, one method per injectable behavior, plus the sentinel errors adapters must return | Deps |
+| `deps.go` | The `Deps` struct, one function field per injectable behavior, plus the sentinel errors adapters must return | Deps |
 
 #### `/sandbox/contracts/api/`
-The library's whole public surface. **Interfaces and constants only** — a struct here is a specification violation, because every value crossing the boundary must be a primitive or an interface. It depends on no other package of the project, so it sits at the bottom of the dependency graph.
+The library's whole public surface. **Every type in the project is declared here** — never in `sandbox/internal/`. A struct that carries behavior (`Lib`, `KeepDatabase`, `SchemaInstance`, `SchemaItem`) leads with a `Deps` field and fills the rest as function fields, each assigned by a factory in `sandbox/internal/`; a struct with no behavior (`Props`, `Schema`, `Item`, `Error`) is plain data, buildable with a composite literal. It depends only on `sandbox/contracts/deps`, so it sits near the bottom of the dependency graph.
 
 | File | Description | Spec |
 |------|-------------|------|
 | `api.go` | The objects handed back (`Lib`, `KeepDatabase`, `SchemaInstance`, `SchemaItem`), the description passed in (`Props`, `Schema`, `Item`), `Error`, and the field-type and failure-cause constants | Outputs |
 
 ### `/sandbox/internal/`
-The concrete structs implementing the [`api`](#sandboxcontractsapi) interfaces. Go's `internal/` rule makes it unreachable from outside `sandbox/`, so neither consumers nor `adapters/` can reach in — the sandbox wall is enforced by the compiler, not by convention alone.
+The factories filling the [`api`](#sandboxcontractsapi) structs' function fields. `sandbox/internal/` declares no types at all — only `<Field>Factory` functions and the constructors that run them. Go's `internal/` rule makes it unreachable from outside `sandbox/`, so neither consumers nor `adapters/` can reach in — the sandbox wall is enforced by the compiler, not by convention alone.
 
 #### `/sandbox/internal/lib/`
-The entry-point implementation. The `internal/` parent already marks it private, so the package carries no `internal_` prefix.
+The entry-point factories. The `internal/` parent already marks it private, so the package carries no `internal_` prefix.
 
 | File | Description | Spec |
 |------|-------------|------|
-| `lib.go` | `Lib`: holds `Deps` and constructs the databases the lib hands back | LibFunctions |
+| `lib.go` | `NewDatabaseFactory` plus `New`, the factory aggregate building `api.Lib` and running every factory over it | LibFunctions |
 
 #### `/sandbox/internal/<object>/`
-One package per object the library creates, named after the object itself. Each struct carries the propagated `Deps`.
+One package per object the library creates, named after the object itself. Each factory closes over the `api` struct being built, reading its `Deps` field at call time.
 
 | File | Description | Spec |
 |------|-------------|------|
-| `database/database.go` | `KeepDatabase`: holds the `Props` description and resolves collections through `GetSchema` | LibObjects |
-| `schemainstance/schemainstance.go` | `SchemaInstance`: collection-level operations (`NewItem`, `FindByKey`, `ListAll`, `List`) | LibObjects |
-| `schemaitem/schemaitem.go` | `SchemaItem`: record-level operations (`Get`, `Update`, `Remove`, sub-database methods) and the record constructors the other packages call | LibObjects |
-| `description/description.go` | The structs backing `api.Props`, `api.Schema`, and `api.Item`, built through the constructors in `sandbox/description.go` | LibObjects |
-| `liberror/liberror.go` | The struct backing `api.Error`; named `liberror` so it does not shadow the predeclared `error` type | LibObjects |
+| `database/database.go` | Factories for `api.KeepDatabase` (`GetSchemaFactory`) plus `New`, resolving collections through `GetSchema` | LibObjects |
+| `schemainstance/schemainstance.go` | Factories for `api.SchemaInstance` (`NewItemFactory`, `FindByKeyFactory`, `ListAllFactory`, `ListFactory`) plus `New` | LibObjects |
+| `schemaitem/schemaitem.go` | Factories for `api.SchemaItem` (`GetFactory`, `UpdateFactory`, `RemoveFactory`, sub-database factories) plus the record constructors (`New`, `ResolveLive`, `ListRange`, `ClearCollection`) the other packages call | LibObjects |
+| `liberror/liberror.go` | Plain builders for `*api.Error` (`New`, `NewWithValue`) — not factories, since `Error` carries no `Deps` field and nothing to fill after construction | LibObjects |
 
 #### `/sandbox/internal/dense/`
-The shared engine helpers every object is built on — not an object itself, so it implements no `api` interface.
+The shared engine helpers every object is built on — not an object itself, so it fills no `api` struct's fields.
 
 | File | Description | Spec |
 |------|-------------|------|
@@ -89,7 +87,7 @@ One directory per backend, packaged under its own name. `standard` (filesystem) 
 
 | File | Description | Spec |
 |------|-------------|------|
-| `<name>.go` | A struct implementing every `Deps` method, exposed by a `New(...) deps.Deps` factory | Adapters |
+| `<name>.go` | A struct filling every `Deps` field via factories, exposed by a `New(...) deps.Deps` factory aggregate | Adapters |
 
 ---
 
@@ -134,9 +132,9 @@ Listable material — structures, rules, specifications, and the public API.
 | `RULES.md` | The binding contribution rules and their required companion updates | Rules |
 | `Structure.md` | The project's schema and the purpose of each component | Structure |
 | `Specs.md` | Index of every specification and the files each one governs | |
-| `PublicApi.md` | Index of the public interfaces, functions, and methods, with links to their detail pages | ReferenceDocs |
+| `PublicApi.md` | Index of the public structs, fields, and functions, with links to their detail pages | ReferenceDocs |
 | `Adapters.md` | Lists every shipped adapter and when to use each one | AdaptersDoc |
-| `RequiredApi.md` | The contract each `Deps` method must honor | ReferenceDocs |
+| `RequiredApi.md` | The contract each `Deps` field must honor | ReferenceDocs |
 | `Errors.md` | The error types returned by database operations and how to react to them | ReferenceDocs |
 | `TemplateFileActions.md` | The action each file takes when the structure is reused for another library | ReferenceDocs |
 
@@ -153,7 +151,7 @@ One detail page per public API entry.
 
 | File | Description | Spec |
 |------|-------------|------|
-| `<pkg>.<Symbol>.md` | The methods, fields, and usage of one public entry | ReferenceDocs |
+| `<pkg>.<Symbol>.md` | The fields and usage of one public entry | ReferenceDocs |
 
 ---
 
@@ -163,6 +161,7 @@ How the project's mechanics and features work.
 | File | Description | Spec |
 |------|-------------|------|
 | `SandboxIsolation.md` | Why the engine lives in a closed sandbox and what the wall forbids | ExplanationDocs |
+| `StructContracts.md` | Why every contract is a struct of function fields filled by factories, not an interface | ExplanationDocs |
 | `DepsMechanic.md` | How storage dependencies are injected, propagated, and implemented | ExplanationDocs |
 | `Schemas.md` | How collections, field types, and sub-databases are described | ExplanationDocs |
 | `Records.md` | How records are created, found, read, updated, deleted, and listed | ExplanationDocs |

@@ -38,8 +38,8 @@ func IndexKey(prefix string, field string, hash string) string {
 	return fmt.Sprintf("%s-keys-%s-%s", prefix, field, hash)
 }
 
-// SubPrefix is the collection prefix of a nested (DatabaseItem) field
-// of a given record.
+// SubPrefix is the collection prefix of a nested (Database) field of a
+// given record.
 func SubPrefix(prefix string, id int64, field string) string {
 	return fmt.Sprintf("%s-%d-%s", prefix, id, field)
 }
@@ -51,19 +51,19 @@ func HashIndexValue(encoded string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// FindItem returns the schema field with the given name, or a literal
-// nil when the schema declares no such field.
-func FindItem(items []api.Item, name string) api.Item {
-	for _, item := range items {
-		if item.Name() == name {
-			return item
+// FindItem returns the schema field with the given name. ok is false
+// when the schema declares no such field.
+func FindItem(items []api.Item, name string) (item api.Item, ok bool) {
+	for _, it := range items {
+		if it.Name == name {
+			return it, true
 		}
 	}
-	return nil
+	return api.Item{}, false
 }
 
-// InternalError wraps a backend failure as a typed api.Error.
-func InternalError(err error) api.Error {
+// InternalError wraps a backend failure as a typed *api.Error.
+func InternalError(err error) *api.Error {
 	return liberror.New(api.Internal, "", err.Error())
 }
 
@@ -78,19 +78,19 @@ func ParseID(raw []byte) (int64, error) {
 
 // EncodeValue converts a caller-provided value to its canonical stored
 // string form, validating it against the item's type.
-func EncodeValue(item api.Item, value any) (string, api.Error) {
-	switch item.Type() {
-	case api.KeyItem:
+func EncodeValue(item api.Item, value any) (string, *api.Error) {
+	switch item.Type {
+	case api.Key:
 		switch v := value.(type) {
 		case string:
 			return v, nil
 		case fmt.Stringer:
 			return v.String(), nil
 		default:
-			return "", liberror.NewWithValue(api.InvalidField, item.Name(), value,
-				fmt.Sprintf("field %q expects a string value, got %T", item.Name(), value))
+			return "", liberror.NewWithValue(api.InvalidField, item.Name, value,
+				fmt.Sprintf("field %q expects a string value, got %T", item.Name, value))
 		}
-	case api.IntItem:
+	case api.Int:
 		switch v := value.(type) {
 		case int:
 			return strconv.Itoa(v), nil
@@ -99,19 +99,19 @@ func EncodeValue(item api.Item, value any) (string, api.Error) {
 		case int64:
 			return strconv.FormatInt(v, 10), nil
 		default:
-			return "", liberror.NewWithValue(api.InvalidField, item.Name(), value,
-				fmt.Sprintf("field %q expects an integer value, got %T", item.Name(), value))
+			return "", liberror.NewWithValue(api.InvalidField, item.Name, value,
+				fmt.Sprintf("field %q expects an integer value, got %T", item.Name, value))
 		}
 	default:
-		return "", liberror.New(api.InvalidField, item.Name(),
-			fmt.Sprintf("field %q cannot be encoded as a plain value", item.Name()))
+		return "", liberror.New(api.InvalidField, item.Name,
+			fmt.Sprintf("field %q cannot be encoded as a plain value", item.Name))
 	}
 }
 
 // DecodeValue converts a stored value back to its typed form.
-func DecodeValue(item api.Item, raw []byte) (any, api.Error) {
-	switch item.Type() {
-	case api.IntItem:
+func DecodeValue(item api.Item, raw []byte) (any, *api.Error) {
+	switch item.Type {
+	case api.Int:
 		n, err := strconv.ParseInt(string(raw), 10, 64)
 		if err != nil {
 			return nil, InternalError(err)

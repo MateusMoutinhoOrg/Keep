@@ -5,8 +5,8 @@ Covers installing the library and initializing it with the standard (filesystem)
 
 ### Rules
 - Requires Go 1.22 or newer.
-- The `sandbox` package is named `lib`, so import it under that alias: `lib "github.com/MateusMoutinhoOrg/Keep/sandbox"`.
-- The schema description and the typed error come from `sandbox/contracts/api`.
+- The `sandbox` package is named `lib`, so import it under the project's alias convention: `keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"`.
+- The schema description and the typed error come from `sandbox/contracts/api`, imported as `database` — see [Import Aliases](/docs/References/RULES.md#import-aliases).
 
 ---
 
@@ -23,35 +23,38 @@ Covers installing the library and initializing it with the standard (filesystem)
    import (
        "fmt"
 
-       "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-       lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-       "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+       keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+       keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+       database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
    )
 
    // 2. Describe your data: one "user" collection with three fields
-   func createProps() api.Props {
+   var Schemas = []database.Schema{
+       {
+           Name: "user",
+           Itens: []database.Item{
+               {Name: "email", Type: database.Key, Required: true},
+               {Name: "username", Type: database.Key, Required: true},
+               {Name: "age", Type: database.Int, Required: true},
+           },
+       },
+   }
 
-       //========================User==========================
-       email := lib.NewKeyItem("email", true)
-       username := lib.NewKeyItem("username", true)
-       age := lib.NewIntItem("age", true)
-       user := lib.NewSchema("user", email, username, age)
-
-       //========================Props==========================
-       return lib.NewProps("myDatabase/", user)
+   var Props = database.Props{
+       Path:    "myDatabase/",
+       Schemas: Schemas,
    }
 
    func main() {
        // 3. Create deps via an adapter (the "opinionated" part)
-       deps := standard.New()
+       deps := keepadapter.New()
 
        // 4. Inject deps into the closed sandbox
-       keep := lib.New(deps)
+       keep := keeplib.New(deps)
 
        // 5. Use the library — it never knows which adapter is behind the scenes
-       props := createProps()
-       db := keep.NewDatabase(props)
-       users := db.GetSchema("user")
+       db := keep.NewDatabase(Props)
+       users, _ := db.GetSchema("user")
 
        created, err := users.NewItem(map[string]any{
            "email":    "mateus@gmail.com",
@@ -59,10 +62,10 @@ Covers installing the library and initializing it with the standard (filesystem)
            "age":      27,
        })
        if err != nil {
-           fmt.Println("error creating user:", err)
+           fmt.Println("error creating user:", err.Message)
            return
        }
-       fmt.Println("created:", created)
+       fmt.Println("created:", created.String())
    }
    ```
 3. Run the code:

@@ -6,38 +6,41 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	lib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
+	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
+	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 
-func createProps() api.Props {
+var Schemas = []database.Schema{
+	{
+		Name: "user",
+		Itens: []database.Item{
+			{Name: "email", Type: database.Key, Required: true},
+			{Name: "age", Type: database.Int, Required: true},
+		},
+	},
+}
 
-	//========================User==========================
-	email := lib.NewKeyItem("email", true)
-	age := lib.NewIntItem("age", true)
-	user := lib.NewSchema("user", email, age)
-
-	//========================Props==========================
-	return lib.NewProps("testDatabase/", user)
+var Props = database.Props{
+	Path:    "testDatabase/",
+	Schemas: Schemas,
 }
 
 func main() {
 	// 1. Build deps through an adapter (the opinionated layer).
-	deps := standard.New()
+	deps := keepadapter.New()
 
 	// 2. Inject deps into the pure library.
-	keep := lib.New(deps)
+	keep := keeplib.New(deps)
 
 	// 3. Exercise the library — it never knows which adapter is behind it.
-	props := createProps()
-	db := keep.NewDatabase(props)
-	users := db.GetSchema("user")
+	db := keep.NewDatabase(Props)
+	users, _ := db.GetSchema("user")
 
 	created, err := users.NewItem(map[string]any{"email": "a@x.com", "age": 30})
 	if err != nil {
-		fmt.Println("error creating user:", err)
+		fmt.Println("error creating user:", err.Message)
 		return
 	}
-	fmt.Println("created:", created)
+	fmt.Println("created:", created.String())
 }

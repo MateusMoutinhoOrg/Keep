@@ -1,24 +1,29 @@
 package api
 
 // This package is the library's whole public surface, and it declares
-// nothing but interfaces and constants. Every value crossing the
-// boundary — in or out — is either a primitive or one of the interfaces
-// below, so a consumer never depends on a concrete type of the library.
-// The structs implementing these interfaces live in sandbox/internal/
-// and are unreachable from outside the sandbox.
+// nothing but types: the objects handed back (Lib, KeepDatabase,
+// SchemaInstance, SchemaItem), the description passed in (Props, Schema,
+// Item), and Error. Every type here is a struct — never an interface —
+// following the struct-of-function-fields pattern: a type that carries
+// behavior leads with a Deps field and fills the rest of its behavior as
+// function fields, each assigned by a factory in sandbox/internal/ (see
+// docs/Explanations/StructContracts.md). A type that carries no behavior
+// (Item, Schema, Props, Error) is plain data and can be built directly
+// with a composite literal — no constructor required.
+
+import "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/deps"
 
 // Field types, reported by Item.Type.
 const (
-	// KeyItem is a unique, indexed string field.
-	KeyItem = iota
-	// IntItem is a plain integer field.
-	IntItem
-	// DatabaseItem is a nested collection of records.
-	DatabaseItem
+	// Key is a unique, indexed string field.
+	Key = iota
+	// Int is a plain integer field.
+	Int
+	// Database is a nested collection of records.
+	Database
 )
 
-// Failure causes, reported by Error.Type. Switch on them instead of
-// matching messages.
+// Failure causes, reported by Error.Type.
 const (
 	KeyConflict = iota
 	NotFound
@@ -27,105 +32,121 @@ const (
 	Internal
 )
 
-// Item describes one field of a schema. Build one with lib.NewKeyItem,
-// lib.NewIntItem, or lib.NewDatabaseItem.
-type Item interface {
+// Item describes one field of a schema.
+type Item struct {
 	// Name is the field's name, as used in the fields map.
-	Name() string
-	// Type is one of KeyItem, IntItem, or DatabaseItem.
-	Type() int
+	Name string
+	// Type is one of Key, Int, or Database.
+	Type int
 	// Required reports whether a record must provide this field.
-	Required() bool
-	// Itens are the nested fields, for a DatabaseItem; nil otherwise.
-	Itens() []Item
+	Required bool
+	// Itens are the nested fields, for a Database field; nil otherwise.
+	Itens []Item
 }
 
-// Schema describes one collection of records and its fields. Build one
-// with lib.NewSchema.
-type Schema interface {
-	// Name is the collection's name, as used in GetSchema.
-	Name() string
+// Schema describes one collection of records and its fields.
+type Schema struct {
+	// Name is the collection's name, as used in KeepDatabase.GetSchema.
+	Name string
 	// Itens are the fields each record of the collection can hold.
-	Itens() []Item
+	Itens []Item
 }
 
-// Props is the declarative description of a database. Build one with
-// lib.NewProps.
-type Props interface {
+// Props is the declarative description of a database.
+type Props struct {
 	// Path is the prefix every key of the database is written under.
-	Path() string
+	Path string
 	// Schemas are the collections the database holds.
-	Schemas() []Schema
+	Schemas []Schema
 }
 
-// Error is the typed error returned by database operations. It
-// satisfies the standard error interface, so it can be returned and
-// compared as one.
-type Error interface {
-	error
+// Error describes one failure reported by a database operation. It
+// carries no behavior, so callers switch on Type and read Key, KeyValue
+// and Message directly, and a nil *Error means success.
+type Error struct {
 	// Type is one of KeyConflict, NotFound, MissingField, InvalidField,
 	// or Internal.
-	Type() int
+	Type int
 	// Key is the field the failure involves.
-	Key() string
+	Key string
 	// KeyValue is the value the failure involves, when relevant.
-	KeyValue() any
+	KeyValue any
+	// Message is the human-readable description of the failure.
+	Message string
 }
 
 // SchemaItem is one record of a collection. It is handed back by
 // SchemaInstance.NewItem, FindByKey, ListAll and List, and carries the
-// deps it was built with, so every field read or write goes through the
-// same injected backend.
-type SchemaItem interface {
-	// Id returns the record's permanent, never-reused identifier.
-	Id() int64
+// Deps it was built with, so every field read or write goes through the
+// same injected backend. Its function fields are filled by factories in
+// sandbox/internal/schemaitem.
+type SchemaItem struct {
+	// Deps is the dependency set the record was built with.
+	Deps deps.Deps
+	// Items are the schema fields this record's collection declares.
+	Items []Item
+	// Prefix is the collection's key prefix.
+	Prefix string
+	// Id is the record's permanent, never-reused identifier.
+	Id int64
 	// Get returns the typed value stored for a field.
-	Get(fieldName string) (any, Error)
+	Get func(fieldName string) (any, *Error)
 	// Update writes a new value for a field, re-indexing it when the
 	// field is a unique key.
-	Update(fieldName string, value any) Error
+	Update func(fieldName string, value any) *Error
 	// Remove deletes the record and everything nested under it,
 	// returning nil on success.
-	Remove() Error
+	Remove func() *Error
 	// CheckKeysPresence reports whether every named field has a stored
 	// value for this record.
-	CheckKeysPresence(keys []string) bool
-	// ListAll returns every record of a nested (DatabaseItem) field.
-	ListAll(fieldName string) []SchemaItem
-	// NewSubItem inserts a record into a nested (DatabaseItem) field.
-	NewSubItem(fieldName string, fields map[string]any) (SchemaItem, Error)
+	CheckKeysPresence func(keys []string) bool
+	// ListAll returns every record of a nested (Database) field.
+	ListAll func(fieldName string) []SchemaItem
+	// NewSubItem inserts a record into a nested (Database) field.
+	NewSubItem func(fieldName string, fields map[string]any) (SchemaItem, *Error)
 	// String renders the record's plain fields.
-	String() string
+	String func() string
 }
 
 // SchemaInstance is one collection of records, handed back by
-// KeepDatabase.GetSchema.
-type SchemaInstance interface {
+// KeepDatabase.GetSchema. Its function fields are filled by factories in
+// sandbox/internal/schemainstance.
+type SchemaInstance struct {
+	// Deps is the dependency set the collection was built with.
+	Deps deps.Deps
+	// Items are the fields each record of the collection can hold.
+	Items []Item
+	// Prefix is the collection's key prefix.
+	Prefix string
 	// NewItem inserts a record, validating the fields against the schema.
-	NewItem(fields map[string]any) (SchemaItem, Error)
-	// FindByKey looks a record up through a unique KeyItem field. It
-	// returns nil when the field is not an indexed key or no record
-	// matches.
-	FindByKey(key string, keyValue any) SchemaItem
+	NewItem func(fields map[string]any) (SchemaItem, *Error)
+	// FindByKey looks a record up through a unique Key field. ok is
+	// false when the field is not an indexed key or no record matches.
+	FindByKey func(key string, keyValue any) (SchemaItem, bool)
 	// ListAll returns every record of the collection.
-	ListAll() ([]SchemaItem, Error)
+	ListAll func() ([]SchemaItem, *Error)
 	// List returns up to chunk records starting at position (1-based).
-	List(position int, chunk int) ([]SchemaItem, Error)
+	List func(position int, chunk int) ([]SchemaItem, *Error)
 }
 
 // KeepDatabase is a database bound to a Props description and to the
-// injected deps, handed back by Lib.NewDatabase.
-type KeepDatabase interface {
-	// GetSchema returns the collection with the given name, or nil when
-	// the database declares no schema under that name.
-	GetSchema(name string) SchemaInstance
-	// Props returns the description the database was created from.
-	Props() Props
+// injected Deps, handed back by Lib.NewDatabase. Its function fields are
+// filled by factories in sandbox/internal/database.
+type KeepDatabase struct {
+	// Deps is the dependency set the database was built with.
+	Deps deps.Deps
+	// Props is the description the database was created from.
+	Props Props
+	// GetSchema returns the collection with the given name. ok is false
+	// when the database declares no schema under that name.
+	GetSchema func(name string) (SchemaInstance, bool)
 }
 
-// Lib is the entry point handed back by lib.New. Every object it
-// creates carries the same deps it was built with.
-type Lib interface {
+// Lib is the entry point handed back by lib.New. Its function fields are
+// filled by factories in sandbox/internal/lib.
+type Lib struct {
+	// Deps is the dependency set injected by lib.New.
+	Deps deps.Deps
 	// NewDatabase creates a database from a Props description.
-	NewDatabase(props Props) KeepDatabase
+	NewDatabase func(props Props) KeepDatabase
 }

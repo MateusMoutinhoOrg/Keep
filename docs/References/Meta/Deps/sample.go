@@ -5,27 +5,28 @@ package deps
 
 import "errors"
 
-// Sentinel errors every implementation must return (possibly wrapped)
-// so the library can tell an expected condition from a real failure.
+// Sentinel errors every adapter must return (possibly wrapped) so the
+// library can tell an expected condition from a real failure.
 var (
 	ErrKeyNotFound      = errors.New("keep: key not found")
 	ErrKeyAlreadyExists = errors.New("keep: key already exists")
 )
 
-// Deps is the dependency contract every adapter must satisfy. Each
-// method is one injectable behavior the library needs from a storage
-// backend, and every one of them addresses a single key.
-type Deps interface {
+// Deps is the dependency contract every adapter must fill. Each field
+// is one injectable behavior the library needs from a storage backend,
+// and every one of them addresses a single key. An adapter's New
+// constructor assigns a factory-built closure to each field.
+type Deps struct {
 	// Write stores value under key, overwriting any current value.
-	Write(key string, value []byte) error
+	Write func(key string, value []byte) error
 	// WriteIfKeyNotExists stores value only when key is absent,
 	// returning ErrKeyAlreadyExists otherwise.
-	WriteIfKeyNotExists(key string, value []byte) error
+	WriteIfKeyNotExists func(key string, value []byte) error
 	// Read returns the value of key, or ErrKeyNotFound when absent.
-	Read(key string) ([]byte, error)
+	Read func(key string) ([]byte, error)
 	// Exists reports whether key currently holds a value.
-	Exists(key string) (bool, error)
+	Exists func(key string) (bool, error)
 	// Delete removes key; removing an absent key is not an error.
-	Delete(key string) error
-	// ... one method per remaining call of the contract
+	Delete func(key string) error
+	// ... one field per remaining requirement of the contract
 }
