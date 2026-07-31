@@ -39,7 +39,7 @@ What you get on top of that:
 **1. Install the library:**
 
 ```sh
-go get github.com/MateusMoutinhoOrg/Keep@v0.0.2
+go get github.com/MateusMoutinhoOrg/Keep@v0.0.3
 ```
 
 **2. Create a `main.go` file:**
