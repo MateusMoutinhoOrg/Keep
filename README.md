@@ -13,17 +13,20 @@ A storage-independent database built on top of plain key-value operations.
 
 Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small struct.
 
-It uses a **Dependency Injection** pattern built around a closed sandbox, wired entirely through **structs of function fields** rather than interfaces — see [StructContracts.md](/docs/Explanations/StructContracts.md):
+The core of the library lives in **`/sandbox/`**: a **closed sandbox** that reaches nothing outside itself. Everything it can do arrives through an injected `Deps`, wired entirely through **structs of function fields** rather than interfaces — see [StructContracts.md](/docs/References/StructContracts.md).
 
 ```
-adapters/  ──▶  sandbox/  ◀──  examples/ , tests/
+adapters/  ──▶  sandbox/  ◀──  examples/libraryExamples/ , tests/
 (reaches the OS)  (closed)     (wire the two together)
 ```
 
-- **`/sandbox/`** is the database engine, and it is **closed**: it may not import an adapter, a third-party module, or any OS-bound stdlib package. Every effect arrives through the injected `Deps` — see [SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).
-- **`/sandbox/contracts/deps/`** defines the `Deps` struct of function fields that all adapters must fill.
-- **`/sandbox/contracts/api/`** declares every type the library exchanges — structs only, never interfaces, so nothing crossing the boundary is ever hidden behind a method set.
-- **`/adapters/`** sits outside the sandbox and holds the opinionated, concrete backends — the only place OS-bound code is allowed.
+Nothing is exported but the library itself. There is no binary and no command of its own: a consumer wires an adapter into the sandbox and calls the fields of the `api.Lib` it gets back.
+
+- **`/sandbox/`**: The closed database engine taking a `Deps` and returning an `api.Lib`. It may not import an adapter, a third-party module, or any OS-bound stdlib package — see [SandboxIsolation.md](/docs/References/SandboxIsolation.md).
+- **`/sandbox/contracts/deps/`**: The `Deps` struct of function fields every adapter must fill.
+- **`/sandbox/contracts/api/`**: Every type the library exchanges — structs only, never interfaces, so nothing crossing the boundary is hidden behind a method set.
+- **`/adapters/`**: The opinionated, concrete backends — the only place OS-bound code is allowed.
+- **`/examples/libraryExamples/`**: Places where an adapter and the library are wired together.
 
 What you get on top of that:
 
@@ -34,183 +37,17 @@ What you get on top of that:
 
 ---
 
-## Quick Start
+## Doc Index
 
-**1. Install the library:**
+Documentation is split into three themes, one index page each under `docs/Index/`, listing that theme's **Tutorials** — step-by-step workflows — and its **References** — explanations and lookups. Start from the theme index matching what you want to do.
 
-```sh
-go get github.com/MateusMoutinhoOrg/Keep@v0.0.3
-```
+| Theme | Description |
+| --- | --- |
+| [Library Usage](/docs/Index/LibUsage.md) | For library consumers: installing the module, describing data, and calling the Go API. |
+| [Development](/docs/Index/Development.md) | For contributors: the rules, the mechanics, the per-goal workflows, and the specifications. |
+| [Templating](/docs/Index/Templating.md) | For template users: forking, renaming, and adapting this structure into a new library. |
 
-**2. Create a `main.go` file:**
-
-```go
-package main
-
-import (
-	"fmt"
-
-	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
-	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
-)
-
-var Schemas = []database.Schema{
-	{
-		Name: "user",
-		Itens: []database.Item{
-			{Name: "email", Type: database.Key, Required: true},
-			{Name: "username", Type: database.Key, Required: true},
-			{Name: "age", Type: database.Int, Required: true},
-		},
-	},
-}
-
-var Props = database.Props{
-	Path:    "myDatabase/",
-	Schemas: Schemas,
-}
-
-func main() {
-	// 1. Create deps via an adapter (the "opinionated" part)
-	deps := keepadapter.New() // filesystem backend
-
-	// 2. Inject deps into the closed sandbox
-	keep := keeplib.New(deps)
-
-	// 3. Use the library — it never knows which adapter is behind the scenes
-	db := keep.NewDatabase(Props)
-	users, _ := db.GetSchema("user")
-
-	created, err := users.NewItem(map[string]any{
-		"email":    "mateus@gmail.com",
-		"username": "mateus",
-		"age":      27,
-	})
-	if err != nil {
-		fmt.Println("error creating user:", err.Message)
-		return
-	}
-	fmt.Println("created:", created.String())
-
-	found, ok := users.FindByKey("email", "mateus@gmail.com")
-	if ok {
-		fmt.Println("found:", found.String())
-	}
-}
-```
-
-**3. Run:**
-
-```sh
-go run main.go
-```
-
----
-
-> [!IMPORTANT]
-> **Must Read before contributing.** The following documents are **required reading** for every developer. Do not open a pull request or make changes without first reading them:
->
-> | Document | Why it's required |
-> |----------|-------------------|
-> | [Rules](/docs/References/RULES.md) | The contribution rules and guidelines that **must** be followed for any change to be accepted. |
-> | [Structure](/docs/References/Structure.md) | The project's directory layout and the purpose of each component — needed to know **where** changes belong. |
-> | [Specs](/docs/References/Specs.md) | The index of every specification — needed to know **how** the file you are about to touch must be shaped. |
-
-### Reference Documentation
-
-> Listable material — structures, rules, specifications, and the public API.
-
-| Name | Description |
-|:-|:-|
-| <a id="reference-structure"></a>[Structure.md](/docs/References/Structure.md) | **Reference** — The project's directory layout and the purpose of each component. |
-| <a id="reference-rules"></a>[RULES.md](/docs/References/RULES.md) | **Reference** — The binding contribution rules and their required companion updates. |
-| <a id="reference-specs"></a>[Specs.md](/docs/References/Specs.md) | **Reference** — Lists every specification and the files each one governs. |
-| <a id="reference-public-api"></a>[PublicApi.md](/docs/References/PublicApi.md) | **Reference** — Index of all public structs, fields, and functions with detail links. |
-| <a id="reference-adapters"></a>[Adapters.md](/docs/References/Adapters.md) | **Reference** — Every shipped storage backend and when to use each one. |
-| <a id="reference-required-api"></a>[RequiredApi.md](/docs/References/RequiredApi.md) | **Reference** — The contract each `Deps` field must honor to power the library. |
-| <a id="reference-errors"></a>[Errors.md](/docs/References/Errors.md) | **Reference** — The error types returned by operations and how to react to them. |
-| <a id="reference-template-file-actions"></a>[TemplateFileActions.md](/docs/References/TemplateFileActions.md) | **Reference** — The action each file takes when forking or adapting: copy, create, rewrite, delete. |
-
----
-
-### Explanation Documentation
-
-> How the project's mechanics and features work.
-
-| Name | Description |
-|:-|:-|
-| <a id="explanation-sandbox-isolation"></a>[SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md) | **Explanation** — Why the engine lives in a closed sandbox and what the wall forbids. |
-| <a id="explanation-struct-contracts"></a>[StructContracts.md](/docs/Explanations/StructContracts.md) | **Explanation** — Why every contract is a struct of function fields filled by factories, not an interface. |
-| <a id="explanation-deps-mechanic"></a>[DepsMechanic.md](/docs/Explanations/DepsMechanic.md) | **Explanation** — Choosing a backend, overriding deps, or writing your own. |
-| <a id="explanation-schemas"></a>[Schemas.md](/docs/Explanations/Schemas.md) | **Explanation** — Defining collections, field types, and nested sub-databases. |
-| <a id="explanation-records"></a>[Records.md](/docs/Explanations/Records.md) | **Explanation** — Creating, finding, reading, updating, deleting, and listing records. |
-| <a id="explanation-dense-record-pattern"></a>[DenseRecordPattern.md](/docs/Explanations/DenseRecordPattern.md) | **Explanation** — The key layout and procedures behind the storage engine. |
-
----
-
-### Tutorials
-
-> Workflow guides, grouped by context. Each tutorial covers a single goal.
-
-#### Getting Started
-
-| Name | Description |
-|:-|:-|
-| <a id="tutorial-lib-initialization"></a>[LibInitialization.md](/docs/Tutorials/LibInitialization.md) | **Tutorial** — Install the lib, create deps via an adapter, and run a first program. |
-| <a id="tutorial-run-sample"></a>[RunSample.md](/docs/Tutorials/RunSample.md) | **Tutorial** — Browse and run the executable samples in the examples/ directory. |
-
-#### Using the Database
-
-| Name | Description |
-|:-|:-|
-| <a id="tutorial-define-database"></a>[DefineDatabase.md](/docs/Tutorials/DefineDatabase.md) | **Tutorial** — Describe a database with its collections and open it in a program. |
-| <a id="tutorial-add-schema-field"></a>[AddSchemaField.md](/docs/Tutorials/AddSchemaField.md) | **Tutorial** — Add a field to a collection that already holds records. |
-| <a id="tutorial-add-nested-collection"></a>[AddNestedCollection.md](/docs/Tutorials/AddNestedCollection.md) | **Tutorial** — Give a record its own nested collection of sub-records. |
-
-#### Library Development
-
-| Name | Description |
-|:-|:-|
-| <a id="tutorial-add-lib-function"></a>[AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) | **Tutorial** — Add a function field to an object in sandbox/internal/ via a factory. |
-| <a id="tutorial-add-lib-object"></a>[AddLibObject.md](/docs/Tutorials/AddLibObject.md) | **Tutorial** — Add an object created by the lib, with its deps wired in by the constructor. |
-| <a id="tutorial-add-database-operation"></a>[AddDatabaseOperation.md](/docs/Tutorials/AddDatabaseOperation.md) | **Tutorial** — Add an engine operation without breaking the dense key layout. |
-| <a id="tutorial-add-dependency"></a>[AddDependency.md](/docs/Tutorials/AddDependency.md) | **Tutorial** — Add a field to the Deps contract and fill it in every adapter. |
-| <a id="tutorial-add-adapter"></a>[AddAdapter.md](/docs/Tutorials/AddAdapter.md) | **Tutorial** — Create a new opinionated storage backend for the Deps contract. |
-| <a id="tutorial-add-sample"></a>[AddSample.md](/docs/Tutorials/AddSample.md) | **Tutorial** — Create a runnable sample in examples/ and register it in the README. |
-
-#### Documentation
-
-| Name | Description |
-|:-|:-|
-| <a id="tutorial-add-document"></a>[AddDocument.md](/docs/Tutorials/AddDocument.md) | **Tutorial** — Create or update a .md file and register it in README and Structure. |
-| <a id="tutorial-rename-document"></a>[RenameDocument.md](/docs/Tutorials/RenameDocument.md) | **Tutorial** — Rename or move a .md file without leaving broken references behind. |
-| <a id="tutorial-delete-document"></a>[DeleteDocument.md](/docs/Tutorials/DeleteDocument.md) | **Tutorial** — Remove a .md file and clear every reference pointing to it. |
-| <a id="tutorial-expose-public-api"></a>[ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md) | **Tutorial** — Publish a lib function, object, or field in the public API index. |
-
-#### Templating
-
-| Name | Description |
-|:-|:-|
-| <a id="tutorial-rename-module"></a>[RenameModule.md](/docs/Tutorials/RenameModule.md) | **Tutorial** — Rename the Go module path and update all internal imports. |
-| <a id="tutorial-fork-template"></a>[ForkTemplate.md](/docs/Tutorials/ForkTemplate.md) | **Tutorial** — Use this repo as a template to start a new DI library. |
-| <a id="tutorial-adapt-existing-lib"></a>[AdaptExistingLib.md](/docs/Tutorials/AdaptExistingLib.md) | **Tutorial** — Convert a pre-existing library to this DI structure. |
-
----
-
-#### Samples
-
-| Sample | Description |
-|--------|-------------|
-| [CreateUser](/examples/CreateUser/CreateUser.go) | Insert a record with unique keys |
-| [FindUserByKey](/examples/FindUserByKey/FindUserByKey.go) | Look a record up by a unique field |
-| [RetrieveUserInfo](/examples/RetrieveUserInfo/RetrieveUserInfo.go) | Read individual fields of a record |
-| [UpdateUser](/examples/UpdateUser/UpdateUser.go) | Update a plain field |
-| [UpdateUserKey](/examples/UpdateUserKey/UpdateUserKey.go) | Update a unique indexed field (re-index) |
-| [DeleteUser](/examples/DeleteUser/DeleteUser.go) | Remove a record and its index entries |
-| [ListAllUsers](/examples/ListAllUsers/ListAllUsers.go) | Iterate every record of a collection |
-| [ListUsersPaginated](/examples/ListUsersPaginated/ListUsersPaginated.go) | Paginate through a collection |
-| [SubInfos](/examples/SubInfos/SubInfos.go) | Manage nested sub-database records |
+New here? [Library Usage → LibInitialization.md](/docs/Tutorials/LibInitialization.md) installs the module and runs a first program.
 
 ---
 

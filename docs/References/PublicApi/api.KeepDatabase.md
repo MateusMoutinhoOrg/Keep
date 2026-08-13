@@ -14,7 +14,7 @@ type KeepDatabase struct {
 
 ## Description
 
-A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./api.Props.md), carried directly as a field). Always constructed via [`Lib.NewDatabase`](./api.Lib.md#fields). `GetSchema` is a function field filled by `GetSchemaFactory` in `sandbox/internal/database/`.
+A database bound to a storage backend ([`deps.Deps`](./deps.Deps.md)) and a schema description ([`Props`](./api.Props.md), carried directly as a field). Always constructed via [`Lib.NewDatabase`](./api.Lib.md#fields). `GetSchema` is a function field filled by `GetSchemaFactory` in `sandbox/lib/database/`.
 
 ## Fields
 
@@ -46,7 +46,7 @@ Returns the collection whose schema has the given name. `ok` is `false` when no 
 ## Examples
 
 ```go
-props := database.Props{Path: "myDatabase/", Schemas: schemas} // see api.Props.md
+props := keeptypes.Props{Path: "myDatabase/", Schemas: schemas} // see api.Props.md
 db := keep.NewDatabase(props)
 users, ok := db.GetSchema("user")
 if !ok {

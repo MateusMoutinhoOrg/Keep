@@ -1,7 +1,7 @@
 # Required API
 
 ## Description
-Lists the operations a storage backend must provide to power Keep — one per function field of the `Deps` struct in [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go). Each field is filled by a factory in the adapter's `New` constructor — see [DepsMechanic.md](/docs/Explanations/DepsMechanic.md) for how to plug an implementation in.
+Lists the operations a storage backend must provide to power Keep — one per function field of the `Deps` struct in [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go). Each field is filled by a factory in the adapter's `New` constructor — see [DepsMechanic.md](/docs/References/DepsMechanic.md) for how to plug an implementation in.
 
 ---
 

@@ -18,7 +18,7 @@ type SchemaInstance struct {
 
 ## Description
 
-One collection of records, obtained via [`KeepDatabase.GetSchema`](./api.KeepDatabase.md#fields). It is the entry point for creating, finding, and listing records. Its function fields are filled by factories in `sandbox/internal/schemainstance/`. The narrative guide with full examples is [Working with Records](/docs/Explanations/Records.md).
+One collection of records, obtained via [`KeepDatabase.GetSchema`](./api.KeepDatabase.md#fields). It is the entry point for creating, finding, and listing records. Its function fields are filled by factories in `sandbox/lib/schemainstance/`. The narrative guide with full examples is [Working with Records](/docs/References/Records.md).
 
 ## Fields
 
@@ -53,7 +53,7 @@ Looks a record up by any `Key` field, at constant cost and case-insensitively. `
 ListAll func() ([]api.SchemaItem, *api.Error)
 ```
 
-Returns every record of the collection. List order is **not stable** across deletions (see [Working with Records](/docs/Explanations/Records.md#list--listall-and-list)).
+Returns every record of the collection. List order is **not stable** across deletions (see [Working with Records](/docs/References/Records.md#list--listall-and-list)).
 
 ### `List`
 

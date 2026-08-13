@@ -33,43 +33,43 @@ const (
 
 The declarative description of a database, passed to [`Lib.NewDatabase`](./api.Lib.md#fields). `Path` is a prefix added to every stored key (a folder, with the standard adapter); each `Schema` is one collection; each `Item` is one field.
 
-They are **plain structs**, not interfaces: `Item`, `Schema`, `Props`, and `Error` carry no behavior and no `Deps` field, so they are built directly with a composite literal — there is no `lib.NewSchema` / `lib.NewKeyItem` / `lib.NewProps` constructor to call (`sandbox/description.go` was removed along with them). The full guide, including field types and nested sub-databases, is in [Schemas](/docs/Explanations/Schemas.md).
+They are **plain structs**, not interfaces: `Item`, `Schema`, `Props`, and `Error` carry no behavior and no `Deps` field, so they are built directly with a composite literal — there is no `lib.NewSchema` / `lib.NewKeyItem` / `lib.NewProps` constructor to call (`sandbox/description.go` was removed along with them). The full guide, including field types and nested sub-databases, is in [Schemas](/docs/References/Schemas.md).
 
 ## Field Types
 
 | `Type` value | Holds | Notes |
 | :--- | :--- | :--- |
-| `database.Key` | `string` | Unique and indexed, case-insensitive; usable with `FindByKey`. |
-| `database.Int` | `int`, `int32`, or `int64` | Always read back as `int64`. |
-| `database.Database` | a nested collection | The field is a sub-database with its own `Itens`. |
+| `keeptypes.Key` | `string` | Unique and indexed, case-insensitive; usable with `FindByKey`. |
+| `keeptypes.Int` | `int`, `int32`, or `int64` | Always read back as `int64`. |
+| `keeptypes.Database` | a nested collection | The field is a sub-database with its own `Itens`. |
 
 ## Examples
 
 ```go
-import database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+import keeptypes "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 
-var Schemas = []database.Schema{
+var Schemas = []keeptypes.Schema{
 	{
 		Name: "user",
-		Itens: []database.Item{
-			{Name: "email", Type: database.Key, Required: true},
-			{Name: "age", Type: database.Int, Required: true},
+		Itens: []keeptypes.Item{
+			{Name: "email", Type: keeptypes.Key, Required: true},
+			{Name: "age", Type: keeptypes.Int, Required: true},
 			{
 				Name: "sessions",
-				Type: database.Database,
-				Itens: []database.Item{
-					{Name: "token", Type: database.Key, Required: true},
-					{Name: "creation", Type: database.Int, Required: true},
+				Type: keeptypes.Database,
+				Itens: []keeptypes.Item{
+					{Name: "token", Type: keeptypes.Key, Required: true},
+					{Name: "creation", Type: keeptypes.Int, Required: true},
 				},
 			},
 		},
 	},
 }
 
-var Props = database.Props{
+var Props = keeptypes.Props{
 	Path:    "myDatabase/",
 	Schemas: Schemas,
 }
 ```
 
-Every sample under `examples/` builds `Props` this way: a package-level `Schemas` value listing each collection, and a `Props` value wrapping it with the key prefix.
+Every sample under `examples/libraryExamples/` builds `Props` this way: a package-level `Schemas` value listing each collection, and a `Props` value wrapping it with the key prefix.

@@ -3,7 +3,7 @@ package lib
 import (
 	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/deps"
-	internallib "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/lib"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox/lib"
 )
 
 // New injects a Deps implementation into the library and returns
@@ -12,5 +12,5 @@ import (
 // factories over it, each of which fills one function field with a
 // closure reading those deps.
 func New(d deps.Deps) api.Lib {
-	return internallib.New(d)
+	return lib.New(d)
 }

@@ -16,24 +16,24 @@ Covers using this repository as a GitHub template to start a **new** dependency-
 1. On the GitHub repository page, click **"Use this template"** and create the new repository.
 2. Rename the module to the new GitHub path, following [RenameModule.md](/docs/Tutorials/RenameModule.md).
 3. Leave every **[Copy](/docs/References/TemplateFileActions.md#copy)** file untouched — they describe the structure, not the library.
-4. Rewrite [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go) with the dependencies the new library requires, following [AddDependency.md](/docs/Tutorials/AddDependency.md).
-5. Rewrite [adapters/standard/standard.go](../../adapters/standard/standard.go) so the default adapter satisfies the new contract, following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
-6. Declare every struct the new library exchanges — inputs and outputs alike — in [sandbox/contracts/api/api.go](../../sandbox/contracts/api/api.go), plain data for the ones with no behavior and a struct of function fields (leading with `Deps`) for the ones with behavior, then fill the latter with factories under `sandbox/internal/<object>/`, following [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
-7. Create the new library logic as factories in [sandbox/internal/](../../sandbox/internal/), following [AddLibFunction.md](/docs/Tutorials/AddLibFunction.md) and [AddLibObject.md](/docs/Tutorials/AddLibObject.md).
-8. Create any additional adapter in [adapters/](../../adapters/), following [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
-9. Create the new samples in [examples/](../../examples/), following [AddSample.md](/docs/Tutorials/AddSample.md).
-10. Create the new detail pages in [docs/References/PublicApi/](/docs/References/PublicApi/) and rewrite [PublicApi.md](/docs/References/PublicApi.md), following [ExposePublicApi.md](/docs/Tutorials/ExposePublicApi.md).
-11. Delete every remaining **[Delete](/docs/References/TemplateFileActions.md#delete)** file — the example lib logic, adapters, samples, and API pages the new library replaced. For `.md` files, follow [DeleteDocument.md](/docs/Tutorials/DeleteDocument.md).
+4. Rewrite [sandbox/contracts/deps/deps.go](../../sandbox/contracts/deps/deps.go) with the dependencies the new library requires, following [HandleDependencies.md](/docs/Tutorials/HandleDependencies.md#add-a-dependency).
+5. Rewrite [adapters/standard/standard.go](../../adapters/standard/standard.go) so the default adapter satisfies the new contract, following [HandleDependencies.md](/docs/Tutorials/HandleDependencies.md#create-an-adapter-in-this-repository).
+6. Declare every struct the new library exchanges — inputs and outputs alike — in [sandbox/contracts/api/api.go](../../sandbox/contracts/api/api.go), plain data for the ones with no behavior and a struct of function fields (leading with `Deps`) for the ones with behavior, then fill the latter with factories under `sandbox/lib/<object>/`, following [HandleLibElements.md](/docs/Tutorials/HandleLibElements.md#add-a-library-object).
+7. Create the new library logic as factories in [sandbox/lib/](../../sandbox/lib/), following [HandleLibElements.md](/docs/Tutorials/HandleLibElements.md#add-a-library-function) and [HandleLibElements.md](/docs/Tutorials/HandleLibElements.md#add-a-library-object).
+8. Create any additional adapter in [adapters/](../../adapters/), following [HandleDependencies.md](/docs/Tutorials/HandleDependencies.md#create-an-adapter-in-this-repository).
+9. Create the new samples in [examples/libraryExamples/](../../examples/libraryExamples/), following [HandleLibrarySamples.md](/docs/Tutorials/HandleLibrarySamples.md#add-a-library-sample).
+10. Create the new detail pages in [docs/References/PublicApi/](/docs/References/PublicApi/) and rewrite [PublicApi.md](/docs/References/PublicApi.md), following [HandleLibElements.md](/docs/Tutorials/HandleLibElements.md#expose-in-the-public-api).
+11. Delete every remaining **[Delete](/docs/References/TemplateFileActions.md#delete)** file — the example lib logic, adapters, samples, and API pages the new library replaced. For `.md` files, follow [HandleDocuments.md](/docs/Tutorials/HandleDocuments.md#delete-a-document).
 12. Rewrite [docs/References/Structure.md](/docs/References/Structure.md) to describe the resulting layout.
-13. Create the tutorials specific to the new library — one page per workflow its maintainers will repeat — following [AddDocument.md](/docs/Tutorials/AddDocument.md) and the [TutorialDocs specification](/docs/References/Meta/TutorialDocs/Specs.md). The template tutorials cover the structure only; they do not document the library's own use cases.
-14. Create any reference page the library needs beyond the public API, following [AddDocument.md](/docs/Tutorials/AddDocument.md) and the [ReferenceDocs specification](/docs/References/Meta/ReferenceDocs/Specs.md).
+13. Create the tutorials specific to the new library — one page per workflow its maintainers will repeat — following [HandleDocuments.md](/docs/Tutorials/HandleDocuments.md#add-a-document) and the [TutorialDocs specification](/docs/References/Specs/TutorialDocs/Specs.md). The template tutorials cover the structure only; they do not document the library's own use cases.
+14. Create any reference page the library needs beyond the public API, following [HandleDocuments.md](/docs/Tutorials/HandleDocuments.md#add-a-document) and the [ReferenceDocs specification](/docs/References/Specs/ReferenceDocs/Specs.md).
 15. Rewrite the [README.md](/README.md): overview, quick start, badges, Doc Index, and Samples section.
 16. Verify the result:
 ```bash
 go build ./...
 ```
 Then confirm every item below — the fork is only done when all pass:
-- All library logic lives in `sandbox/internal/` as factories; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through the carrier's `Deps` field.
+- All library logic lives in `sandbox/lib/` as factories; no file there imports `os`, `net`, or a third-party implementation directly — every such call goes through the carrier's `Deps` field.
 - `sandbox/contracts/deps/deps.go` declares one function field per injected call, and **every** adapter in `adapters/` fills every field with a factory.
 - Tutorials and reference pages specific to this library exist under `docs/Tutorials/` and `docs/References/`.
 - Every created or rewritten file matches its specification from [Specs.md](/docs/References/Specs.md).

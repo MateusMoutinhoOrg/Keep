@@ -3,7 +3,7 @@
 ## Description
 Index of all public-facing components (structs, fields, and functions), with links to their respective detail files.
 
-The library's whole surface is **structs of function fields and plain data structs, never behaviorless interfaces**. `sandbox/contracts/api` declares every type — a struct type that carries behavior leads with a `Deps` field and fills the rest as function fields, each assigned by a factory in `sandbox/internal/`; a struct type with no behavior (`Item`, `Schema`, `Props`, `Error`) is plain data. Because none of them are interfaces, every one is buildable directly with a composite literal — there is no separate constructor package. See [StructContracts.md](/docs/Explanations/StructContracts.md).
+The library's whole surface is **structs of function fields and plain data structs, never behaviorless interfaces**. `sandbox/contracts/api` declares every type — a struct type that carries behavior leads with a `Deps` field and fills the rest as function fields, each assigned by a factory in `sandbox/lib/`; a struct type with no behavior (`Item`, `Schema`, `Props`, `Error`) is plain data. Because none of them are interfaces, every one is buildable directly with a composite literal — there is no separate constructor package. See [StructContracts.md](/docs/References/StructContracts.md).
 
 ---
 
@@ -46,6 +46,9 @@ Creates a `deps.Deps` backed by process memory.
 ---
 
 ## Fields
+
+### [api.Lib.Version](./PublicApi/api.Lib.md#fields)
+Returns the library's own release, held as a compile-time constant in `sandbox/config`.
 
 ### [api.Lib.NewDatabase](./PublicApi/api.Lib.md#fields)
 Creates a `KeepDatabase` from a `Props` description with the lib's deps wired in.

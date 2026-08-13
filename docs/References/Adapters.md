@@ -1,7 +1,7 @@
 # Adapters
 
 ## Description
-Lists every adapter shipped with the library — the opinionated `deps.Deps` implementations under `adapters/` — and when to use each one. Every adapter exposes a `New(...) deps.Deps` factory ready to be passed to [`lib.New`](/docs/References/PublicApi/lib.New.md), and honors the whole contract described in [RequiredApi.md](/docs/References/RequiredApi.md). To build a new adapter, follow [AddAdapter.md](/docs/Tutorials/AddAdapter.md).
+Lists every adapter shipped with the library — the opinionated `deps.Deps` implementations under `adapters/` — and when to use each one. Every adapter exposes a `New(...) deps.Deps` factory ready to be passed to [`lib.New`](/docs/References/PublicApi/lib.New.md), and honors the whole contract described in [RequiredApi.md](/docs/References/RequiredApi.md). To build a new adapter, follow [HandleDependencies.md](/docs/Tutorials/HandleDependencies.md#create-an-adapter-in-this-repository).
 
 ---
 

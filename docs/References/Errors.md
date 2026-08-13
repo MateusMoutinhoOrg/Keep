@@ -40,9 +40,9 @@ Switch on `Type` to decide what to do:
 created, err := users.NewItem(fields)
 if err != nil {
 	switch err.Type {
-	case database.KeyConflict:
+	case keeptypes.KeyConflict:
 		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
-	case database.MissingField:
+	case keeptypes.MissingField:
 		fmt.Printf("field %q is required\n", err.Key)
 	default:
 		fmt.Println("unexpected error:", err.Message)
@@ -55,7 +55,7 @@ A common pattern from the samples — treat "already exists" as fine and reuse t
 
 ```go
 _, err := users.NewItem(fields)
-if err != nil && err.Type != database.KeyConflict {
+if err != nil && err.Type != keeptypes.KeyConflict {
 	fmt.Println("Error creating user", err.Message)
 	return
 }

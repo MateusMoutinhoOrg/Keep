@@ -5,7 +5,7 @@ Rules to follow when contributing to this project. Every file must also be shape
 ---
 
 ## Tutorials Guide
-Before making anything, read the [README.md](/README.md) and search for a tutorial about what you want to do. If there is one, follow it; if there isn't, you need to create one following the spec defined in [TutorialDocs](./Meta/TutorialDocs/).
+Before making anything, read the [README.md](/README.md), open the theme index matching your goal (`docs/Index/<Theme>.md`) and search for a tutorial about what you want to do. If there is one, follow it; if there isn't, you need to create one following the spec defined in [TutorialDocs](./Specs/TutorialDocs/).
 
 
 ## Specification Compliance
@@ -16,11 +16,11 @@ Before creating or editing any file, read [Specs.md](/docs/References/Specs.md) 
 
 ## Sandbox Isolation
 
-[sandbox/](/sandbox/) is a closed sandbox. No file inside it may import [adapters/](/adapters/), [examples/](/examples/), [tests/](/tests/), a third-party module, or an OS-bound standard-library package (`os`, `net`, `os/exec`, `syscall`, …). Every such effect must be declared as a function field on the `Deps` contract and reached through the object's `Deps` field, following [AddDependency.md](/docs/Tutorials/AddDependency.md). The mechanic is explained in [SandboxIsolation.md](/docs/Explanations/SandboxIsolation.md).
+[sandbox/](/sandbox/) is a closed sandbox. No file inside it may import [adapters/](/adapters/), [examples/libraryExamples/](/examples/libraryExamples/), `tests/`, a third-party module, or an OS-bound standard-library package (`os`, `net`, `os/exec`, `syscall`, …). Every such effect must be declared as a function field on the `Deps` contract and reached through the object's `Deps` field, following [HandleDependencies.md](/docs/Tutorials/HandleDependencies.md#add-a-dependency). The mechanic is explained in [SandboxIsolation.md](/docs/References/SandboxIsolation.md).
 
-Contracts are **structs of function fields**, never interfaces — in `sandbox/contracts/deps` and `sandbox/contracts/api` alike. Every type in the project is declared in `sandbox/contracts/`; `sandbox/internal/` declares no types at all, only factories. See [StructContracts.md](/docs/Explanations/StructContracts.md).
+Contracts are **structs of function fields**, never interfaces — in `sandbox/contracts/deps` and `sandbox/contracts/api` alike. Every type in the project is declared in `sandbox/contracts/`; `sandbox/lib/` declares no types at all, only factories. See [StructContracts.md](/docs/References/StructContracts.md).
 
-Conversely, nothing outside the sandbox may reach into it beyond its three public packages: `sandbox` (package `lib`), `sandbox/contracts/deps`, and `sandbox/contracts/api`.
+Conversely, nothing outside the sandbox may reach into it beyond its three public packages: `sandbox` (package `lib`), `sandbox/contracts/deps`, and `sandbox/contracts/api`. `sandbox/lib/` and `sandbox/config/` are private to the sandbox. The compiler does not enforce that half — the tree carries no `internal/` path element — so it is on the reviewer: an import of `sandbox/lib/...` from `adapters/`, `examples/libraryExamples/`, `tests/`, or a consuming project is a rejected change, not a warning.
 
 ---
 
@@ -31,7 +31,7 @@ Every struct of function fields in this project — an `api` struct inside the s
 A factory takes a pointer to the **carrier** — the struct holding the state the closure reads — and returns exactly one field's value; the caller assigns it:
 
 ```go
-// sandbox/internal/schemaitem/ — the carrier is the api struct being filled
+// sandbox/lib/schemaitem/ — the carrier is the api struct being filled
 func CheckKeysPresenceFactory(s *api.SchemaItem) func(keys []string) bool {
 	return func(keys []string) bool {
 		exists, err := s.Deps.Exists(dense.ValueKey(s.Prefix, s.Id, "email"))
@@ -64,30 +64,30 @@ Four rules follow, and none of them is checked by the compiler:
 - A constructor returns the filled **contract struct** by value — `api.Lib`, `api.<Object>`, or `adapter.Deps` — never the carrier type of an adapter.
 - The `Deps` field is **read-only once the struct is returned**: closures capture the struct the factories ran over, so a caller patching `Deps` on a copy changes nothing. Patch the `deps.Deps` value before calling `lib.New`.
 
-See [StructContracts.md](/docs/Explanations/StructContracts.md) for the full explanation, including why lookups that can fail return `(value, bool)` instead of a nil struct.
+See [StructContracts.md](/docs/References/StructContracts.md) for the full explanation, including why lookups that can fail return `(value, bool)` instead of a nil struct.
 
 ---
 
 ## Import Aliases
 
-Any file that **consumes** the library from outside it — [examples/](/examples/), [tests/](/tests/), and third-party consumers — imports it under `keep`-prefixed aliases, so each call site says which layer it belongs to:
+Any file that **consumes** the library from outside it — [examples/libraryExamples/](/examples/libraryExamples/), `tests/`, and third-party consumers — imports it under `keep`-prefixed aliases, so each call site says which layer it belongs to:
 
 | Import | Alias |
 |--------|-------|
 | `adapters/<name>` | `keepadapter` |
 | `sandbox` | `keeplib` |
-| `sandbox/contracts/api` | `database` |
+| `sandbox/contracts/api` | `keeptypes` |
 | `sandbox/contracts/deps` | `keepdeps` |
 
 ```go
 import (
 	keepadapter "github.com/MateusMoutinhoOrg/Keep/adapters/standard"
 	keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"
-	database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+	keeptypes "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 )
 ```
 
-`sandbox/contracts/api` is aliased `database`, not `keeptypes` — a deliberate deviation from the generic `<prefix>types` convention, because Keep is a database library and `database` reads better at every call site. Files that belong to the library — everything under `sandbox/` and its own [adapters/](/adapters/) — keep the plain package names (`api`, `deps`): there the prefix would be noise, since the import is already local.
+Files that belong to the library — everything under `sandbox/` and its own [adapters/](/adapters/) — keep the plain package names (`api`, `deps`): there the prefix would be noise, since the import is already local.
 
 ---
 
@@ -105,16 +105,16 @@ Before creating, deleting, or renaming any file or directory, read [Structure.md
 
 ## Specification Changes
 
-When you create, delete, or rename a specification inside [Meta/](./Meta), you MUST adapt all the files that match the spec's Applies To rule, and update the index in [Specs.md](/docs/References/Specs.md).
+When you create, delete, or rename a specification inside [Specs/](./Specs), you MUST adapt all the files that match the spec's Applies To rule, and update the index in [Specs.md](/docs/References/Specs.md).
 
 ---
 
 ## Documentation Changes
 
-When you create, delete, or rename a `.md` file, update the Doc Index of [README.md](/README.md).
+When you create, delete, or rename a `.md` file, update the theme index that lists it under [docs/Index/](/docs/Index/) and, when it is a new structural component, [Structure.md](/docs/References/Structure.md) — following [HandleDocuments.md](/docs/Tutorials/HandleDocuments.md). The [README.md](/README.md) links to theme indexes only, so it changes when a **theme** is added, renamed, or removed, never for a single page.
 
 ---
 
 ## Sample Changes
 
-When you create, delete, or rename a sample (any file inside [examples/](/examples/)), update the Samples section of [README.md](/README.md).
+When you create, delete, or rename a sample (any file inside [examples/libraryExamples/](/examples/libraryExamples/)), update [ApiSamplesList.md](/docs/References/ApiSamplesList.md) — following [HandleLibrarySamples.md](/docs/Tutorials/HandleLibrarySamples.md#add-a-library-sample).

@@ -22,7 +22,7 @@ type SchemaItem struct {
 
 ## Description
 
-One record of a collection, returned by the [`SchemaInstance`](./api.SchemaInstance.md) fields. `Id` is a plain data field (never reused, even after deletion); every other behavior is a function field filled by factories in `sandbox/internal/schemaitem/`. The narrative guide with full examples is [Working with Records](/docs/Explanations/Records.md).
+One record of a collection, returned by the [`SchemaInstance`](./api.SchemaInstance.md) fields. `Id` is a plain data field (never reused, even after deletion); every other behavior is a function field filled by factories in `sandbox/lib/schemaitem/`. The narrative guide with full examples is [Working with Records](/docs/References/Records.md).
 
 ## Fields
 

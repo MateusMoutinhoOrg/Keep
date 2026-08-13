@@ -6,8 +6,8 @@ package api
 // Item), and Error. Every type here is a struct — never an interface —
 // following the struct-of-function-fields pattern: a type that carries
 // behavior leads with a Deps field and fills the rest of its behavior as
-// function fields, each assigned by a factory in sandbox/internal/ (see
-// docs/Explanations/StructContracts.md). A type that carries no behavior
+// function fields, each assigned by a factory in sandbox/lib/ (see
+// docs/References/StructContracts.md). A type that carries no behavior
 // (Item, Schema, Props, Error) is plain data and can be built directly
 // with a composite literal — no constructor required.
 
@@ -79,7 +79,7 @@ type Error struct {
 // SchemaInstance.NewItem, FindByKey, ListAll and List, and carries the
 // Deps it was built with, so every field read or write goes through the
 // same injected backend. Its function fields are filled by factories in
-// sandbox/internal/schemaitem.
+// sandbox/lib/schemaitem.
 type SchemaItem struct {
 	// Deps is the dependency set the record was built with.
 	Deps deps.Deps
@@ -110,7 +110,7 @@ type SchemaItem struct {
 
 // SchemaInstance is one collection of records, handed back by
 // KeepDatabase.GetSchema. Its function fields are filled by factories in
-// sandbox/internal/schemainstance.
+// sandbox/lib/schemainstance.
 type SchemaInstance struct {
 	// Deps is the dependency set the collection was built with.
 	Deps deps.Deps
@@ -131,7 +131,7 @@ type SchemaInstance struct {
 
 // KeepDatabase is a database bound to a Props description and to the
 // injected Deps, handed back by Lib.NewDatabase. Its function fields are
-// filled by factories in sandbox/internal/database.
+// filled by factories in sandbox/lib/database.
 type KeepDatabase struct {
 	// Deps is the dependency set the database was built with.
 	Deps deps.Deps
@@ -143,10 +143,16 @@ type KeepDatabase struct {
 }
 
 // Lib is the entry point handed back by lib.New. Its function fields are
-// filled by factories in sandbox/internal/lib.
+// filled by factories in sandbox/lib/publicfunctions.
 type Lib struct {
 	// Deps is the dependency set injected by lib.New.
 	Deps deps.Deps
+	// Version returns the library's own version — the release the
+	// consumer linked against. It is held as a constant in
+	// sandbox/config, so a release bump is a one-line edit touching no
+	// logic, and it is exposed as a field like every other behavior so a
+	// consumer can report it without importing anything but this api.
+	Version func() string
 	// NewDatabase creates a database from a Props description.
 	NewDatabase func(props Props) KeepDatabase
 }

@@ -1,30 +1,30 @@
 # Add a Nested Collection
 
 ## Description
-Covers giving a record its own collection of sub-records — a user owning its sessions, an order owning its items. To add a plain field instead, follow [AddSchemaField.md](/docs/Tutorials/AddSchemaField.md). How nesting is stored is explained in [Schemas.md](/docs/Explanations/Schemas.md).
+Covers giving a record its own collection of sub-records — a user owning its sessions, an order owning its items. To add a plain field instead, follow [AddSchemaField.md](/docs/Tutorials/AddSchemaField.md). How nesting is stored is explained in [Schemas.md](/docs/References/Schemas.md).
 
 ### Rules
-- A nested collection is a field of type `database.Database` whose `Itens` describe the sub-records' own fields.
+- A nested collection is a field of type `keeptypes.Database` whose `Itens` describe the sub-records' own fields.
 - Sub-records are reached only through their owner (`NewSubItem`, `ListAll(fieldName)`) — a nested collection is never returned by `GetSchema`.
-- Uniqueness of a `database.Key` field inside a nested collection is scoped to the owning record, not to the whole database.
+- Uniqueness of a `keeptypes.Key` field inside a nested collection is scoped to the owning record, not to the whole database.
 - Removing the owner removes every sub-record with it; there is no orphan cleanup to write.
 
 ---
 
 ## Workflow
-1. In the schema's `Itens`, list the sub-records' own fields under a `database.Database` item, alongside the owner's plain fields:
+1. In the schema's `Itens`, list the sub-records' own fields under a `keeptypes.Database` item, alongside the owner's plain fields:
    ```go
-   var Schemas = []database.Schema{
+   var Schemas = []keeptypes.Schema{
        {
            Name: "user",
-           Itens: []database.Item{
-               {Name: "email", Type: database.Key, Required: true},
+           Itens: []keeptypes.Item{
+               {Name: "email", Type: keeptypes.Key, Required: true},
                {
                    Name: "sessions",
-                   Type: database.Database,
-                   Itens: []database.Item{
-                       {Name: "token", Type: database.Key, Required: true},
-                       {Name: "creation", Type: database.Int, Required: true},
+                   Type: keeptypes.Database,
+                   Itens: []keeptypes.Item{
+                       {Name: "token", Type: keeptypes.Key, Required: true},
+                       {Name: "creation", Type: keeptypes.Int, Required: true},
                    },
                },
            },
@@ -46,7 +46,7 @@ Covers giving a record its own collection of sub-records — a user owning its s
    }
    ```
 4. Handle the failures of the operation, following [Errors.md](/docs/References/Errors.md) — a duplicated `token` for the same user returns `KeyConflict`, and setting the `sessions` field directly returns `InvalidField`.
-5. If the nesting demonstrates a use case not yet covered, add a sample following [AddSample.md](/docs/Tutorials/AddSample.md) — [SubInfos](/examples/SubInfos/SubInfos.go) is the existing one.
+5. If the nesting demonstrates a use case not yet covered, add a sample following [HandleLibrarySamples.md](/docs/Tutorials/HandleLibrarySamples.md#add-a-library-sample) — [SubInfos](/examples/libraryExamples/SubInfosSample/SubInfosSample.go) is the existing one.
 6. Build the project and run the tests:
    ```bash
    go build ./... && go test ./...

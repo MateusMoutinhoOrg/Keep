@@ -40,14 +40,14 @@ It is a **plain struct**, not an interface: `Error` carries no behavior, so call
 ## Examples
 
 ```go
-import database "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
+import keeptypes "github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
 
 created, err := users.NewItem(fields)
 if err != nil {
 	switch err.Type {
-	case database.KeyConflict:
+	case keeptypes.KeyConflict:
 		fmt.Printf("%q %v is already taken\n", err.Key, err.KeyValue)
-	case database.MissingField:
+	case keeptypes.MissingField:
 		fmt.Printf("field %q is required\n", err.Key)
 	default:
 		fmt.Println("unexpected error:", err.Message)
