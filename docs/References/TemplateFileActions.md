@@ -17,7 +17,6 @@ Copying these files carries over the template's **generic** guides and specifica
 |------|-------------|
 | `docs/References/Specs/*` | The specifications every file of the new library must be shaped by |
 | `docs/References/Specs.md` | The index locating each specification |
-| `docs/References/RULES.md` | The binding contribution rules |
 | `docs/Tutorials/ForkTemplate.md`, `docs/Tutorials/AdaptExistingLib.md`, `docs/Tutorials/RenameModule.md`, `docs/References/TemplateFileActions.md` | The template workflows and this page |
 | `docs/References/SandboxIsolation.md`, `docs/References/StructContracts.md`, `docs/References/DepsMechanic.md` | The explanations of the structure's mechanics |
 | `docs/Tutorials/HandleDependencies.md`, `docs/Tutorials/HandleLibElements.md`, `docs/Tutorials/HandleLibrarySamples.md`, `docs/Tutorials/HandleDocuments.md` | The generic workflow guides for extending any library built on this structure |

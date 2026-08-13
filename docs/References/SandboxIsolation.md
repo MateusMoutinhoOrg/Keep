@@ -71,7 +71,7 @@ To add a new door, follow [HandleDependencies.md](/docs/Tutorials/HandleDependen
 
 ## What the Wall Forbids in the Other Direction
 
-The wall is not only about what the sandbox imports — it also limits what the outside may reach into. `sandbox/lib/` holds the factories that fill the contract structs, and it is private to the sandbox: nothing in `adapters/`, `examples/libraryExamples/`, `tests/`, or a consuming project may import it. Unlike the import rules above, this one is a convention the reviewer enforces, not the compiler — the tree carries no `internal/` path element, so a stray import compiles. Treat it as binding all the same, and see [RULES.md](/docs/References/RULES.md#sandbox-isolation).
+The wall is not only about what the sandbox imports — it also limits what the outside may reach into. `sandbox/lib/` holds the factories that fill the contract structs, and it is private to the sandbox: nothing in `adapters/`, `examples/libraryExamples/`, `tests/`, or a consuming project may import it. Unlike the import rules above, this one is a convention the reviewer enforces, not the compiler — the tree carries no `internal/` path element, so a stray import compiles. Treat it as binding all the same.
 
 So the outside world sees exactly three packages:
 

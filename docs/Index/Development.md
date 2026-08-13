@@ -1,10 +1,10 @@
 # Development
 
 ## Description
-Index of the documentation for contributors changing this repository: the binding rules, the mechanics every change runs into, the per-goal workflows, and the specifications every file must satisfy. Using the library is indexed by [LibUsage.md](/docs/Index/LibUsage.md); turning the project into a new library is indexed by [Templating.md](/docs/Index/Templating.md).
+Index of the documentation for contributors changing this repository: the mechanics every change runs into, the per-goal workflows, and the specifications every file must satisfy. Using the library is indexed by [LibUsage.md](/docs/Index/LibUsage.md); turning the project into a new library is indexed by [Templating.md](/docs/Index/Templating.md).
 
 > [!IMPORTANT]
-> **Read before contributing.** [RULES.md](/docs/References/RULES.md), [Structure.md](/docs/References/Structure.md) and [Specs.md](/docs/References/Specs.md) are required reading: they say **what** every change must respect, **where** it belongs, and **how** the file you touch must be shaped.
+> **Read before contributing.** [Structure.md](/docs/References/Structure.md) and [Specs.md](/docs/References/Specs.md) are required reading: they say **where** a change belongs and **how** the file you touch must be shaped.
 
 ---
 
@@ -38,18 +38,6 @@ Index of the documentation for contributors changing this repository: the bindin
 
 ## References
 
-- [RULES.md](/docs/References/RULES.md)
-  - **description:** The binding contribution rules and their required companion updates
-  - [Tutorials Guide](/docs/References/RULES.md#tutorials-guide)
-  - [Specification Compliance](/docs/References/RULES.md#specification-compliance)
-  - [Sandbox Isolation](/docs/References/RULES.md#sandbox-isolation)
-  - [Factory Pattern](/docs/References/RULES.md#factory-pattern)
-  - [Import Aliases](/docs/References/RULES.md#import-aliases)
-  - [Adapter Changes](/docs/References/RULES.md#adapter-changes)
-  - [File Changes](/docs/References/RULES.md#file-changes)
-  - [Specification Changes](/docs/References/RULES.md#specification-changes)
-  - [Documentation Changes](/docs/References/RULES.md#documentation-changes)
-  - [Sample Changes](/docs/References/RULES.md#sample-changes)
 - [Structure.md](/docs/References/Structure.md)
   - **description:** The project's schema: which kind of file lives where, and its spec
   - [Root](/docs/References/Structure.md#root)

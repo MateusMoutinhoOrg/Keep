@@ -6,7 +6,7 @@ Covers installing the library and initializing it with the standard (filesystem)
 ### Rules
 - Requires Go 1.22 or newer.
 - The `sandbox` package is named `lib`, so import it under the project's alias convention: `keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"`.
-- The schema description and the typed error come from `sandbox/contracts/api`, imported as `keeptypes` — see [Import Aliases](/docs/References/RULES.md#import-aliases).
+- The schema description and the typed error come from `sandbox/contracts/api`, imported as `keeptypes` — see the alias convention in [lib.New](/docs/References/PublicApi/lib.New.md).
 
 ---
 

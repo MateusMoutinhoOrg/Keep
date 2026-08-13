@@ -10,7 +10,7 @@ func New(d deps.Deps) api.Lib
 
 ## Description
 
-Injects a [`deps.Deps`](./deps.Deps.md) implementation into the library and returns the [`api.Lib`](./api.Lib.md) entry point. It is the single wiring point consumers touch, and the only exported symbol of the `sandbox` package. It delegates to `sandbox/lib/lib.New`, which stores the deps on the struct and runs every field factory over it.
+Injects a [`deps.Deps`](./deps.Deps.md) implementation into the library and returns the [`api.Lib`](./api.Lib.md) entry point. It is the single wiring point consumers touch, and the only exported symbol of the `sandbox` package. It delegates to `sandbox/lib/lib.New`, which stores the deps on the struct and runs every field factory over it. The package is named `lib` and lives at `sandbox/`, so importers alias it: `keeplib "github.com/MateusMoutinhoOrg/Keep/sandbox"` — matching the `keepadapter` / `keeplib` / `keeptypes` / `keepdeps` alias convention every consumer of this module uses, so each call site says which layer it belongs to.
 
 ## Parameters
 

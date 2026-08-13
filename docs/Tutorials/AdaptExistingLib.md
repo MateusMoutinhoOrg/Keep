@@ -4,7 +4,7 @@
 Covers converting a library that already exists into this project's dependency-injected structure. To start a new library from scratch, follow [ForkTemplate.md](/docs/Tutorials/ForkTemplate.md) instead.
 
 ### Rules
-- Read [RULES.md](/docs/References/RULES.md) and [Structure.md](/docs/References/Structure.md) before starting.
+- Read [Structure.md](/docs/References/Structure.md) and [Specs.md](/docs/References/Specs.md) before starting.
 - Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `sandbox/`, concrete implementations in `adapters/`.
 - Every file of the template has one action — **Copy**, **Create**, **Rewrite**, or **Delete**. Take it from [TemplateFileActions.md](/docs/References/TemplateFileActions.md); the steps below follow that order.
 - The pre-existing package layout does **not** survive: all library logic ends up in `sandbox/lib/` as factories, calling every OS-bound and third-party dependency through the carrier's `Deps` field. Code left in its original packages, or still calling `os`/`net`/third-party APIs directly, is not adapted.

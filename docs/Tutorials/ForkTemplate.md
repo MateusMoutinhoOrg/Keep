@@ -4,7 +4,7 @@
 Covers using this repository as a GitHub template to start a **new** dependency-injected library. To convert a library that already exists, follow [AdaptExistingLib.md](/docs/Tutorials/AdaptExistingLib.md) instead.
 
 ### Rules
-- Read [RULES.md](/docs/References/RULES.md) and [Structure.md](/docs/References/Structure.md) before starting.
+- Read [Structure.md](/docs/References/Structure.md) and [Specs.md](/docs/References/Specs.md) before starting.
 - Keep the separation defined in [Structure.md](/docs/References/Structure.md): pure logic in `sandbox/`, concrete implementations in `adapters/`.
 - Every file of the template has one action — **Copy**, **Create**, **Rewrite**, or **Delete**. Take it from [TemplateFileActions.md](/docs/References/TemplateFileActions.md); the steps below follow that order.
 - Every file created or rewritten — code and `.md` alike — must follow its specification, located through [Specs.md](/docs/References/Specs.md).

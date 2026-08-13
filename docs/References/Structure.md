@@ -162,7 +162,6 @@ One page per lookup table or explained mechanic, plus the two directories the pr
 
 | File | Description | Spec |
 |------|-------------|------|
-| `RULES.md` | The binding contribution rules and their required companion updates | Rules |
 | `Structure.md` | The project's schema and the purpose of each component | Structure |
 | `Specs.md` | Index of every specification and the files each one governs | |
 | `PublicApi.md` | Index of the public structs, fields, and functions, with links to their detail pages | ReferenceDocs |
