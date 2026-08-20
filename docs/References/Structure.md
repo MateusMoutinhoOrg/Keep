@@ -79,8 +79,8 @@ One package per object the library creates, named after the object itself. Each 
 | File | Description | Spec |
 |------|-------------|------|
 | `database/database.go` | Factories for `api.KeepDatabase` (`GetSchemaFactory`) plus `New`, resolving collections through `GetSchema` | LibObjects |
-| `schemainstance/schemainstance.go` | Factories for `api.SchemaInstance` (`NewItemFactory`, `FindByKeyFactory`, `ListAllFactory`, `ListFactory`) plus `New` | LibObjects |
-| `schemaitem/schemaitem.go` | Factories for `api.SchemaItem` (`GetFactory`, `UpdateFactory`, `RemoveFactory`, sub-database factories) plus the record constructors (`New`, `ResolveLive`, `ListRange`, `ClearCollection`) the other packages call | LibObjects |
+| `schemainstance/schemainstance.go` | Factories for `api.SchemaInstance` (`NewItemFactory`, `FindByKeyFactory`, `FindByIdFactory`, `ListAllFactory`, `ListFactory`) plus `New` | LibObjects |
+| `schemaitem/schemaitem.go` | Factories for `api.SchemaItem` (`GetFactory`, `UpdateFactory`, `RemoveFactory`, sub-database factories) plus the record constructors (`New`, `ResolveById`, `ResolveLive`, `ListRange`, `ClearCollection`) the other packages call | LibObjects |
 | `liberror/liberror.go` | Plain builders for `*api.Error` (`New`, `NewWithValue`) — not factories, since `Error` carries no `Deps` field and nothing to fill after construction | LibObjects |
 
 #### `/sandbox/lib/dense/`

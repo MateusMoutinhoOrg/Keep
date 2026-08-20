@@ -123,6 +123,11 @@ type SchemaInstance struct {
 	// FindByKey looks a record up through a unique Key field. ok is
 	// false when the field is not an indexed key or no record matches.
 	FindByKey func(key string, keyValue any) (SchemaItem, bool)
+	// FindById looks a record up through its permanent id — the same
+	// value SchemaItem.Id reports. Storing that id in an Int field of
+	// another collection is how a record points at another record. ok
+	// is false when no live record carries the id.
+	FindById func(id int64) (SchemaItem, bool)
 	// ListAll returns every record of the collection.
 	ListAll func() ([]SchemaItem, *Error)
 	// List returns up to chunk records starting at position (1-based).

@@ -11,6 +11,7 @@ type SchemaInstance struct {
 	Prefix    string
 	NewItem   func(fields map[string]any) (api.SchemaItem, *api.Error)
 	FindByKey func(key string, keyValue any) (api.SchemaItem, bool)
+	FindById  func(id int64) (api.SchemaItem, bool)
 	ListAll   func() ([]api.SchemaItem, *api.Error)
 	List      func(position int, chunk int) ([]api.SchemaItem, *api.Error)
 }
@@ -47,6 +48,25 @@ FindByKey func(key string, keyValue any) (api.SchemaItem, bool)
 
 Looks a record up by any `Key` field, at constant cost and case-insensitively. `ok` is `false` when the field is not a `Key` of the schema or no record matches.
 
+### `FindById`
+
+```go
+FindById func(id int64) (api.SchemaItem, bool)
+```
+
+Looks a record up by its permanent id — the value [`api.SchemaItem.Id`](./api.SchemaItem.md) reports. It is the cheapest lookup the library has: no index entry is read, the id alone names the record's keys. `ok` is `false` when the collection holds no live record under that id, either because it was never allocated or because the record was removed; ids are never reused, so a stale id never resolves to a different record.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `int64` | The record's permanent id, as reported by `SchemaItem.Id`. |
+
+| Returns | Description |
+| :--- | :--- |
+| [`api.SchemaItem`](./api.SchemaItem.md) | The record, when `ok` is `true`. |
+| `bool` | `false` when no live record carries the id. |
+
+Because ids are stable and never reused, storing one in an `Int` field of another collection makes that field a **pointer to a record** — a foreign key — and `FindById` is what follows it. See [Relations between collections](/docs/References/Records.md#relations-between-collections).
+
 ### `ListAll`
 
 ```go
@@ -70,6 +90,7 @@ users, _ := db.GetSchema("user")
 
 created, err := users.NewItem(map[string]any{"email": "a@x.com", "username": "alice", "age": 30})
 found, ok := users.FindByKey("email", "a@x.com")
+sameUser, ok2 := users.FindById(created.Id)
 all, err2 := users.ListAll()
 page, err3 := users.List(1, 10)
 ```

@@ -387,19 +387,27 @@ func New(d deps.Deps, items []api.Item, prefix string, fields map[string]any) (a
 	return build(d, items, prefix, id), nil
 }
 
-// ResolveLive parses an id read from an index entry and returns the
-// record only if it is still live (its position back-pointer exists).
-// ok is false when it is not.
-func ResolveLive(d deps.Deps, items []api.Item, prefix string, rawID []byte) (api.SchemaItem, bool) {
-	id, err := dense.ParseID(rawID)
-	if err != nil {
-		return api.SchemaItem{}, false
-	}
+// ResolveById returns the record carrying the given id, but only if it
+// is still live (its position back-pointer exists). ok is false when it
+// is not — an id that was never allocated, or one whose record was
+// removed; ids are never reused, so a stale id never resolves to a
+// different record.
+func ResolveById(d deps.Deps, items []api.Item, prefix string, id int64) (api.SchemaItem, bool) {
 	exists, err := d.Exists(dense.PositionKey(prefix, id))
 	if err != nil || !exists {
 		return api.SchemaItem{}, false
 	}
 	return build(d, items, prefix, id), true
+}
+
+// ResolveLive parses an id read from an index entry and returns the
+// record only if it is still live. ok is false when it is not.
+func ResolveLive(d deps.Deps, items []api.Item, prefix string, rawID []byte) (api.SchemaItem, bool) {
+	id, err := dense.ParseID(rawID)
+	if err != nil {
+		return api.SchemaItem{}, false
+	}
+	return ResolveById(d, items, prefix, id)
 }
 
 // ListRange reads records from the dense list starting at `from`

@@ -48,6 +48,75 @@ Full example: [examples/libraryExamples/FindUserByKey](../../examples/libraryExa
 
 ---
 
+## Find — `FindById`
+
+Looks a record up by its permanent id — the value `user.Id` reports. No index entry is read: the id alone names the record's keys, which makes it the cheapest lookup the library has.
+
+```go
+user, ok := users.FindById(1)
+if !ok {
+	fmt.Println("no record under that id")
+}
+```
+
+`ok` is `false` when the collection holds no live record under that id — either it was never allocated, or the record was removed. Ids are **never reused**, so an id kept from a previous run either resolves to the same record it always named or to nothing at all; it can never come back pointing at a different record.
+
+Full example: [examples/libraryExamples/FindUserById](../../examples/libraryExamples/FindUserByIdSample/FindUserByIdSample.go)
+
+---
+
+## Relations between collections
+
+Because ids are permanent and never reused, an id is a safe value to **store**. Putting one in an `Int` field of another collection turns that field into a pointer to a record — a foreign key — and `FindById` is what follows it. This is how one collection references another without the engine needing any join, key listing, or scan.
+
+Describe the pointer as a plain `Int` field:
+
+```go
+var Schemas = []keeptypes.Schema{
+	{
+		Name: "user",
+		Itens: []keeptypes.Item{
+			{Name: "email", Type: keeptypes.Key, Required: true},
+		},
+	},
+	{
+		Name: "post",
+		Itens: []keeptypes.Item{
+			{Name: "title", Type: keeptypes.Key, Required: true},
+			// The foreign key: it holds a user record's Id.
+			{Name: "author", Type: keeptypes.Int, Required: true},
+		},
+	},
+}
+```
+
+Write the pointer by storing the target's `Id`:
+
+```go
+author, _ := users.NewItem(map[string]any{"email": "mateus@gmail.com"})
+
+post, _ := posts.NewItem(map[string]any{
+	"title":  "keep-by-id",
+	"author": author.Id,
+})
+```
+
+Follow it by reading the field back (an `Int` field comes back as `int64`) and resolving it:
+
+```go
+authorId, _ := post.Get("author")
+foundAuthor, ok := users.FindById(authorId.(int64))
+```
+
+Two notes on using this:
+
+- **Nothing enforces the reference.** Removing the author leaves the post's `author` field pointing at an id that no longer resolves, and `FindById` reports `ok == false`. Deciding what happens then — deleting the post, clearing the field, showing a placeholder — is the caller's job.
+- **A relation is not a sub-database.** Use a nested `Database` field when the sub-records belong to exactly one parent and die with it (see [Sub-databases](#sub-databases--newsubitem-and-listallfield)); use a stored id when the target is an independent record other collections may point at too.
+
+Full example: [examples/libraryExamples/FindUserById](../../examples/libraryExamples/FindUserByIdSample/FindUserByIdSample.go)
+
+---
+
 ## Read — `Get`
 
 ```go

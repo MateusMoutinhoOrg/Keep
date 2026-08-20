@@ -29,6 +29,15 @@ func FindByKeyFactory(si *api.SchemaInstance) func(key string, keyValue any) (ap
 	}
 }
 
+// FindByIdFactory fills api.SchemaInstance.FindById: resolve the record
+// straight from its permanent id, with no index lookup at all. ok is
+// false when the collection holds no live record under that id.
+func FindByIdFactory(si *api.SchemaInstance) func(id int64) (api.SchemaItem, bool) {
+	return func(id int64) (api.SchemaItem, bool) {
+		return schemaitem.ResolveById(si.Deps, si.Items, si.Prefix, id)
+	}
+}
+
 // NewItemFactory fills api.SchemaInstance.NewItem.
 func NewItemFactory(si *api.SchemaInstance) func(fields map[string]any) (api.SchemaItem, *api.Error) {
 	return func(fields map[string]any) (api.SchemaItem, *api.Error) {
@@ -58,6 +67,7 @@ func ListFactory(si *api.SchemaInstance) func(position int, chunk int) ([]api.Sc
 func New(d deps.Deps, items []api.Item, prefix string) api.SchemaInstance {
 	si := api.SchemaInstance{Deps: d, Items: items, Prefix: prefix}
 	si.FindByKey = FindByKeyFactory(&si)
+	si.FindById = FindByIdFactory(&si)
 	si.NewItem = NewItemFactory(&si)
 	si.ListAll = ListAllFactory(&si)
 	si.List = ListFactory(&si)

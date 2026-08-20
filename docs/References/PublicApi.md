@@ -57,7 +57,7 @@ Creates a `KeepDatabase` from a `Props` description with the lib's deps wired in
 `Props` (plain data) and `GetSchema` (function field, `(SchemaInstance, bool)`).
 
 ### [api.SchemaInstance fields](./PublicApi/api.SchemaInstance.md#fields)
-`NewItem`, `FindByKey`, `ListAll`, and `List`.
+`NewItem`, `FindByKey`, `FindById`, `ListAll`, and `List`.
 
 ### [api.SchemaItem fields](./PublicApi/api.SchemaItem.md#fields)
 `Id` (plain data), `Get`, `Update`, `Remove`, `ListAll`, `NewSubItem`, `CheckKeysPresence`, and `String`.

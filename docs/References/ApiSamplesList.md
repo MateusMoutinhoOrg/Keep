@@ -11,6 +11,7 @@ A reference list of every Go sample shipped in [examples/libraryExamples/](/exam
 | --- | --- |
 | [CreateUserSample](/examples/libraryExamples/CreateUserSample/CreateUserSample.go) | Insert a record with unique keys |
 | [FindUserByKeySample](/examples/libraryExamples/FindUserByKeySample/FindUserByKeySample.go) | Look a record up by a unique field |
+| [FindUserByIdSample](/examples/libraryExamples/FindUserByIdSample/FindUserByIdSample.go) | Look a record up by its permanent id, and point one collection at another |
 | [RetrieveUserInfoSample](/examples/libraryExamples/RetrieveUserInfoSample/RetrieveUserInfoSample.go) | Read individual fields of a record |
 | [UpdateUserSample](/examples/libraryExamples/UpdateUserSample/UpdateUserSample.go) | Update a plain field |
 | [UpdateUserKeySample](/examples/libraryExamples/UpdateUserKeySample/UpdateUserKeySample.go) | Update a unique indexed field, re-indexing it |

@@ -43,6 +43,8 @@ The library is always built the same way: an adapter produces a `deps.Deps`, `li
   - [Starting point](/docs/References/Records.md#starting-point)
   - [Create — `NewItem`](/docs/References/Records.md#create--newitem)
   - [Find — `FindByKey`](/docs/References/Records.md#find--findbykey)
+  - [Find — `FindById`](/docs/References/Records.md#find--findbyid)
+  - [Relations between collections](/docs/References/Records.md#relations-between-collections)
   - [Read — `Get`](/docs/References/Records.md#read--get)
   - [Update — `Update`](/docs/References/Records.md#update--update)
   - [Delete — `Remove`](/docs/References/Records.md#delete--remove)
