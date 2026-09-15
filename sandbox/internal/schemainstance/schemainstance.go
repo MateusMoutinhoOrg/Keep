@@ -68,7 +68,7 @@ func ListFactory(sandbox *api.Sandbox, instance *api.SchemaInstance) func(positi
 // New builds an api.SchemaInstance over a prefix and the fields its records
 // hold, running every factory over it to fill its function fields. Adding a
 // function field to api.SchemaInstance means adding its factory call here.
-func New(sandbox *api.Sandbox, items []api.Item, prefix string) api.SchemaInstance {
+func New(sandbox *api.Sandbox, items []api.Item, prefix []string) api.SchemaInstance {
 	instance := api.SchemaInstance{Items: items, Prefix: prefix}
 	instance.NewItem = NewItemFactory(sandbox, &instance)
 	instance.FindByKey = FindByKeyFactory(sandbox, &instance)

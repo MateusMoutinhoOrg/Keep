@@ -7,27 +7,27 @@ cli-output: |
     email after the refusal: mateus@keep.dev
 exit-code: 0
 tree:
-    - file: database/user-1-position
+    - file: database/user/1/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-1-values-age
+    - file: database/user/1/values/age
       sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
-    - file: database/user-1-values-email
+    - file: database/user/1/values/email
       sha: 2ba5f2e905cb2b7c37b5fe764275184c40814cfe55f3e2391739ee6ff562c5d6
-    - file: database/user-2-position
+    - file: database/user/2/position
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-2-values-age
+    - file: database/user/2/values/age
       sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
-    - file: database/user-2-values-email
+    - file: database/user/2/values/email
       sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
-    - file: database/user-keys-email-26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: database/user/keys/email/26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-keys-email-2ba5f2e905cb2b7c37b5fe764275184c40814cfe55f3e2391739ee6ff562c5d6
+    - file: database/user/keys/email/2ba5f2e905cb2b7c37b5fe764275184c40814cfe55f3e2391739ee6ff562c5d6
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-last-id
+    - file: database/user/last-id
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-list-1
+    - file: database/user/list/1
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-list-2
+    - file: database/user/list/2
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-size
+    - file: database/user/size
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35

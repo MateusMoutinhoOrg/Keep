@@ -17,11 +17,18 @@ picks between them:
 
 ## Keys
 
-A key is an opaque, slash-separated string the sandbox builds — the layout is in
-[DenseRecordPattern](../DenseRecordPattern/doc.md). An adapter may escape it however its
-backend requires, on one condition: **the escaping is injective**. Two different keys must
-never resolve to the same place. `filestorage` escapes each slash-separated segment on its
-own, which also keeps a key from reaching outside its base directory.
+A key is a **list of opaque segments** the sandbox builds — `[]string`, not one joined
+string — and the layout is in [DenseRecordPattern](../DenseRecordPattern/doc.md). The
+sandbox hands the segments apart precisely so that no separator has to survive inside them:
+a field name or a path component holding a slash can no longer be read back as a boundary
+and collide with another key.
+
+An adapter flattens the list the way its backend wants, conventionally joining with a
+slash — `["a", "b.txt"]` becomes `a/b.txt` — on one condition: **the flattening is
+injective**. Two different segment lists must never resolve to the same place, which is why
+both shipped adapters escape each segment *before* joining: `["a/b"]` and `["a", "b"]` stay
+two different keys. `filestorage` uses one directory per segment, which also keeps a key
+from reaching outside its base directory.
 
 A value is an arbitrary byte slice. Keep stores short ASCII in practice — decimal integers
 and field values — but nothing in the contract bounds either.
@@ -96,4 +103,4 @@ agnos list-adapters
 ```
 
 `adapters/libs/memstorage/memstorage.go` is the shortest complete implementation to copy
-from: it is 130 lines over a map, and it fills every field.
+from: it is roughly 150 lines over a map, and it fills every field.

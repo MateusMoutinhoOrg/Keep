@@ -44,9 +44,10 @@ type named here are in [PublicApi](../PublicApi/doc.md).
 | `Schema` | one collection of records | `Name`, what `GetSchema` takes |
 | `Item` | one field of a collection | `Name`, what `Get`, `Update` and the fields map take |
 
-`Path` is a prefix, not a directory: a backend that maps keys to files reads it as one, and
-an in-memory or remote backend keeps it as part of the key. A trailing slash is what makes
-it a directory on the first kind and changes nothing on the others.
+`Path` is a prefix, not a directory: it is split on slashes into the leading segments of
+every key, so a backend that maps keys to files reads it as one, and an in-memory or remote
+backend keeps it as part of the key. Empty segments are dropped, which makes a trailing
+slash optional and harmless either way.
 
 `Itens` is spelled that way in `Schema` and in `Item`. It is part of the api.
 

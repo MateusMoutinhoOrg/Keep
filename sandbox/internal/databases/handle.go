@@ -2,6 +2,7 @@ package databases
 
 import (
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
+	dense "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/dense"
 	schemainstance "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/schemainstance"
 )
 
@@ -16,7 +17,7 @@ func GetSchemaFactory(sandbox *api.Sandbox, handle *api.DatabaseHandle) func(nam
 	return func(name string) (api.SchemaInstance, bool) {
 		for _, schema := range handle.Props.Schemas {
 			if schema.Name == name {
-				prefix := handle.Props.Path + schema.Name
+				prefix := dense.RootPrefix(sandbox, handle.Props.Path, schema.Name)
 				return schemainstance.New(sandbox, schema.Itens, prefix), true
 			}
 		}

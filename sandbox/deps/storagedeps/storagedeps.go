@@ -14,9 +14,13 @@ package storagedeps
 // makes that possible is the Dense Record Pattern, documented in
 // docs/DenseRecordPattern.
 //
-// A key is an opaque, slash-separated string built by the sandbox. An
-// adapter may escape it however its backend requires, as long as the
-// escaping is injective: two different keys must never collide.
+// A key is a list of opaque segments the sandbox builds — never a single
+// joined string. Passing the segments apart is what keeps the layout
+// collision-free: a separator appearing inside one segment can no longer be
+// read back as a boundary between two. An adapter flattens the list the way
+// its backend wants, conventionally joining with a slash — ["a", "b.txt"]
+// becomes "a/b.txt" — on one condition: the flattening is injective, so two
+// different segment lists never resolve to the same place.
 //
 // No field reports an expected condition as an error. A key that is absent
 // comes back as found == false, a conditional write that did not apply as
@@ -30,51 +34,51 @@ package storagedeps
 type Sandbox struct {
 	// Write stores value under key, overwriting any current value and
 	// creating the key when it is absent.
-	Write func(key string, value []byte) error
+	Write func(key []string, value []byte) error
 
 	// WriteIfKeyNotExists stores value only when key holds nothing.
 	// written is false when the key already exists, which is not an error.
-	WriteIfKeyNotExists func(key string, value []byte) (written bool, err error)
+	WriteIfKeyNotExists func(key []string, value []byte) (written bool, err error)
 
 	// WriteIfValueEquals stores value only when the current value of key is
 	// exactly old_value. written is false when the key is absent or holds
 	// something else, which is not an error.
-	WriteIfValueEquals func(key string, value []byte, old_value []byte) (written bool, err error)
+	WriteIfValueEquals func(key []string, value []byte, old_value []byte) (written bool, err error)
 
 	// Append adds value to the end of the current value of key, creating
 	// the key when it is absent.
-	Append func(key string, value []byte) error
+	Append func(key []string, value []byte) error
 
 	// InsertAt splices value into the current value of key at position,
 	// counted in bytes from the start. A position beyond the current length
 	// is an error: it would leave a hole.
-	InsertAt func(key string, position int64, value []byte) error
+	InsertAt func(key []string, position int64, value []byte) error
 
 	// Exists reports whether key currently holds a value.
-	Exists func(key string) (exists bool, err error)
+	Exists func(key []string) (exists bool, err error)
 
 	// Read returns the whole value of key. found is false when the key
 	// holds nothing, and value is then nil.
-	Read func(key string) (value []byte, found bool, err error)
+	Read func(key []string) (value []byte, found bool, err error)
 
 	// ReadAt returns at most size bytes of the value of key, starting at
 	// position, counted in bytes from the start. A range reaching past the
 	// end is truncated rather than refused. found is false when the key
 	// holds nothing.
-	ReadAt func(key string, position int64, size int64) (value []byte, found bool, err error)
+	ReadAt func(key []string, position int64, size int64) (value []byte, found bool, err error)
 
 	// Delete removes key. Removing a key that holds nothing is not an
 	// error: absent before and absent after is the same outcome.
-	Delete func(key string) error
+	Delete func(key []string) error
 
 	// Lock takes an advisory lease on key for seconds seconds. locked is
 	// false when someone else already holds a lease that has not expired,
 	// which is not an error. Keep never calls it itself — a database is
 	// written by one writer at a time — so a backend with no leases may
 	// report locked == true and do nothing.
-	Lock func(key string, seconds int) (locked bool, err error)
+	Lock func(key []string, seconds int) (locked bool, err error)
 
 	// UnLock releases a lease taken by Lock. Releasing a lease nobody holds
 	// is not an error.
-	UnLock func(key string) error
+	UnLock func(key []string) error
 }

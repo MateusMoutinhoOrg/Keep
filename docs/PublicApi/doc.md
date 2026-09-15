@@ -69,7 +69,7 @@ Props is the declarative description a database is created from. It is the only 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Path` | `string` | Path is the prefix every key of the database is written under. A backend that maps keys to files reads it as a directory, so it usually ends with a slash. |
+| `Path` | `string` | Path is the prefix every key of the database is written under. It is split on slashes into the leading segments of every key, so a backend that maps keys to files reads it as a directory; empty segments are dropped, which makes a trailing slash optional. |
 | `Schemas` | `[]Schema` | Schemas are the collections the database holds. |
 
 ### `Error`
@@ -90,7 +90,7 @@ SchemaItem is one record of a collection, handed back by SchemaInstance.NewItem,
 | Field | Type | Description |
 | --- | --- | --- |
 | `Items` | `[]Item` | Items are the fields the record's own collection declares. |
-| `Prefix` | `string` | Prefix is the key prefix of the collection the record belongs to. |
+| `Prefix` | `[]string` | Prefix is the key prefix of the collection the record belongs to, held as the list of segments every key under it is built from. |
 | `Id` | `int64` | Id is the record's permanent identifier. It is never reused, so an id stored in an Int field of another collection stays a reference to this record or to nothing at all — never to a different record. |
 | `Get` | `func(fieldName string) (any, *Error)` | Get returns the typed value stored for a field: a string for a Key field, an int64 for an Int field. It fails with NotFound when the field has no stored value and with InvalidField when the schema declares no such field or the field is a nested collection. |
 | `Update` | `func(fieldName string, value any) *Error` | Update writes a new value for a field, re-indexing it when the field is a Key. It fails with KeyConflict when another live record already holds the new value for that Key. |
@@ -107,7 +107,7 @@ SchemaInstance is one collection of records, handed back by DatabaseHandle.GetSc
 | Field | Type | Description |
 | --- | --- | --- |
 | `Items` | `[]Item` | Items are the fields each record of the collection can hold. |
-| `Prefix` | `string` | Prefix is the collection's key prefix. |
+| `Prefix` | `[]string` | Prefix is the collection's key prefix, held as the list of segments every key under it is built from. |
 | `NewItem` | `func(fields map[string]any) (SchemaItem, *Error)` | NewItem inserts a record, validating the fields against the schema and against the unique index of every Key field. |
 | `FindByKey` | `func(key string, keyValue any) (SchemaItem, bool)` | FindByKey looks a record up through a unique Key field. ok is false when the schema declares no such Key field, or when no live record holds that value. |
 | `FindById` | `func(id int64) (SchemaItem, bool)` | FindById looks a record up through its permanent id — the value SchemaItem.Id reports. ok is false when the collection holds no live record under that id. |
@@ -187,17 +187,17 @@ Sandbox is the storage library injected whole as the Deps.Storagedeps field. The
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Write` | `func(key string, value []byte) error` | Write stores value under key, overwriting any current value and creating the key when it is absent. |
-| `WriteIfKeyNotExists` | `func(key string, value []byte) (written bool, err error)` | WriteIfKeyNotExists stores value only when key holds nothing. written is false when the key already exists, which is not an error. |
-| `WriteIfValueEquals` | `func(key string, value []byte, old_value []byte) (written bool, err error)` | WriteIfValueEquals stores value only when the current value of key is exactly old_value. written is false when the key is absent or holds something else, which is not an error. |
-| `Append` | `func(key string, value []byte) error` | Append adds value to the end of the current value of key, creating the key when it is absent. |
-| `InsertAt` | `func(key string, position int64, value []byte) error` | InsertAt splices value into the current value of key at position, counted in bytes from the start. A position beyond the current length is an error: it would leave a hole. |
-| `Exists` | `func(key string) (exists bool, err error)` | Exists reports whether key currently holds a value. |
-| `Read` | `func(key string) (value []byte, found bool, err error)` | Read returns the whole value of key. found is false when the key holds nothing, and value is then nil. |
-| `ReadAt` | `func(key string, position int64, size int64) (value []byte, found bool, err error)` | ReadAt returns at most size bytes of the value of key, starting at position, counted in bytes from the start. A range reaching past the end is truncated rather than refused. found is false when the key holds nothing. |
-| `Delete` | `func(key string) error` | Delete removes key. Removing a key that holds nothing is not an error: absent before and absent after is the same outcome. |
-| `Lock` | `func(key string, seconds int) (locked bool, err error)` | Lock takes an advisory lease on key for seconds seconds. locked is false when someone else already holds a lease that has not expired, which is not an error. Keep never calls it itself — a database is written by one writer at a time — so a backend with no leases may report locked == true and do nothing. |
-| `UnLock` | `func(key string) error` | UnLock releases a lease taken by Lock. Releasing a lease nobody holds is not an error. |
+| `Write` | `func(key []string, value []byte) error` | Write stores value under key, overwriting any current value and creating the key when it is absent. |
+| `WriteIfKeyNotExists` | `func(key []string, value []byte) (written bool, err error)` | WriteIfKeyNotExists stores value only when key holds nothing. written is false when the key already exists, which is not an error. |
+| `WriteIfValueEquals` | `func(key []string, value []byte, old_value []byte) (written bool, err error)` | WriteIfValueEquals stores value only when the current value of key is exactly old_value. written is false when the key is absent or holds something else, which is not an error. |
+| `Append` | `func(key []string, value []byte) error` | Append adds value to the end of the current value of key, creating the key when it is absent. |
+| `InsertAt` | `func(key []string, position int64, value []byte) error` | InsertAt splices value into the current value of key at position, counted in bytes from the start. A position beyond the current length is an error: it would leave a hole. |
+| `Exists` | `func(key []string) (exists bool, err error)` | Exists reports whether key currently holds a value. |
+| `Read` | `func(key []string) (value []byte, found bool, err error)` | Read returns the whole value of key. found is false when the key holds nothing, and value is then nil. |
+| `ReadAt` | `func(key []string, position int64, size int64) (value []byte, found bool, err error)` | ReadAt returns at most size bytes of the value of key, starting at position, counted in bytes from the start. A range reaching past the end is truncated rather than refused. found is false when the key holds nothing. |
+| `Delete` | `func(key []string) error` | Delete removes key. Removing a key that holds nothing is not an error: absent before and absent after is the same outcome. |
+| `Lock` | `func(key []string, seconds int) (locked bool, err error)` | Lock takes an advisory lease on key for seconds seconds. locked is false when someone else already holds a lease that has not expired, which is not an error. Keep never calls it itself — a database is written by one writer at a time — so a backend with no leases may report locked == true and do nothing. |
+| `UnLock` | `func(key []string) error` | UnLock releases a lease taken by Lock. Releasing a lease nobody holds is not an error. |
 
 ## `deps.Stringsdeps`
 

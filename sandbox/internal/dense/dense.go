@@ -22,48 +22,80 @@ type stringer interface {
 	String() string
 }
 
+// Key builds a storage key out of a collection prefix and the segments that
+// follow it. A key is a list, never a joined string: the separator lives in
+// the adapter, so no character of a field name or of a prefix can be read
+// back as a boundary and collide with another key. Every call allocates a
+// slice of its own, so a key never aliases the prefix it was derived from.
+func Key(sandbox *api.Sandbox, prefix []string, segments ...string) []string {
+	key := make([]string, 0, len(prefix)+len(segments))
+	key = append(key, prefix...)
+	return append(key, segments...)
+}
+
+// RootPrefix is the prefix of a top-level collection: the slash-separated
+// segments of Props.Path, empty ones dropped, followed by the schema name.
+// Splitting the path here is what keeps a caller free to write it as the
+// directory-looking string it has always been.
+func RootPrefix(sandbox *api.Sandbox, path string, name string) []string {
+	prefix := make([]string, 0, 4)
+	for _, segment := range sandbox.Deps.Stringsdeps.Split(path, "/") {
+		if segment == "" {
+			continue
+		}
+		prefix = append(prefix, segment)
+	}
+	return append(prefix, name)
+}
+
 // SizeKey holds the number of live records of a collection — the highest
 // occupied position of its dense list.
-func SizeKey(sandbox *api.Sandbox, prefix string) string {
-	return prefix + "-size"
+func SizeKey(sandbox *api.Sandbox, prefix []string) []string {
+	return Key(sandbox, prefix, "size")
 }
 
 // LastIdKey holds the highest id ever allocated in a collection. It only
 // grows, which is what makes an id never reused.
-func LastIdKey(sandbox *api.Sandbox, prefix string) string {
-	return prefix + "-last-id"
+func LastIdKey(sandbox *api.Sandbox, prefix []string) []string {
+	return Key(sandbox, prefix, "last-id")
 }
 
 // ListKey holds the id living at one position of a collection's dense list.
 // Positions run from 1 to the value of SizeKey with no gap, which is what
 // makes iteration possible without listing keys.
-func ListKey(sandbox *api.Sandbox, prefix string, position int64) string {
-	return sandbox.Deps.Std.Sprintf("%s-list-%d", prefix, position)
+func ListKey(sandbox *api.Sandbox, prefix []string, position int64) []string {
+	return Key(sandbox, prefix, "list", formatId(sandbox, position))
 }
 
 // PositionKey holds the position a record currently occupies in the dense
 // list. It is the back-pointer that makes a removal cost the same whatever
 // the size of the collection, and its presence is what marks a record live.
-func PositionKey(sandbox *api.Sandbox, prefix string, id int64) string {
-	return sandbox.Deps.Std.Sprintf("%s-%d-position", prefix, id)
+func PositionKey(sandbox *api.Sandbox, prefix []string, id int64) []string {
+	return Key(sandbox, prefix, formatId(sandbox, id), "position")
 }
 
 // ValueKey holds one field value of one record.
-func ValueKey(sandbox *api.Sandbox, prefix string, id int64, field string) string {
-	return sandbox.Deps.Std.Sprintf("%s-%d-values-%s", prefix, id, field)
+func ValueKey(sandbox *api.Sandbox, prefix []string, id int64, field string) []string {
+	return Key(sandbox, prefix, formatId(sandbox, id), "values", field)
 }
 
 // IndexKey holds the id owning one value of one Key field — the unique
 // index, addressed by the hash of the value so a lookup is a single read.
-func IndexKey(sandbox *api.Sandbox, prefix string, field string, hash string) string {
-	return sandbox.Deps.Std.Sprintf("%s-keys-%s-%s", prefix, field, hash)
+func IndexKey(sandbox *api.Sandbox, prefix []string, field string, hash string) []string {
+	return Key(sandbox, prefix, "keys", field, hash)
 }
 
 // SubPrefix is the collection prefix of a nested (Database) field of one
 // record. A nested collection is a collection like any other, which is why
 // every helper here works on it unchanged.
-func SubPrefix(sandbox *api.Sandbox, prefix string, id int64, field string) string {
-	return sandbox.Deps.Std.Sprintf("%s-%d-%s", prefix, id, field)
+func SubPrefix(sandbox *api.Sandbox, prefix []string, id int64, field string) []string {
+	return Key(sandbox, prefix, formatId(sandbox, id), field)
+}
+
+// formatId renders an id or a position as the decimal segment every key
+// above carries it as.
+func formatId(sandbox *api.Sandbox, value int64) string {
+	return sandbox.Deps.Stringsdeps.FormatInt(value, 10)
 }
 
 // HashIndexValue normalizes and hashes an encoded value, so index lookups
@@ -149,7 +181,7 @@ func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Err
 // ReadCount reads an integer key, treating a key that holds nothing as
 // zero: a collection nothing was ever written to has no size key, and its
 // size is zero.
-func ReadCount(sandbox *api.Sandbox, key string) (int64, error) {
+func ReadCount(sandbox *api.Sandbox, key []string) (int64, error) {
 	raw, found, err := sandbox.Deps.Storagedeps.Read(key)
 	if err != nil {
 		return 0, err
@@ -162,7 +194,7 @@ func ReadCount(sandbox *api.Sandbox, key string) (int64, error) {
 
 // WriteInt stores an integer under key in the canonical decimal form every
 // reader here expects.
-func WriteInt(sandbox *api.Sandbox, key string, value int64) error {
+func WriteInt(sandbox *api.Sandbox, key []string, value int64) error {
 	encoded := sandbox.Deps.Stringsdeps.FormatInt(value, 10)
 	return sandbox.Deps.Storagedeps.Write(key, []byte(encoded))
 }

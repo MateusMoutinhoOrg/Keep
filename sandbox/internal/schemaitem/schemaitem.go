@@ -272,7 +272,7 @@ func StringFactory(sandbox *api.Sandbox, record *api.SchemaItem) func() string {
 
 // readPosition reads the back-pointer that marks a record live. live is
 // false when the record was never written or has been removed.
-func readPosition(sandbox *api.Sandbox, prefix string, id int64) (position int64, live bool, err error) {
+func readPosition(sandbox *api.Sandbox, prefix []string, id int64) (position int64, live bool, err error) {
 	raw, found, err := sandbox.Deps.Storagedeps.Read(dense.PositionKey(sandbox, prefix, id))
 	if err != nil || !found {
 		return 0, false, err
@@ -288,7 +288,7 @@ func readPosition(sandbox *api.Sandbox, prefix string, id int64) (position int64
 // every field factory over it. It is the shared aggregate behind New,
 // ResolveById, ResolveLive, ListRange and ClearCollection: adding a
 // function field to api.SchemaItem means adding its factory call here.
-func Build(sandbox *api.Sandbox, items []api.Item, prefix string, id int64) api.SchemaItem {
+func Build(sandbox *api.Sandbox, items []api.Item, prefix []string, id int64) api.SchemaItem {
 	record := api.SchemaItem{Items: items, Prefix: prefix, Id: id}
 	record.Get = GetFactory(sandbox, &record)
 	record.Update = UpdateFactory(sandbox, &record)
@@ -304,7 +304,7 @@ func Build(sandbox *api.Sandbox, items []api.Item, prefix string, id int64) api.
 // the insertion procedure of the dense record pattern: validate, reserve an
 // id, write the data, then publish by growing the list — the size key is
 // the commit point, so a crash before it leaves an orphan nothing reads.
-func New(sandbox *api.Sandbox, items []api.Item, prefix string, fields map[string]any) (api.SchemaItem, *api.Error) {
+func New(sandbox *api.Sandbox, items []api.Item, prefix []string, fields map[string]any) (api.SchemaItem, *api.Error) {
 	storage := sandbox.Deps.Storagedeps
 
 	// Every provided field has to be a plain field of the schema.
@@ -417,7 +417,7 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix string, fields map[strin
 // false for an id that was never allocated and for one whose record was
 // removed; ids are never reused, so a stale id never resolves to a
 // different record.
-func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix string, id int64) (api.SchemaItem, bool) {
+func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix []string, id int64) (api.SchemaItem, bool) {
 	exists, err := sandbox.Deps.Storagedeps.Exists(dense.PositionKey(sandbox, prefix, id))
 	if err != nil || !exists {
 		return api.SchemaItem{}, false
@@ -427,7 +427,7 @@ func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix string, id int64
 
 // ResolveLive parses an id read out of an index entry and returns the
 // record only while it is still live. ok is false when it is not.
-func ResolveLive(sandbox *api.Sandbox, items []api.Item, prefix string, rawId []byte) (api.SchemaItem, bool) {
+func ResolveLive(sandbox *api.Sandbox, items []api.Item, prefix []string, rawId []byte) (api.SchemaItem, bool) {
 	id, err := dense.ParseId(sandbox, rawId)
 	if err != nil {
 		return api.SchemaItem{}, false
@@ -437,7 +437,7 @@ func ResolveLive(sandbox *api.Sandbox, items []api.Item, prefix string, rawId []
 
 // ListRange reads records out of the dense position list, starting at from
 // (counted from 1). A chunk of 0 means "to the end of the collection".
-func ListRange(sandbox *api.Sandbox, items []api.Item, prefix string, from int64, chunk int64) ([]api.SchemaItem, *api.Error) {
+func ListRange(sandbox *api.Sandbox, items []api.Item, prefix []string, from int64, chunk int64) ([]api.SchemaItem, *api.Error) {
 	size, err := dense.ReadCount(sandbox, dense.SizeKey(sandbox, prefix))
 	if err != nil {
 		return nil, dense.InternalError(sandbox, err)
@@ -463,7 +463,7 @@ func ListRange(sandbox *api.Sandbox, items []api.Item, prefix string, from int64
 // ClearCollection removes every record of a collection, and is what a
 // removal runs over each nested collection of the record it deletes.
 // Records go from the last position backwards, so no swap is ever needed.
-func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix string) *api.Error {
+func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix []string) *api.Error {
 	for {
 		size, err := dense.ReadCount(sandbox, dense.SizeKey(sandbox, prefix))
 		if err != nil {

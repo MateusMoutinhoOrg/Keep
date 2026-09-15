@@ -22,12 +22,15 @@ type store struct {
 	mu   sync.Mutex
 }
 
-// path resolves a key to a file path. Each slash-separated segment is
-// escaped on its own, so a key may hold any character without ever
-// escaping the base directory or colliding with another key.
-func (s *store) path(key string) string {
-	parts := []string{s.base}
-	for _, segment := range strings.Split(key, "/") {
+// path resolves a key to a file path: one directory per segment, each
+// escaped on its own, so a segment may hold any character — a slash
+// included — without ever escaping the base directory or colliding with
+// another key. Escaping per segment is what makes ["a/b"] and ["a", "b"]
+// two different files.
+func (s *store) path(key []string) string {
+	parts := make([]string, 0, len(key)+1)
+	parts = append(parts, s.base)
+	for _, segment := range key {
 		if segment == "" {
 			continue
 		}
@@ -38,8 +41,14 @@ func (s *store) path(key string) string {
 
 // lockPath is the file holding the lease of a key: the key's own path with
 // a suffix no escaped segment can produce.
-func (s *store) lockPath(key string) string {
+func (s *store) lockPath(key []string) string {
 	return s.path(key) + ".keeplock"
+}
+
+// describe renders a key for an error message, in the ["a", "b.txt"] ->
+// "a/b.txt" form the whole contract reads keys as.
+func describe(key []string) string {
+	return strings.Join(key, "/")
 }
 
 // Bind fills deps.Deps.Storagedeps with the filesystem implementation: one
@@ -55,14 +64,14 @@ func Bind(deps *deps.Deps) {
 func New(base string) storagedeps.Sandbox {
 	s := &store{base: base}
 	return storagedeps.Sandbox{
-		Write: func(key string, value []byte) error {
+		Write: func(key []string, value []byte) error {
 			path := s.path(key)
 			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				return err
 			}
 			return os.WriteFile(path, value, 0o644)
 		},
-		WriteIfKeyNotExists: func(key string, value []byte) (bool, error) {
+		WriteIfKeyNotExists: func(key []string, value []byte) (bool, error) {
 			path := s.path(key)
 			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				return false, err
@@ -80,7 +89,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return true, nil
 		},
-		WriteIfValueEquals: func(key string, value []byte, oldValue []byte) (bool, error) {
+		WriteIfValueEquals: func(key []string, value []byte, oldValue []byte) (bool, error) {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			current, err := os.ReadFile(s.path(key))
@@ -98,7 +107,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return true, nil
 		},
-		Append: func(key string, value []byte) error {
+		Append: func(key []string, value []byte) error {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			path := s.path(key)
@@ -113,7 +122,7 @@ func New(base string) storagedeps.Sandbox {
 			_, err = file.Write(value)
 			return err
 		},
-		InsertAt: func(key string, position int64, value []byte) error {
+		InsertAt: func(key []string, position int64, value []byte) error {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			path := s.path(key)
@@ -123,7 +132,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			if position < 0 || position > int64(len(current)) {
 				return errors.New("keep: position " + strconv.FormatInt(position, 10) +
-					" out of range for key " + key)
+					" out of range for key " + describe(key))
 			}
 			next := make([]byte, 0, len(current)+len(value))
 			next = append(next, current[:position]...)
@@ -134,7 +143,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return os.WriteFile(path, next, 0o644)
 		},
-		Exists: func(key string) (bool, error) {
+		Exists: func(key []string) (bool, error) {
 			_, err := os.Stat(s.path(key))
 			if errors.Is(err, os.ErrNotExist) {
 				return false, nil
@@ -144,7 +153,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return true, nil
 		},
-		Read: func(key string) ([]byte, bool, error) {
+		Read: func(key []string) ([]byte, bool, error) {
 			value, err := os.ReadFile(s.path(key))
 			if errors.Is(err, os.ErrNotExist) {
 				return nil, false, nil
@@ -154,7 +163,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return value, true, nil
 		},
-		ReadAt: func(key string, position int64, size int64) ([]byte, bool, error) {
+		ReadAt: func(key []string, position int64, size int64) ([]byte, bool, error) {
 			file, err := os.Open(s.path(key))
 			if errors.Is(err, os.ErrNotExist) {
 				return nil, false, nil
@@ -169,7 +178,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			if position < 0 || position > info.Size() {
 				return nil, true, errors.New("keep: position " + strconv.FormatInt(position, 10) +
-					" out of range for key " + key)
+					" out of range for key " + describe(key))
 			}
 			end := position + size
 			if end > info.Size() {
@@ -184,14 +193,14 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return buffer, true, nil
 		},
-		Delete: func(key string) error {
+		Delete: func(key []string) error {
 			err := os.Remove(s.path(key))
 			if errors.Is(err, os.ErrNotExist) {
 				return nil
 			}
 			return err
 		},
-		Lock: func(key string, seconds int) (bool, error) {
+		Lock: func(key []string, seconds int) (bool, error) {
 			path := s.lockPath(key)
 			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				return false, err
@@ -223,7 +232,7 @@ func New(base string) storagedeps.Sandbox {
 			}
 			return true, nil
 		},
-		UnLock: func(key string) error {
+		UnLock: func(key []string) error {
 			err := os.Remove(s.lockPath(key))
 			if errors.Is(err, os.ErrNotExist) {
 				return nil

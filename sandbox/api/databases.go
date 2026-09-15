@@ -74,9 +74,10 @@ type Schema struct {
 // the only thing Database.New takes, so a database is fully described by a
 // value a caller can write, read and version.
 type Props struct {
-	// Path is the prefix every key of the database is written under. A
-	// backend that maps keys to files reads it as a directory, so it
-	// usually ends with a slash.
+	// Path is the prefix every key of the database is written under. It is
+	// split on slashes into the leading segments of every key, so a backend
+	// that maps keys to files reads it as a directory; empty segments are
+	// dropped, which makes a trailing slash optional.
 	Path string
 	// Schemas are the collections the database holds.
 	Schemas []Schema
@@ -104,8 +105,9 @@ type Error struct {
 type SchemaItem struct {
 	// Items are the fields the record's own collection declares.
 	Items []Item
-	// Prefix is the key prefix of the collection the record belongs to.
-	Prefix string
+	// Prefix is the key prefix of the collection the record belongs to,
+	// held as the list of segments every key under it is built from.
+	Prefix []string
 	// Id is the record's permanent identifier. It is never reused, so an
 	// id stored in an Int field of another collection stays a reference to
 	// this record or to nothing at all — never to a different record.
@@ -141,8 +143,9 @@ type SchemaItem struct {
 type SchemaInstance struct {
 	// Items are the fields each record of the collection can hold.
 	Items []Item
-	// Prefix is the collection's key prefix.
-	Prefix string
+	// Prefix is the collection's key prefix, held as the list of segments
+	// every key under it is built from.
+	Prefix []string
 	// NewItem inserts a record, validating the fields against the schema
 	// and against the unique index of every Key field.
 	NewItem func(fields map[string]any) (SchemaItem, *Error)

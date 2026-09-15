@@ -11,57 +11,57 @@ cli-output: |
     from position 3 to the end: 3
 exit-code: 0
 tree:
-    - file: database/user-1-position
+    - file: database/user/1/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-1-values-age
+    - file: database/user/1/values/age
       sha: 6f4b6612125fb3a0daecd2799dfd6c9c299424fd920f9b308110a2c1fbd8f443
-    - file: database/user-1-values-email
+    - file: database/user/1/values/email
       sha: 323c4b75ffe34fdd8eae50aa83229f2a109d461a57f5567d0b53c559ae19a13c
-    - file: database/user-2-position
+    - file: database/user/2/position
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-2-values-age
+    - file: database/user/2/values/age
       sha: 785f3ec7eb32f30b90cd0fcf3657d388b5ff4297f2f9716ff66e9b69c05ddd09
-    - file: database/user-2-values-email
+    - file: database/user/2/values/email
       sha: 347f8dd965c22fc32a50cda3db778680579ccd60cf21aaf081a52d62bf734354
-    - file: database/user-3-position
+    - file: database/user/3/position
       sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
-    - file: database/user-3-values-age
+    - file: database/user/3/values/age
       sha: 535fa30d7e25dd8a49f1536779734ec8286108d115da5045d77f3b4185d8f790
-    - file: database/user-3-values-email
+    - file: database/user/3/values/email
       sha: 3dabc4c6f2a0f4e80f1d5216f14f06d0745e8b088dfb07750a9b3bd2cd74751b
-    - file: database/user-4-position
+    - file: database/user/4/position
       sha: 4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a
-    - file: database/user-4-values-age
+    - file: database/user/4/values/age
       sha: c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db
-    - file: database/user-4-values-email
+    - file: database/user/4/values/email
       sha: ed91ae4789df20ae5a960f504165a960e0016b3639b16e8cd0fb3f3b622ec606
-    - file: database/user-5-position
+    - file: database/user/5/position
       sha: ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d
-    - file: database/user-5-values-age
+    - file: database/user/5/values/age
       sha: b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569
-    - file: database/user-5-values-email
+    - file: database/user/5/values/email
       sha: 7d1146f403c38df9e316ec1d514b962108d1374bf05aba36984fb0aa24d55958
-    - file: database/user-keys-email-323c4b75ffe34fdd8eae50aa83229f2a109d461a57f5567d0b53c559ae19a13c
+    - file: database/user/keys/email/323c4b75ffe34fdd8eae50aa83229f2a109d461a57f5567d0b53c559ae19a13c
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-keys-email-347f8dd965c22fc32a50cda3db778680579ccd60cf21aaf081a52d62bf734354
+    - file: database/user/keys/email/347f8dd965c22fc32a50cda3db778680579ccd60cf21aaf081a52d62bf734354
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-keys-email-3dabc4c6f2a0f4e80f1d5216f14f06d0745e8b088dfb07750a9b3bd2cd74751b
+    - file: database/user/keys/email/3dabc4c6f2a0f4e80f1d5216f14f06d0745e8b088dfb07750a9b3bd2cd74751b
       sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
-    - file: database/user-keys-email-7d1146f403c38df9e316ec1d514b962108d1374bf05aba36984fb0aa24d55958
+    - file: database/user/keys/email/7d1146f403c38df9e316ec1d514b962108d1374bf05aba36984fb0aa24d55958
       sha: ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d
-    - file: database/user-keys-email-ed91ae4789df20ae5a960f504165a960e0016b3639b16e8cd0fb3f3b622ec606
+    - file: database/user/keys/email/ed91ae4789df20ae5a960f504165a960e0016b3639b16e8cd0fb3f3b622ec606
       sha: 4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a
-    - file: database/user-last-id
+    - file: database/user/last-id
       sha: ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d
-    - file: database/user-list-1
+    - file: database/user/list/1
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-list-2
+    - file: database/user/list/2
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
-    - file: database/user-list-3
+    - file: database/user/list/3
       sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
-    - file: database/user-list-4
+    - file: database/user/list/4
       sha: 4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a
-    - file: database/user-list-5
+    - file: database/user/list/5
       sha: ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d
-    - file: database/user-size
+    - file: database/user/size
       sha: ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d

@@ -4,21 +4,21 @@ cli-output: |
     refused: required field "username" is missing
 exit-code: 0
 tree:
-    - file: database/user-1-position
+    - file: database/user/1/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-1-values-age
+    - file: database/user/1/values/age
       sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
-    - file: database/user-1-values-email
+    - file: database/user/1/values/email
       sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
-    - file: database/user-1-values-username
+    - file: database/user/1/values/username
       sha: 1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
-    - file: database/user-keys-email-c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: database/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-keys-username-1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
+    - file: database/user/keys/username/1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-last-id
+    - file: database/user/last-id
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-list-1
+    - file: database/user/list/1
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-    - file: database/user-size
+    - file: database/user/size
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
