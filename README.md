@@ -70,14 +70,6 @@ This repository is generated and checked by [agnos](https://github.com/MateusMou
 
 ## Documentation
 
-### CliUsage
-
-Driving the CLI from a terminal - install, commands, flags, exit codes
-
-| Doc | Description |
-| --- | --- |
-| [Commands](docs/Commands/doc.md) | Every command of Keep, generated from the command declarations |
-
 ### LibUsage
 
 Using the project as a Go module - wiring the deps, calling the sandbox
