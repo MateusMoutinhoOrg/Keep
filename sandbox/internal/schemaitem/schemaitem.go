@@ -15,6 +15,13 @@ import (
 // Prefix and Id back off that pointer is what lets Build assign the fields
 // in any order, and what keeps the record itself free of any dependency
 // field a caller could reach.
+//
+// The one thing a record needs that its own Items, Prefix and Id do not
+// describe is the collection a Link field points at, so a dense.LinkResolver
+// travels beside them, from the handle that built it down through every
+// nested collection. It is a parameter and never a field, for the same
+// reason storage is: an api type carries no wiring a caller could read or
+// replace.
 
 // GetFactory fills api.SchemaItem.Get.
 func GetFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName string) (any, *api.Error) {
@@ -37,6 +44,29 @@ func GetFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName str
 				sandbox.Deps.Std.Sprintf("field %q has no value for this record", fieldName))
 		}
 		return dense.DecodeValue(sandbox, item, raw)
+	}
+}
+
+// GetLinkFactory fills api.SchemaItem.GetLink, following a Link field to the
+// record it names in the collection its Target declares. Resolution goes
+// through ResolveById, so a link to a record that has been removed reports
+// ok == false — and since ids are never reused, it never reports a
+// different record instead.
+func GetLinkFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.LinkResolver) func(fieldName string) (api.SchemaItem, bool) {
+	return func(fieldName string) (api.SchemaItem, bool) {
+		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
+		if !ok || item.Type != api.Link {
+			return api.SchemaItem{}, false
+		}
+		targetItems, targetPrefix, ok := resolve(item.Target)
+		if !ok {
+			return api.SchemaItem{}, false
+		}
+		raw, found, err := sandbox.Deps.Storagedeps.Read(dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName))
+		if err != nil || !found {
+			return api.SchemaItem{}, false
+		}
+		return ResolveLive(sandbox, targetItems, targetPrefix, resolve, raw)
 	}
 }
 
@@ -119,7 +149,7 @@ func UpdateFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName 
 // swap-with-last procedure that keeps the position list dense at a cost
 // independent of the size of the collection. The last record moves into the
 // freed position, so list order is not stable across removals.
-func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem) func() *api.Error {
+func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.LinkResolver) func() *api.Error {
 	return func() *api.Error {
 		storage := sandbox.Deps.Storagedeps
 
@@ -190,7 +220,7 @@ func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem) func() *api.Err
 		for _, item := range record.Items {
 			if item.Type == api.Database {
 				nested := dense.SubPrefix(sandbox, record.Prefix, record.Id, item.Name)
-				if failure := ClearCollection(sandbox, item.Itens, nested); failure != nil {
+				if failure := ClearCollection(sandbox, item.Itens, nested, resolve); failure != nil {
 					return failure
 				}
 				continue
@@ -221,14 +251,14 @@ func CheckKeysPresenceFactory(sandbox *api.Sandbox, record *api.SchemaItem) func
 
 // ListAllFactory fills api.SchemaItem.ListAll, returning every record of a
 // nested (Database) field.
-func ListAllFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName string) []api.SchemaItem {
+func ListAllFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.LinkResolver) func(fieldName string) []api.SchemaItem {
 	return func(fieldName string) []api.SchemaItem {
 		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
 		if !ok || item.Type != api.Database {
 			return nil
 		}
 		nested := dense.SubPrefix(sandbox, record.Prefix, record.Id, fieldName)
-		result, failure := ListRange(sandbox, item.Itens, nested, 1, 0)
+		result, failure := ListRange(sandbox, item.Itens, nested, resolve, 1, 0)
 		if failure != nil {
 			return nil
 		}
@@ -238,7 +268,7 @@ func ListAllFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName
 
 // NewSubItemFactory fills api.SchemaItem.NewSubItem, inserting a record
 // into a nested (Database) field of this record.
-func NewSubItemFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName string, fields map[string]any) (api.SchemaItem, *api.Error) {
+func NewSubItemFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.LinkResolver) func(fieldName string, fields map[string]any) (api.SchemaItem, *api.Error) {
 	return func(fieldName string, fields map[string]any) (api.SchemaItem, *api.Error) {
 		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
 		if !ok || item.Type != api.Database {
@@ -246,7 +276,7 @@ func NewSubItemFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldN
 				sandbox.Deps.Std.Sprintf("field %q is not a nested collection of the schema", fieldName))
 		}
 		nested := dense.SubPrefix(sandbox, record.Prefix, record.Id, fieldName)
-		return New(sandbox, item.Itens, nested, fields)
+		return New(sandbox, item.Itens, nested, resolve, fields)
 	}
 }
 
@@ -288,14 +318,15 @@ func readPosition(sandbox *api.Sandbox, prefix []string, id int64) (position int
 // every field factory over it. It is the shared aggregate behind New,
 // ResolveById, ResolveLive, ListRange and ClearCollection: adding a
 // function field to api.SchemaItem means adding its factory call here.
-func Build(sandbox *api.Sandbox, items []api.Item, prefix []string, id int64) api.SchemaItem {
+func Build(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, id int64) api.SchemaItem {
 	record := api.SchemaItem{Items: items, Prefix: prefix, Id: id}
 	record.Get = GetFactory(sandbox, &record)
+	record.GetLink = GetLinkFactory(sandbox, &record, resolve)
 	record.Update = UpdateFactory(sandbox, &record)
-	record.Remove = RemoveFactory(sandbox, &record)
+	record.Remove = RemoveFactory(sandbox, &record, resolve)
 	record.CheckKeysPresence = CheckKeysPresenceFactory(sandbox, &record)
-	record.ListAll = ListAllFactory(sandbox, &record)
-	record.NewSubItem = NewSubItemFactory(sandbox, &record)
+	record.ListAll = ListAllFactory(sandbox, &record, resolve)
+	record.NewSubItem = NewSubItemFactory(sandbox, &record, resolve)
 	record.String = StringFactory(sandbox, &record)
 	return record
 }
@@ -304,7 +335,7 @@ func Build(sandbox *api.Sandbox, items []api.Item, prefix []string, id int64) ap
 // the insertion procedure of the dense record pattern: validate, reserve an
 // id, write the data, then publish by growing the list — the size key is
 // the commit point, so a crash before it leaves an orphan nothing reads.
-func New(sandbox *api.Sandbox, items []api.Item, prefix []string, fields map[string]any) (api.SchemaItem, *api.Error) {
+func New(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, fields map[string]any) (api.SchemaItem, *api.Error) {
 	storage := sandbox.Deps.Storagedeps
 
 	// Every provided field has to be a plain field of the schema.
@@ -409,7 +440,7 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix []string, fields map[str
 		return api.SchemaItem{}, dense.InternalError(sandbox, err)
 	}
 
-	return Build(sandbox, items, prefix, id), nil
+	return Build(sandbox, items, prefix, resolve, id), nil
 }
 
 // ResolveById returns the record carrying the given id, but only while it
@@ -417,27 +448,27 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix []string, fields map[str
 // false for an id that was never allocated and for one whose record was
 // removed; ids are never reused, so a stale id never resolves to a
 // different record.
-func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix []string, id int64) (api.SchemaItem, bool) {
+func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, id int64) (api.SchemaItem, bool) {
 	exists, err := sandbox.Deps.Storagedeps.Exists(dense.PositionKey(sandbox, prefix, id))
 	if err != nil || !exists {
 		return api.SchemaItem{}, false
 	}
-	return Build(sandbox, items, prefix, id), true
+	return Build(sandbox, items, prefix, resolve, id), true
 }
 
 // ResolveLive parses an id read out of an index entry and returns the
 // record only while it is still live. ok is false when it is not.
-func ResolveLive(sandbox *api.Sandbox, items []api.Item, prefix []string, rawId []byte) (api.SchemaItem, bool) {
+func ResolveLive(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, rawId []byte) (api.SchemaItem, bool) {
 	id, err := dense.ParseId(sandbox, rawId)
 	if err != nil {
 		return api.SchemaItem{}, false
 	}
-	return ResolveById(sandbox, items, prefix, id)
+	return ResolveById(sandbox, items, prefix, resolve, id)
 }
 
 // ListRange reads records out of the dense position list, starting at from
 // (counted from 1). A chunk of 0 means "to the end of the collection".
-func ListRange(sandbox *api.Sandbox, items []api.Item, prefix []string, from int64, chunk int64) ([]api.SchemaItem, *api.Error) {
+func ListRange(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, from int64, chunk int64) ([]api.SchemaItem, *api.Error) {
 	size, err := dense.ReadCount(sandbox, dense.SizeKey(sandbox, prefix))
 	if err != nil {
 		return nil, dense.InternalError(sandbox, err)
@@ -455,7 +486,7 @@ func ListRange(sandbox *api.Sandbox, items []api.Item, prefix []string, from int
 		if err != nil {
 			return nil, dense.InternalError(sandbox, err)
 		}
-		result = append(result, Build(sandbox, items, prefix, id))
+		result = append(result, Build(sandbox, items, prefix, resolve, id))
 	}
 	return result, nil
 }
@@ -463,7 +494,7 @@ func ListRange(sandbox *api.Sandbox, items []api.Item, prefix []string, from int
 // ClearCollection removes every record of a collection, and is what a
 // removal runs over each nested collection of the record it deletes.
 // Records go from the last position backwards, so no swap is ever needed.
-func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix []string) *api.Error {
+func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver) *api.Error {
 	for {
 		size, err := dense.ReadCount(sandbox, dense.SizeKey(sandbox, prefix))
 		if err != nil {
@@ -476,7 +507,7 @@ func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix []string) *a
 		if err != nil {
 			return dense.InternalError(sandbox, err)
 		}
-		record := Build(sandbox, items, prefix, id)
+		record := Build(sandbox, items, prefix, resolve, id)
 		if failure := record.Remove(); failure != nil {
 			return failure
 		}

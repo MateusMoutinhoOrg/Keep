@@ -37,10 +37,13 @@ Sandbox is the whole library: one field per contract declared in sandbox/api/, e
 | `Key` | `iota` | Key is a unique, indexed string field. Two live records of one collection can never hold the same value for it, and it is the only kind of field SchemaInstance.FindByKey looks a record up by. |
 | `Int` |  | Int is a plain integer field, stored in its decimal form and handed back as an int64. |
 | `Database` |  | Database is a nested collection of records, reached through SchemaItem.NewSubItem and SchemaItem.ListAll rather than read as a value. |
+| `Float` |  | Float is a plain floating-point field, stored in the shortest decimal form that parses back to the same number and handed back as a float64. |
+| `String` |  | String is a plain text field. It is written like a Key and read back as a string, but it carries no index: two live records of one collection may hold the same value for it, and SchemaInstance.FindByKey never looks a record up by one. |
+| `Link` |  | Link is a reference to a record of another collection, named by the field's Target. It is stored as that record's id and read back as an int64, and SchemaItem.GetLink resolves it to the record itself. Like any id it is never reused, so a link to a removed record resolves to nothing rather than to whatever took its place. |
 | `KeyConflict` | `iota` | KeyConflict is a value another live record already holds for a Key field. |
 | `NotFound` |  | NotFound is a field of an existing record that has no stored value. |
 | `MissingField` |  | MissingField is a Required field absent from an insert. |
-| `InvalidField` |  | InvalidField is a field the schema does not declare, a value of the wrong Go type for the field it is written to, or a Database field used where a plain value was expected. |
+| `InvalidField` |  | InvalidField is a field the schema does not declare, a value of the wrong Go type for the field it is written to, a Database field used where a plain value was expected, or a Link field declaring no Target. |
 | `Internal` |  | Internal is a failure the storage backend reported. Error.Message carries what the backend said. |
 
 ### `Item`
@@ -50,8 +53,9 @@ Item describes one field of a schema.
 | Field | Type | Description |
 | --- | --- | --- |
 | `Name` | `string` | Name is the field's name, as used in the fields map of an insert and in SchemaItem.Get. |
-| `Type` | `int` | Type is one of Key, Int or Database. |
+| `Type` | `int` | Type is one of Key, Int, Float, String, Link or Database. |
 | `Required` | `bool` | Required reports whether an insert must provide this field. It is ignored on a Database field, which is never provided directly. |
+| `Target` | `string` | Target is the name of the schema a Link field points at, as used in DatabaseHandle.GetSchema. It is empty on every other kind of field. |
 | `Itens` | `[]Item` | Itens are the nested fields, for a Database field; nil otherwise. |
 
 ### `Schema`
@@ -91,8 +95,9 @@ SchemaItem is one record of a collection, handed back by SchemaInstance.NewItem,
 | --- | --- | --- |
 | `Items` | `[]Item` | Items are the fields the record's own collection declares. |
 | `Prefix` | `[]string` | Prefix is the key prefix of the collection the record belongs to, held as the list of segments every key under it is built from. |
-| `Id` | `int64` | Id is the record's permanent identifier. It is never reused, so an id stored in an Int field of another collection stays a reference to this record or to nothing at all — never to a different record. |
-| `Get` | `func(fieldName string) (any, *Error)` | Get returns the typed value stored for a field: a string for a Key field, an int64 for an Int field. It fails with NotFound when the field has no stored value and with InvalidField when the schema declares no such field or the field is a nested collection. |
+| `Id` | `int64` | Id is the record's permanent identifier. It is never reused, so an id stored in a Link or Int field of another collection stays a reference to this record or to nothing at all — never to a different record. |
+| `Get` | `func(fieldName string) (any, *Error)` | Get returns the typed value stored for a field: a string for a Key or String field, an int64 for an Int or Link field, a float64 for a Float field. It fails with NotFound when the field has no stored value and with InvalidField when the schema declares no such field or the field is a nested collection. |
+| `GetLink` | `func(fieldName string) (SchemaItem, bool)` | GetLink resolves a Link field to the record it points at, looked up by id in the collection the field's Target names. ok is false when the schema declares no such Link field, when the field holds no stored value, when the database declares no schema under that Target, or when the record the stored id names is no longer live. |
 | `Update` | `func(fieldName string, value any) *Error` | Update writes a new value for a field, re-indexing it when the field is a Key. It fails with KeyConflict when another live record already holds the new value for that Key. |
 | `Remove` | `func() *Error` | Remove deletes the record, its index entries and every record of every collection nested under it. Removing a record that is already gone is not an error. |
 | `CheckKeysPresence` | `func(keys []string) bool` | CheckKeysPresence reports whether every named field has a stored value for this record. |

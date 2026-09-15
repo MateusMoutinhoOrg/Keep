@@ -34,7 +34,7 @@ constants may not.
 | `api.KeyConflict` | `NewItem`, `NewSubItem`, `Update` | another live record of the same collection already holds that value for that `Key` field. Nothing was written |
 | `api.NotFound` | `Get` | the field is declared by the schema and this record has no value stored for it |
 | `api.MissingField` | `NewItem`, `NewSubItem` | a field declared `Required` was left out of the fields map |
-| `api.InvalidField` | `NewItem`, `NewSubItem`, `Get`, `Update` | the field is not in the schema, the value is the wrong Go type for it, or a nested (`api.Database`) field was used where a plain value was expected |
+| `api.InvalidField` | `NewItem`, `NewSubItem`, `Get`, `Update` | the field is not in the schema, the value is the wrong Go type for it, a nested (`api.Database`) field was used where a plain value was expected, or an `api.Link` field declares no `Target` |
 | `api.Internal` | any | the storage backend reported a failure. `Message` is what it said |
 
 `NotFound` and `InvalidField` are different answers to what looks like one question: a field
@@ -44,7 +44,7 @@ without reading any value.
 
 ## What returns no error
 
-A lookup that finds nothing is not a failure — `FindByKey`, `FindById` and
+A lookup that finds nothing is not a failure — `FindByKey`, `FindById`, `GetLink` and
 `DatabaseHandle.GetSchema` report it as `ok == false`, because an absent record is an
 ordinary outcome and these types are structs with no nil form:
 
@@ -54,7 +54,9 @@ user, ok := users.FindByKey("email", "nobody@gmail.com")   // ok == false
 
 `SchemaItem.ListAll(fieldName)` returns `nil` when the schema declares no nested field of
 that name, and `Remove` on a record that is already gone returns `nil`: absent before and
-absent after is the same outcome.
+absent after is the same outcome. `GetLink` folds every reason a link does not resolve into
+the same `ok == false` — no value, an unknown `Target`, or a record that has been removed
+— because a caller does nothing different for any of them.
 
 ## Where a failure leaves the database
 

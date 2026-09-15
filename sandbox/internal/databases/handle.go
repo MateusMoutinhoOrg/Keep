@@ -12,13 +12,17 @@ import (
 // from the prefix Props.Path names, so building one writes nothing.
 
 // GetSchemaFactory fills api.DatabaseHandle.GetSchema. ok is false when the
-// Props declares no schema under the given name.
+// Props declares no schema under the given name. It is also the one place a
+// dense.LinkResolver is built: the handle is the only thing that holds the
+// whole Props, so it is the only thing that can say what collection a Link
+// field points at.
 func GetSchemaFactory(sandbox *api.Sandbox, handle *api.DatabaseHandle) func(name string) (api.SchemaInstance, bool) {
 	return func(name string) (api.SchemaInstance, bool) {
+		resolve := dense.NewLinkResolver(sandbox, handle.Props)
 		for _, schema := range handle.Props.Schemas {
 			if schema.Name == name {
 				prefix := dense.RootPrefix(sandbox, handle.Props.Path, schema.Name)
-				return schemainstance.New(sandbox, schema.Itens, prefix), true
+				return schemainstance.New(sandbox, schema.Itens, prefix, resolve), true
 			}
 		}
 		return api.SchemaInstance{}, false

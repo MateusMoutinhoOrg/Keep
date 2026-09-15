@@ -18,9 +18,11 @@ remove one.
 | `find-user-by-id` | Point one collection at another through a record id that is never reused | [example.go](../../examples/lib/find-user-by-id/example.go) |
 | `find-user-by-key` | Look a record up through a unique Key field, in one read, case-insensitively | [example.go](../../examples/lib/find-user-by-key/example.go) |
 | `in-memory-database` | Run the same code over the in-memory backend by importing another available | [example.go](../../examples/lib/in-memory-database/example.go) |
+| `link-records` | Point a record at a record of another collection with a Link field, and follow it with GetLink | [example.go](../../examples/lib/link-records/example.go) |
 | `list-all-users` | Walk every record of a collection over a backend that cannot list keys | [example.go](../../examples/lib/list-all-users/example.go) |
 | `list-users-paginated` | Read a collection one page at a time, paying only for the records returned | [example.go](../../examples/lib/list-users-paginated/example.go) |
 | `nested-collections` | Declare a collection inside a record, and see it removed with its owner | [example.go](../../examples/lib/nested-collections/example.go) |
+| `plain-value-fields` | Store a decimal and a repeatable text field, and see String accept what Key refuses | [example.go](../../examples/lib/plain-value-fields/example.go) |
 | `retrieve-user-info` | Read fields back off a record, and tell an unset field from an undeclared one | [example.go](../../examples/lib/retrieve-user-info/example.go) |
 | `update-user` | Write a new value for a plain field, and see a wrong Go type refused | [example.go](../../examples/lib/update-user/example.go) |
 | `update-user-key` | Write a new value for an indexed field, moving its entry in the unique index | [example.go](../../examples/lib/update-user-key/example.go) |

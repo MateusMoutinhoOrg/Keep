@@ -1,0 +1,36 @@
+cli-output: |
+    post: {id: 1, slug: storage-independent-databases, author: 1}
+    author: {id: 1, email: mateus@gmail.com, age: 27}
+    author id: 1 (int64)
+    author after update: {id: 2, email: other@gmail.com, age: 31}
+    author after removal: false
+exit-code: 0
+tree:
+    - file: database/post/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/post/1/values/author
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/post/1/values/slug
+      sha: 318334d43512b9ad37be2118771851877265f9bcce580868ed03fe44bda17b5c
+    - file: database/post/keys/slug/318334d43512b9ad37be2118771851877265f9bcce580868ed03fe44bda17b5c
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/post/last-id
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/post/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/post/size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user/1/values/age
+      sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
+    - file: database/user/1/values/email
+      sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: database/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user/last-id
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user/size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b

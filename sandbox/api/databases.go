@@ -25,6 +25,21 @@ const (
 	// SchemaItem.NewSubItem and SchemaItem.ListAll rather than read as a
 	// value.
 	Database
+	// Float is a plain floating-point field, stored in the shortest decimal
+	// form that parses back to the same number and handed back as a
+	// float64.
+	Float
+	// String is a plain text field. It is written like a Key and read back
+	// as a string, but it carries no index: two live records of one
+	// collection may hold the same value for it, and SchemaInstance.FindByKey
+	// never looks a record up by one.
+	String
+	// Link is a reference to a record of another collection, named by the
+	// field's Target. It is stored as that record's id and read back as an
+	// int64, and SchemaItem.GetLink resolves it to the record itself. Like
+	// any id it is never reused, so a link to a removed record resolves to
+	// nothing rather than to whatever took its place.
+	Link
 )
 
 // Failure causes, reported by Error.Type. Switch on the constant rather
@@ -39,8 +54,9 @@ const (
 	// MissingField is a Required field absent from an insert.
 	MissingField
 	// InvalidField is a field the schema does not declare, a value of the
-	// wrong Go type for the field it is written to, or a Database field
-	// used where a plain value was expected.
+	// wrong Go type for the field it is written to, a Database field used
+	// where a plain value was expected, or a Link field declaring no
+	// Target.
 	InvalidField
 	// Internal is a failure the storage backend reported. Error.Message
 	// carries what the backend said.
@@ -52,11 +68,14 @@ type Item struct {
 	// Name is the field's name, as used in the fields map of an insert and
 	// in SchemaItem.Get.
 	Name string
-	// Type is one of Key, Int or Database.
+	// Type is one of Key, Int, Float, String, Link or Database.
 	Type int
 	// Required reports whether an insert must provide this field. It is
 	// ignored on a Database field, which is never provided directly.
 	Required bool
+	// Target is the name of the schema a Link field points at, as used in
+	// DatabaseHandle.GetSchema. It is empty on every other kind of field.
+	Target string
 	// Itens are the nested fields, for a Database field; nil otherwise.
 	Itens []Item
 }
@@ -109,14 +128,22 @@ type SchemaItem struct {
 	// held as the list of segments every key under it is built from.
 	Prefix []string
 	// Id is the record's permanent identifier. It is never reused, so an
-	// id stored in an Int field of another collection stays a reference to
-	// this record or to nothing at all — never to a different record.
+	// id stored in a Link or Int field of another collection stays a
+	// reference to this record or to nothing at all — never to a different
+	// record.
 	Id int64
 	// Get returns the typed value stored for a field: a string for a Key
-	// field, an int64 for an Int field. It fails with NotFound when the
-	// field has no stored value and with InvalidField when the schema
-	// declares no such field or the field is a nested collection.
+	// or String field, an int64 for an Int or Link field, a float64 for a
+	// Float field. It fails with NotFound when the field has no stored
+	// value and with InvalidField when the schema declares no such field or
+	// the field is a nested collection.
 	Get func(fieldName string) (any, *Error)
+	// GetLink resolves a Link field to the record it points at, looked up
+	// by id in the collection the field's Target names. ok is false when
+	// the schema declares no such Link field, when the field holds no
+	// stored value, when the database declares no schema under that Target,
+	// or when the record the stored id names is no longer live.
+	GetLink func(fieldName string) (SchemaItem, bool)
 	// Update writes a new value for a field, re-indexing it when the field
 	// is a Key. It fails with KeyConflict when another live record already
 	// holds the new value for that Key.

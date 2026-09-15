@@ -1,0 +1,39 @@
+cli-output: |
+    first: {id: 1, sku: kb-001, title: Mechanical Keyboard, price: 249.9}
+    price: 249.90 (float64), title: Mechanical Keyboard (string)
+    second: {id: 2, sku: kb-002, title: Mechanical Keyboard, price: 199}
+    second price: 199 (float64)
+    found by title: false
+    found by sku: true 2
+    second price after update: 179.5
+    refused: field "price" expects a floating-point value, got string
+exit-code: 0
+tree:
+    - file: database/product/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/product/1/values/price
+      sha: 2ad001494224494981b0f51359801f03e21bd59b8c9ae9f6501f230a4ec14395
+    - file: database/product/1/values/sku
+      sha: 15e82d9f70998ef47d14d061b4c3fada14f427e062df56cbeefd816cd86135f3
+    - file: database/product/1/values/title
+      sha: 0ad21715cda5b0639d90c333fb3c982f282fa885b3ba667abd2a2935366919ad
+    - file: database/product/2/position
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/product/2/values/price
+      sha: 02bb10f99e8ea2cb130bbbdd2bcce01252b70a30f453e0bf471d20b674dece3d
+    - file: database/product/2/values/sku
+      sha: bdffa75830ae3f9a5aa0f6ef8a653db6144c26d8a270802f8837a6ceef1ae963
+    - file: database/product/2/values/title
+      sha: 0ad21715cda5b0639d90c333fb3c982f282fa885b3ba667abd2a2935366919ad
+    - file: database/product/keys/sku/15e82d9f70998ef47d14d061b4c3fada14f427e062df56cbeefd816cd86135f3
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/product/keys/sku/bdffa75830ae3f9a5aa0f6ef8a653db6144c26d8a270802f8837a6ceef1ae963
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/product/last-id
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/product/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/product/list/2
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/product/size
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35

@@ -12,8 +12,10 @@ import (
 // schemaitem package.
 //
 // This package names no object type of the api beyond the plain-data ones,
-// which is what keeps the package graph acyclic: schemaitem may import
-// dense, dense may never import schemaitem.
+// with the single exception of api.SchemaItem, which EncodeValue accepts as
+// the value of a Link field and reads nothing but the Id off. It names the
+// type, never the schemaitem package, which is what keeps the package graph
+// acyclic: schemaitem may import dense, dense may never import schemaitem.
 
 // stringer is what a caller-supplied value may implement to be stored in a
 // Key field without being a string. The sandbox may not import `fmt`, so
@@ -116,6 +118,30 @@ func FindItem(sandbox *api.Sandbox, items []api.Item, name string) (item api.Ite
 	return api.Item{}, false
 }
 
+// LinkResolver returns the fields and the key prefix of the collection a
+// Link field targets, by the schema name Item.Target carries. ok is false
+// when the database declares no schema under that name. It is built once
+// from the Props a handle was created with and carried down every nesting
+// level, so a record of a nested collection follows a link exactly the way
+// a top-level one does.
+type LinkResolver func(target string) (items []api.Item, prefix []string, ok bool)
+
+// NewLinkResolver builds the resolver a database handle hands to every
+// collection it creates, closing over its Props. It is the link half of
+// what GetSchema does: a record reaches the collection it points at through
+// the closure it was built with, never through a field a caller could read
+// or replace.
+func NewLinkResolver(sandbox *api.Sandbox, props api.Props) LinkResolver {
+	return func(target string) ([]api.Item, []string, bool) {
+		for _, schema := range props.Schemas {
+			if schema.Name == target {
+				return schema.Itens, RootPrefix(sandbox, props.Path, schema.Name), true
+			}
+		}
+		return nil, nil, false
+	}
+}
+
 // InternalError wraps a storage failure as a typed *api.Error, which is the
 // only way a backend error ever reaches a caller.
 func InternalError(sandbox *api.Sandbox, err error) *api.Error {
@@ -135,7 +161,7 @@ func ParseId(sandbox *api.Sandbox, raw []byte) (int64, error) {
 // it is stored in, validating it against the field's type on the way.
 func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.Error) {
 	switch item.Type {
-	case api.Key:
+	case api.Key, api.String:
 		switch typed := value.(type) {
 		case string:
 			return typed, nil
@@ -157,18 +183,72 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
 				sandbox.Deps.Std.Sprintf("field %q expects an integer value, got %T", item.Name, value))
 		}
+	case api.Float:
+		switch typed := value.(type) {
+		case float64:
+			return formatFloat(sandbox, typed), nil
+		case float32:
+			return formatFloat(sandbox, float64(typed)), nil
+		case int:
+			return formatFloat(sandbox, float64(typed)), nil
+		case int32:
+			return formatFloat(sandbox, float64(typed)), nil
+		case int64:
+			return formatFloat(sandbox, float64(typed)), nil
+		default:
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
+				sandbox.Deps.Std.Sprintf("field %q expects a floating-point value, got %T", item.Name, value))
+		}
+	case api.Link:
+		// A Link naming no collection is a mistake in the schema, and the
+		// one thing about a link this function can catch: whether the id
+		// still names a live record is a read, and is left to GetLink.
+		if item.Target == "" {
+			return "", liberror.New(sandbox, api.InvalidField, item.Name,
+				sandbox.Deps.Std.Sprintf("link field %q declares no Target schema", item.Name))
+		}
+		switch typed := value.(type) {
+		case api.SchemaItem:
+			return sandbox.Deps.Stringsdeps.FormatInt(typed.Id, 10), nil
+		case int:
+			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+		case int32:
+			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+		case int64:
+			return sandbox.Deps.Stringsdeps.FormatInt(typed, 10), nil
+		default:
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
+				sandbox.Deps.Std.Sprintf("field %q expects a record or a record id, got %T", item.Name, value))
+		}
 	default:
 		return "", liberror.New(sandbox, api.InvalidField, item.Name,
 			sandbox.Deps.Std.Sprintf("field %q cannot be encoded as a plain value", item.Name))
 	}
 }
 
+// formatFloat renders a float in the shortest decimal form that parses back
+// to the same number, which is what keeps a stored value stable byte for
+// byte across writes of the same value.
+func formatFloat(sandbox *api.Sandbox, value float64) string {
+	return sandbox.Deps.Stringsdeps.FormatFloat(value, 'g', -1, 64)
+}
+
 // DecodeValue converts a stored value back to the typed form a caller of
-// SchemaItem.Get receives: an int64 for an Int field, a string otherwise.
+// SchemaItem.Get receives: an int64 for an Int or Link field, a float64 for
+// a Float field, a string otherwise. A stored value carries no type tag, so
+// the schema is the only thing that says how to read its bytes back — a
+// field type with no case here falls through and is handed back as a
+// string.
 func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Error) {
 	switch item.Type {
-	case api.Int:
+	case api.Int, api.Link:
 		number, err := sandbox.Deps.Stringsdeps.ParseInt(string(raw), 10, 64)
+		if err != nil {
+			return nil, InternalError(sandbox, err)
+		}
+		return number, nil
+	case api.Float:
+		number, err := sandbox.Deps.Stringsdeps.ParseFloat(string(raw), 64)
 		if err != nil {
 			return nil, InternalError(sandbox, err)
 		}
