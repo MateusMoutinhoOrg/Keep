@@ -1,16 +1,23 @@
 cli-output: |
-    before: {id: 1, email: mateus@gmail.com, username: mateus, age: 27}
-    after: {id: 1, email: mateus@gmail.com, username: mateus, age: 28}
+    before: {id: 1, email: mateus@gmail.com, username: mateus, age: 27, height: 1.82, bio: writes databases}
+    after: {id: 1, email: mateus@gmail.com, username: mateus, age: 28, height: 1.83, bio: writes storage-independent databases}
     reloaded age: 28
     refused: field "age" expects an integer value, got string
+    refused: field "height" expects a floating-point value, got string
+    refused: field "bio" expects a string value, got int
+    height: 2 (float64)
 exit-code: 0
 tree:
     - file: database/user/1/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
     - file: database/user/1/values/age
       sha: 59e19706d51d39f66711c2653cd7eb1291c94d9b55eb14bda74ce4dc636d015a
+    - file: database/user/1/values/bio
+      sha: a907fe4aac9675925d483d40151b34fad0dbd356888ce6997026015776094e39
     - file: database/user/1/values/email
       sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: database/user/1/values/height
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
     - file: database/user/1/values/username
       sha: 1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
     - file: database/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06

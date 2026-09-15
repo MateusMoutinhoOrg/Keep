@@ -1,12 +1,29 @@
 cli-output: |
     session 1: token-1, 1000 -> 2000
     session 2: token-2, 1500 -> 2500
+    session 1 opened from: work laptop
+    second session has a device: false
     refused under mateus: value for key "token" already exists
     accepted under ana: token-1
     Get on a nested field: field "sessions" is a nested collection, use ListAll("sessions")
     ana's sessions after removing mateus: 1
+    device still there: true
 exit-code: 0
 tree:
+    - file: database/device/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/device/1/values/label
+      sha: 4a7bc080ecd7892e5574d4bbd17a5169da9e419965d5e771ee477f7d07b72ecc
+    - file: database/device/1/values/serial
+      sha: 1328993385a6ced259352d93c1d622e1b37156f79c8d64cc6bf859e5383c1e75
+    - file: database/device/keys/serial/7f9f29a4c20e3f2370b9af160dcd76c14368a686ecec9010c7a4cff7538c58fe
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/device/last-id
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/device/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/device/size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
     - file: database/user/2/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
     - file: database/user/2/sessions/1/position

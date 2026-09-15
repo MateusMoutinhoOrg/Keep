@@ -9,13 +9,16 @@ import (
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
 
-// Pointing one record at another through its id.
+// Resolving a record by its permanent id.
 //
-// Every record carries a permanent Id, and an id is never reused. Storing
-// one in an Int field of another collection is how a record references a
-// record: FindById resolves it in a single read, and a reference to a
-// record that has been removed resolves to nothing rather than to whatever
-// took its place.
+// Every record carries an Id the moment it is inserted. FindById resolves
+// one with no index read at all — it checks the back-pointer that marks a
+// record live and hands the record back — so it costs less than FindByKey
+// and works for a collection that declares no Key field.
+//
+// An id is allocated from a counter that only grows, so it is never handed
+// out twice. That is what makes it safe to hold on to: see link-records for
+// a field that stores one and follows it.
 
 // Props describes the database this example writes.
 var Props = api.Props{
@@ -25,14 +28,8 @@ var Props = api.Props{
 			Name: "user",
 			Itens: []api.Item{
 				{Name: "email", Type: api.Key, Required: true},
+				{Name: "bio", Type: api.String},
 				{Name: "age", Type: api.Int, Required: true},
-			},
-		},
-		{
-			Name: "post",
-			Itens: []api.Item{
-				{Name: "slug", Type: api.Key, Required: true},
-				{Name: "author", Type: api.Int, Required: true}, // a user id
 			},
 		},
 	},
@@ -44,45 +41,62 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, _ := db.GetSchema("user")
-	posts, _ := db.GetSchema("post")
+	users, ok := db.GetSchema("user")
+	if !ok {
+		panic(`the Props declares no "user" schema`)
+	}
 
-	author, failure := users.NewItem(map[string]any{
+	mateus, failure := users.NewItem(map[string]any{
 		"email": "mateus@gmail.com",
+		"bio":   "writes databases",
 		"age":   27,
 	})
 	if failure != nil {
 		panic(failure.Message)
 	}
-
-	post, failure := posts.NewItem(map[string]any{
-		"slug":   "storage-independent-databases",
-		"author": author.Id,
+	ana, failure := users.NewItem(map[string]any{
+		"email": "ana@gmail.com",
+		"bio":   "writes databases",
+		"age":   31,
 	})
 	if failure != nil {
 		panic(failure.Message)
 	}
-	fmt.Println("post:", post.String())
+	fmt.Println("ids:", mateus.Id, ana.Id)
 
-	// Read the reference back and resolve it.
-	authorId, failure := post.Get("author")
-	if failure != nil {
-		panic(failure.Message)
-	}
-	resolved, ok := users.FindById(authorId.(int64))
+	// The id is all a lookup needs. Nothing about the record's values is
+	// read to find it, so a field no index covers — "bio" is a String —
+	// still comes back with it.
+	resolved, ok := users.FindById(mateus.Id)
 	if !ok {
-		panic("the author should have resolved")
+		panic("the record should have resolved")
 	}
-	fmt.Println("author:", resolved.String())
+	bio, _ := resolved.Get("bio")
+	fmt.Printf("by id %d: %s (bio: %v)\n", mateus.Id, resolved.String(), bio)
 
-	// Remove the author, and the reference stops resolving. It never
-	// resolves to a different user: ids are allocated from a counter that
-	// only grows, so nothing is ever handed id 1 again.
+	// An id that was never allocated resolves to nothing.
+	_, ok = users.FindById(99)
+	fmt.Println("id 99:", ok)
+
+	// Remove the record and its id stops resolving — permanently. The
+	// counter is never rewound, so the next insert is id 3, not id 1, and
+	// id 1 resolves to nothing rather than to whoever came after.
 	if failure := resolved.Remove(); failure != nil {
 		panic(failure.Message)
 	}
-	_, ok = users.FindById(authorId.(int64))
-	fmt.Println("author after removal:", ok)
+	_, ok = users.FindById(mateus.Id)
+	fmt.Println("id 1 after removal:", ok)
+
+	fresh, failure := users.NewItem(map[string]any{
+		"email": "bruno@gmail.com",
+		"age":   22,
+	})
+	if failure != nil {
+		panic(failure.Message)
+	}
+	fmt.Println("next id allocated:", fresh.Id)
+	_, ok = users.FindById(mateus.Id)
+	fmt.Println("id 1 still:", ok)
 
 	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
 		panic(err)

@@ -1,10 +1,12 @@
 cli-output: |
-    updated: {id: 1, email: mateus@keep.dev, age: 27}
+    updated: {id: 1, email: mateus@keep.dev, handle: mateus, age: 27}
     found under the new email: true
     found under the old email: false
-    by id: {id: 1, email: mateus@keep.dev, age: 27}
+    by id: {id: 1, email: mateus@keep.dev, handle: mateus, age: 27}
     refused: value for key "email" already exists (field "email", value ana@gmail.com)
     email after the refusal: mateus@keep.dev
+    handles: ana and ana
+    found by handle: false
 exit-code: 0
 tree:
     - file: database/user/1/position
@@ -13,12 +15,16 @@ tree:
       sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
     - file: database/user/1/values/email
       sha: 2ba5f2e905cb2b7c37b5fe764275184c40814cfe55f3e2391739ee6ff562c5d6
+    - file: database/user/1/values/handle
+      sha: 24d4b96f58da6d4a8512313bbd02a28ebf0ca95dec6e4c86ef78ce7f01e788ac
     - file: database/user/2/position
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
     - file: database/user/2/values/age
       sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
     - file: database/user/2/values/email
       sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: database/user/2/values/handle
+      sha: 24d4b96f58da6d4a8512313bbd02a28ebf0ca95dec6e4c86ef78ce7f01e788ac
     - file: database/user/keys/email/26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
       sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
     - file: database/user/keys/email/2ba5f2e905cb2b7c37b5fe764275184c40814cfe55f3e2391739ee6ff562c5d6

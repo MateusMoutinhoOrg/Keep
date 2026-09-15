@@ -2,8 +2,10 @@ cli-output: |
     email = mateus@gmail.com (string)
     username = mateus (string)
     age = 27 (int64)
+    height = 1.82 (float64)
+    bio = writes databases (string)
     nickname: field "nickname" has no value for this record
-    height: field "height" is not part of the schema
+    phone: field "phone" is not part of the schema
     has email and age: true
     has email and nickname: false
 exit-code: 0
@@ -12,8 +14,12 @@ tree:
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
     - file: database/user/1/values/age
       sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
+    - file: database/user/1/values/bio
+      sha: f6c0983238bcb1200fd8ca2d3208a42dc64b7de6a3ea7758b5cbc132cc1ce303
     - file: database/user/1/values/email
       sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: database/user/1/values/height
+      sha: b1f9e939b899dd83c473ce5f7df3a127010638037672a99ebab9c5a883dbe6a2
     - file: database/user/1/values/username
       sha: 1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
     - file: database/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06

@@ -15,7 +15,8 @@ import (
 // record that owns it. It behaves like any top-level collection — its Key
 // fields are unique within it, its records carry their own ids, it lists
 // the same way — and it is removed with the record that owns it, at any
-// depth.
+// depth. A record of one links out to another collection like any other
+// record does.
 
 // Props describes the database this example writes.
 var Props = api.Props{
@@ -33,8 +34,17 @@ var Props = api.Props{
 						{Name: "token", Type: api.Key, Required: true},
 						{Name: "creation", Type: api.Int, Required: true},
 						{Name: "expiration", Type: api.Int, Required: true},
+						// A nested record links out like any other.
+						{Name: "device", Type: api.Link, Target: "device"},
 					},
 				},
+			},
+		},
+		{
+			Name: "device",
+			Itens: []api.Item{
+				{Name: "serial", Type: api.Key, Required: true},
+				{Name: "label", Type: api.String, Required: true},
 			},
 		},
 	},
@@ -60,8 +70,16 @@ func main() {
 		panic(failure.Message)
 	}
 
+	// "device" is a top-level collection, not a nested one: a laptop
+	// outlives any session opened from it.
+	devices, _ := db.GetSchema("device")
+	laptop, failure := devices.NewItem(map[string]any{"serial": "SN-1", "label": "work laptop"})
+	if failure != nil {
+		panic(failure.Message)
+	}
+
 	for _, session := range []map[string]any{
-		{"token": "token-1", "creation": 1000, "expiration": 2000},
+		{"token": "token-1", "creation": 1000, "expiration": 2000, "device": laptop},
 		{"token": "token-2", "creation": 1500, "expiration": 2500},
 	} {
 		if _, failure := mateus.NewSubItem("sessions", session); failure != nil {
@@ -75,6 +93,21 @@ func main() {
 		expiration, _ := session.Get("expiration")
 		fmt.Printf("session %d: %v, %v -> %v\n", session.Id, token, creation, expiration)
 	}
+
+	// A record of a nested collection follows a Link exactly the way a
+	// top-level one does: the Target names a schema of the same Props, at
+	// any depth.
+	first := mateus.ListAll("sessions")[0]
+	device, ok := first.GetLink("device")
+	if !ok {
+		panic("the session should have resolved its device")
+	}
+	label, _ := device.Get("label")
+	fmt.Printf("session %d opened from: %v\n", first.Id, label)
+
+	// The second session set no device, so there is nothing to follow.
+	_, ok = mateus.ListAll("sessions")[1].GetLink("device")
+	fmt.Println("second session has a device:", ok)
 
 	// A Key of a nested collection is unique inside that collection only,
 	// so the same token can live under another user.
@@ -102,6 +135,11 @@ func main() {
 		panic(failure.Message)
 	}
 	fmt.Println("ana's sessions after removing mateus:", len(ana.ListAll("sessions")))
+
+	// The device is a collection of its own, so nothing nested under mateus
+	// took it with it. A link is a reference, never ownership.
+	_, ok = devices.FindById(laptop.Id)
+	fmt.Println("device still there:", ok)
 
 	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
 		panic(err)

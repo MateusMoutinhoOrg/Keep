@@ -1,1 +1,1 @@
-description: "Point one collection at another through a record id that is never reused"
+description: "Resolve a record straight from its permanent id, with no index read and no reuse"

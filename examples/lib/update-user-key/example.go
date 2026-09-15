@@ -16,6 +16,10 @@ import (
 // entry — so a crash part-way through can leave a stale entry pointing at a
 // record that no longer holds that value, which resolves to nothing, but
 // never leaves the record unreachable.
+//
+// A String field is the same value written with none of that: no index to
+// move, no conflict to refuse, one write. It is the whole difference
+// between the two types.
 
 // Props describes the database this example writes.
 var Props = api.Props{
@@ -25,6 +29,7 @@ var Props = api.Props{
 			Name: "user",
 			Itens: []api.Item{
 				{Name: "email", Type: api.Key, Required: true},
+				{Name: "handle", Type: api.String, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
 			},
 		},
@@ -42,11 +47,16 @@ func main() {
 		panic(`the Props declares no "user" schema`)
 	}
 
-	mateus, failure := users.NewItem(map[string]any{"email": "mateus@gmail.com", "age": 27})
+	mateus, failure := users.NewItem(map[string]any{
+		"email": "mateus@gmail.com", "handle": "mateus", "age": 27,
+	})
 	if failure != nil {
 		panic(failure.Message)
 	}
-	if _, failure := users.NewItem(map[string]any{"email": "ana@gmail.com", "age": 31}); failure != nil {
+	ana, failure := users.NewItem(map[string]any{
+		"email": "ana@gmail.com", "handle": "ana", "age": 31,
+	})
+	if failure != nil {
 		panic(failure.Message)
 	}
 
@@ -75,6 +85,20 @@ func main() {
 
 	current, _ := mateus.Get("email")
 	fmt.Println("email after the refusal:", current)
+
+	// "handle" holds the same kind of value and is declared a String, so it
+	// carries no index: the value another record already holds is written
+	// without complaint, and nothing indexes either of them.
+	if failure := mateus.Update("handle", "ana"); failure != nil {
+		panic(failure.Message)
+	}
+	mine, _ := mateus.Get("handle")
+	theirs, _ := ana.Get("handle")
+	fmt.Printf("handles: %v and %v\n", mine, theirs)
+
+	// Which is why FindByKey cannot read it back: only a Key is indexed.
+	_, ok = users.FindByKey("handle", "ana")
+	fmt.Println("found by handle:", ok)
 
 	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
 		panic(err)
