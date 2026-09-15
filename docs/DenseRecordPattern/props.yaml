@@ -1,0 +1,4 @@
+description: The key layout that makes a schema database run over single-key storage
+name: Dense Record Pattern
+themes:
+    - architecture

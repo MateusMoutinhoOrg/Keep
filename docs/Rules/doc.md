@@ -1,0 +1,138 @@
+# Rules
+
+Every rule of this project, in one page. `verify` enforces the ones marked **(verify)**;
+the rest are read by the generators or by whoever writes the hand-written files.
+Nothing here is repeated elsewhere in `docs/` — other pages link here. The command that
+makes each kind of change is in [Workflow](../Workflow/doc.md).
+
+## Authoring
+
+- **Generate over hand-write.** A file that can be rendered from a template, a collector or a
+  declaration must be. Hand-written code is contracts, adapters, `sandbox/internal/` and
+  `handler.go` only; a new hand-written file needs a reason why generation cannot cover it.
+- **Every file is an instance of a pattern.** New code copies an existing sibling exactly:
+  same filenames, same function names, same ordering. If no pattern fits, define and document
+  the pattern first — `verify` and the collectors read shape by convention, so a one-off
+  breaks them.
+- **Deterministic and idempotent.** Same input, same bytes out: `agnos build` run twice must
+  leave the tree unchanged.
+- A generated file is never edited — the `always` rows of
+  [GeneratedFiles](../GeneratedFiles/doc.md), `(gen)` in [Structure](../Structure/doc.md).
+  Change the declaration it is rendered from, then run `build`.
+- Generated `.go` is gofmt'ed as it is written, so a regenerated tree diffs to zero against one
+  a formatting editor has saved.
+- `build` compiles `./cmd/... ./sandbox/... ./adapters/...`, never `./...`.
+
+## Layers
+
+- `sandbox/` is closed: a file there imports only `sandbox/` packages — the stdlib included. A
+  capability from outside (io, text, sorting, hashing, templating) is restated as a contract
+  under `sandbox/deps/` and reached as `sandbox.Deps.<Contract>`. **(verify)**
+- `sandbox/` holds only `api`, `deps`, `internal` and `new.go`. **(verify)**
+- `sandbox/api/*` imports nothing but the loose `sandbox/deps` package, and imports that
+  only for `Sandbox.Deps`. **(verify)**
+- Every function of `sandbox/internal/` takes `sandbox *api.Sandbox` as
+  its first parameter and nothing else standing for the outside world: deps is reached as
+  `sandbox.Deps.<Contract>`, and the rest of the api as `sandbox.<Field>`. Holding the api is
+  what lets one part of it call another, and what makes a field a caller replaced take effect
+  everywhere.
+- `sandbox/deps/<x>/` imports nothing at all: a contract is written in Go's builtin types only,
+  and the adapter converts. The loose `sandbox/deps/*.go` is the one exception — it may name
+  `sandbox/deps` packages, to compose `deps.Deps`. **(verify)**
+- Every `sandbox/api/<x>.go` other than `sandbox.go`, `command.go` and `route.go` is a field of
+  the `Sandbox`, built by the `New<X>(sandbox) api.<X>` its `sandbox/internal/<x>/new.go`
+  declares — the one name `sandbox/new.go` calls. A contract with no such file is a field
+  nothing fills, and `sandbox/new.go` leaves it alone. **(verify)**
+- Every file of `sandbox/api/` and `sandbox/deps/` parses, and every exported type, func, const
+  and var in them carries a doc comment — [PublicApi](../PublicApi/doc.md) is generated from
+  those comments. **(verify)**
+- `adapters/` is the only place OS-bound and third-party code lives, and holds only
+  `availables` and `libs`. **(verify)**
+- Every `adapters/libs/<adapter>/` exports `Bind(deps *deps.Deps)` and carries the
+  `adapter.yaml` naming the dep it fills. **(verify)**
+- Every available fills every field of `Deps` **exactly once**: zero is a nil func that panics
+  on first use, two is a silent overwrite in which the last binder wins. Which adapter fills
+  which field is read from `adapter.yaml`, never from the body of a `Bind`. **(verify)**
+- `adapters/availables/<name>/available.yaml` is the only place the choice of adapter is
+  recorded; `set-adapter` is its only editor. An available with no `available.yaml` is
+  hand-written and no build touches it.
+- Every type of `sandbox/api/` is convertible: its underlying type is identical
+  in a copy of the package made elsewhere, or it is a struct the generator can
+  write a converter for. No generics, no `chan`, no anonymous struct or
+  interface, no embedded field, and no identifier that is neither predeclared
+  nor declared in the package. `Sandbox.Deps` is the one field exempt, because
+  it is the one field that does not cross: a consumer installs the api of a
+  repo, never its wiring, so the copy drops it. This is what makes every agnos
+  repo installable as a dep. **(verify)**
+- `cmd/main/` wires an adapter into the sandbox and holds no logic.
+
+## Naming
+
+- A `Deps` field is the title-cased `sandbox/deps/<dir>` (`iodeps` -> `deps.Iodeps`). Always
+  use that spelling; an added contract never renames an existing one.
+- An adapter's binder is always `Bind(deps *deps.Deps)` in `adapters/libs/<adapter>/<adapter>.go`.
+- A command handler is always `CommandHandler(sandbox *api.Sandbox, command *api.Command) int`.
+- A package's first file is named after the package (`sandbox/deps/iodeps/iodeps.go`,
+  `adapters/libs/iodeps/iodeps.go`); a second file is named after what it holds.
+- A dep is named after the contract it installs; an adapter after what backs it (`argvdeps`,
+  adapter `verb`). The two are separate names because one dep may have several adapters.
+- Reusable logic goes in `sandbox/internal/<pkg>/`, one directory per concern.
+
+## Output channels
+
+| Channel | Stream | Carries | `--quiet` |
+|---|---|---|---|
+| `deps.Std.Printf` | stdout | The result (listings, version, help) | kept |
+| `deps.Std.Log` | stderr | Progress | silenced |
+| `deps.Std.Error` | stderr | Usage errors and failures | kept |
+
+Never `fmt.Printf`.
+
+## Exit codes
+
+| Code | Const | Meaning |
+|---|---|---|
+| 0 | `api.ExitOk` | Done |
+| 1 | `api.ExitFailure` | A well-formed command failed |
+| 2 | `api.ExitUsage` | Bad command line: unknown command or flag, leftover positional, missing required, bad or out-of-range number |
+
+## Docs
+
+- A doc is `docs/<Name>/{doc.md,props.yaml}`; sub-docs nest as `docs/<Name>/<Sub>/`. Other
+  files in a doc dir are assets. Create and delete them with `add-doc` / `remove-doc`.
+- Every `docs/**` dir has a parsable `props.yaml`; a first-level doc names at least one theme of
+  `AgnosConfig/themes.yaml`, a sub-doc names none. A theme no doc names renders no README
+  section and is not an error. **(verify)**
+- A theme only groups a doc into a section of `README.md`.
+- Every entry of `AgnosConfig/structure.yaml` names a path that exists — a directory
+  when it declares `dir: true`, a file otherwise. A path holding `<`, `*` or `?` stands for a
+  family, and only its literal head has to exist. Drop the entry when the path goes. **(verify)**
+- A generated page is changed at its source, never on the page:
+  [PublicApi](../PublicApi/doc.md) from the doc comments of `sandbox/api/` and `sandbox/deps/`,
+  [Commands](../Commands/doc.md) from each `entries.yaml`, [Structure](../Structure/doc.md) from
+  `AgnosConfig/structure.yaml`, `README.md` from
+  `AgnosConfig/docs/ReadmeHeader.md` and every `props.yaml`.
+- Docs are short, objective and dense: tables, commands, file paths and rules — no prose, no
+  narrative, no tutorials, no motivation sections. One page per topic; no sub-doc unless the
+  content is a real list of independent items.
+- Say a rule once, in this page, and link to it. Links are relative to the file that carries
+  them: `../X/doc.md` inside `docs/`, `docs/X/doc.md` in `README.md` and `ReadmeHeader.md`.
+
+## Examples
+
+- An example is `examples/<side>/<name>/`, holding exactly one `example.go` under `lib/`. Create and delete them with `add-lib-example` /
+  `remove-lib-example`,
+  never by hand — the same rule as `add-doc` / `remove-doc`.
+- An example runs with its own directory as the working directory and writes only inside its own
+  `TestDir`, which `exec-test` removes before every run.
+- An example ends by copying out of `TestDir` into `AssertDir` the paths it asserts, each keeping
+  the place it holds in the tree — `AssertDir` is what `result.yaml` records, and `exec-test`
+  removes it before every run too. Copying is not moving: `TestDir` stays whole, for reading.
+- An example that copies nothing out fails. Assert the paths the example is about and no more:
+  a golden holding the whole project breaks on every unrelated template change.
+- `result.yaml` is generated by `exec-test`. Refresh one golden with `update-test <name>`, the
+  whole suite with `exec-test --update`, or delete it; never edit one.
+- An example's output carries no absolute path other than its own directory, no timestamp and no
+  resolved version: those are normalized away or make the golden machine-specific.
+
+Details: [LibExamples](../LibExamples/doc.md).

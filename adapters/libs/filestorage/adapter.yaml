@@ -1,0 +1,5 @@
+dep: storagedeps
+help: Single-key storage over one file per key, under the working directory
+module: ""
+name: filestorage
+origin: local

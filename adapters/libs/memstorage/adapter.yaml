@@ -1,0 +1,5 @@
+dep: storagedeps
+help: Single-key storage over an in-process map, lost when the process exits
+module: ""
+name: memstorage
+origin: local

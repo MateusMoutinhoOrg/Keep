@@ -2,55 +2,154 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/MateusMoutinhoOrg/Keep.svg)](https://pkg.go.dev/github.com/MateusMoutinhoOrg/Keep)
 [![Release](https://img.shields.io/github/v/release/MateusMoutinhoOrg/Keep)](https://github.com/MateusMoutinhoOrg/Keep/releases/latest)
-[![Go Version](https://img.shields.io/badge/go-%3E%3D1.22-blue)](go.mod)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.25-blue)](go.mod)
 
-A storage-independent database built on top of plain key-value operations.
+**A storage-independent database.** Schemas with typed fields, unique indexed keys, nested
+collections and pagination — over any backend that can read, write and delete a single key.
+No listing, no prefix scans, no range queries.
 
----
-
-## Overview
-
-Keep lets you define schemas with typed fields, unique indexed keys, and nested collections — and runs them over **any** backend that can read, write, and delete a key. It needs no key listing, no prefix scans, and no range queries, so it works the same over the local filesystem, memory, S3-like blob stores, or anything you can wrap in a small struct.
-
-The core of the library lives in **`/sandbox/`**: a **closed sandbox** that reaches nothing outside itself. Everything it can do arrives through an injected `Deps`, wired entirely through **structs of function fields** rather than interfaces — see [StructContracts.md](/docs/References/StructContracts.md).
-
-```
-adapters/  ──▶  sandbox/  ◀──  examples/libraryExamples/ , tests/
-(reaches the OS)  (closed)     (wire the two together)
+```bash
+go get github.com/MateusMoutinhoOrg/Keep@latest
 ```
 
-Nothing is exported but the library itself. There is no binary and no command of its own: a consumer wires an adapter into the sandbox and calls the fields of the `api.Lib` it gets back.
+```go
+package main
 
-- **`/sandbox/`**: The closed database engine taking a `Deps` and returning an `api.Lib`. It may not import an adapter, a third-party module, or any OS-bound stdlib package — see [SandboxIsolation.md](/docs/References/SandboxIsolation.md).
-- **`/sandbox/contracts/deps/`**: The `Deps` struct of function fields every adapter must fill.
-- **`/sandbox/contracts/api/`**: Every type the library exchanges — structs only, never interfaces, so nothing crossing the boundary is hidden behind a method set.
-- **`/adapters/`**: The opinionated, concrete backends — the only place OS-bound code is allowed.
-- **`/examples/libraryExamples/`**: Places where an adapter and the library are wired together.
+import (
+	"fmt"
 
-What you get on top of that:
+	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/standard"
+	"github.com/MateusMoutinhoOrg/Keep/sandbox"
+	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
+)
 
-- **Storage independent** — bring your own backend by filling a small struct of function fields, or use the built-in ones ([filesystem](adapters/standard/), [in-memory](adapters/native/)).
-- **Constant-time operations** — create, lookup by key, and delete each touch a fixed number of keys, no matter how many records exist.
-- **Unique keys** — fields of type `Key` are indexed and enforced unique (case-insensitive).
-- **Nested collections** — a record can own sub-databases (e.g. a user owning its sessions).
+var Props = api.Props{
+	Path: "database/",
+	Schemas: []api.Schema{
+		{
+			Name: "user",
+			Itens: []api.Item{
+				{Name: "email", Type: api.Key, Required: true},
+				{Name: "age", Type: api.Int, Required: true},
+			},
+		},
+	},
+}
 
----
+func main() {
+	deps := standard.New()    // one file per key
+	lib := sandbox.New(&deps) // *api.Sandbox
 
-## Doc Index
+	users, _ := lib.Databases.New(Props).GetSchema("user")
 
-Documentation is split into three themes, one index page each under `docs/Index/`, listing that theme's **Tutorials** — step-by-step workflows — and its **References** — explanations and lookups. Start from the theme index matching what you want to do.
+	users.NewItem(map[string]any{"email": "mateus@gmail.com", "age": 27})
 
-| Theme | Description |
+	found, _ := users.FindByKey("email", "mateus@gmail.com")
+	fmt.Println(found.String())
+}
+```
+
+Swap `adapters/availables/standard` for `adapters/availables/native` and the same program
+runs entirely in memory. Nothing else changes: the library only ever calls the eleven
+single-key functions of `sandbox/deps/storagedeps`, and which implementation stands behind
+them is decided by the one import a program picks.
+
+| Start here | For |
+|---|---|
+| [Schemas](docs/Schemas/doc.md) | declaring a database — field types, keys, nested collections |
+| [PublicApi](docs/PublicApi/doc.md) | every exported symbol, generated from the contracts |
+| [LibExamples](docs/LibExamples/doc.md) | eleven runnable programs, each checked against a golden |
+| [StorageContract](docs/StorageContract/doc.md) | writing a backend of your own |
+| [DenseRecordPattern](docs/DenseRecordPattern/doc.md) | how iteration works without listing |
+
+This repository is generated and checked by [agnos](https://github.com/MateusMoutinhoOrg/Agnos):
+`agnos build` rewrites every generated file, `agnos verify` checks the schema, and
+`agnos exec-test` runs every example against its golden. See
+[Requirements](docs/Requirements/doc.md) and [Workflow](docs/Workflow/doc.md).
+
+
+## Documentation
+
+### CliUsage
+
+Driving the CLI from a terminal - install, commands, flags, exit codes
+
+| Doc | Description |
 | --- | --- |
-| [Library Usage](/docs/Index/LibUsage.md) | For library consumers: installing the module, describing data, and calling the Go API. |
-| [Development](/docs/Index/Development.md) | For contributors: the rules, the mechanics, the per-goal workflows, and the specifications. |
-| [Templating](/docs/Index/Templating.md) | For template users: forking, renaming, and adapting this structure into a new library. |
+| [Commands](docs/Commands/doc.md) | Every command of Keep, generated from the command declarations |
 
-New here? [Library Usage → LibInitialization.md](/docs/Tutorials/LibInitialization.md) installs the module and runs a first program.
+### LibUsage
 
----
+Using the project as a Go module - wiring the deps, calling the sandbox
+
+| Doc | Description |
+| --- | --- |
+| [LibUsage](docs/LibUsage/doc.md) | Use Keep as a Go module: wire the deps, build the sandbox, call its API |
+| [PublicApi](docs/PublicApi/doc.md) | Every exported symbol of Keep, generated from the contract sources and their doc comments |
+| [LibExamples](docs/LibExamples/doc.md) | Index of every runnable example of Keep as a Go module |
+| [Schemas](docs/Schemas/doc.md) | Declaring a database: Props, schemas, field types and nested collections |
+
+### ApiUsage
+
+The exported surface - contracts, deps and what each one promises
+
+| Doc | Description |
+| --- | --- |
+| [Errors](docs/Errors/doc.md) | Every failure a database operation reports, and what raises it |
+
+### Architecture
+
+How the project is put together - layers, boundaries, data flow
+
+| Doc | Description |
+| --- | --- |
+| [Adapters](docs/Adapters/doc.md) | Contract, adapter and available: three units, one field of Deps, and who fills it |
+| [Dense Record Pattern](docs/DenseRecordPattern/doc.md) | The key layout that makes a schema database run over single-key storage |
+
+### Development
+
+Changing this repository - schema, build mechanics, recipes
+
+| Doc | Description |
+| --- | --- |
+| [Requirements](docs/Requirements/doc.md) | The two tools this project needs — Go and agnos — installed per platform |
+| [Workflow](docs/Workflow/doc.md) | Every change this project takes and the agnos command that makes it |
+| [Rules](docs/Rules/doc.md) | Every rule the generators, `verify` and the hand-written files must hold to |
+| [Structure](docs/Structure/doc.md) | The project schema: what lives where, what is generated, what verify enforces |
+
+### Reference
+
+Lookup tables - schemas, file formats, generated file listings
+
+| Doc | Description |
+| --- | --- |
+| [EntriesYaml](docs/EntriesYaml/doc.md) | Every key of a command's entries.yaml and what the generated code does with it |
+| [DepList](docs/DepList/doc.md) | Every dep `agnos add-dep` can add, the adapters that fill it, and what backs each one |
+| [GeneratedFiles](docs/GeneratedFiles/doc.md) | Every file agnos writes into this project and whether build overwrites it |
+| [LibExamples](docs/LibExamples/doc.md) | Index of every runnable example of Keep as a Go module |
+| [Storage Contract](docs/StorageContract/doc.md) | What an adapter filling Deps.Storagedeps has to guarantee, field by field |
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+MIT License
+
+Copyright (c) 2026 MateusMoutinho
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+

@@ -1,0 +1,54 @@
+cli-output: |
+    before any insert: 0
+    users: 3
+     - {id: 1, email: mateus@gmail.com, username: mateus, age: 27}
+     - {id: 2, email: ana@gmail.com, username: ana, age: 31}
+     - {id: 3, email: bruno@gmail.com, username: bruno, age: 44}
+exit-code: 0
+tree:
+    - file: database/user-1-position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-1-values-age
+      sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
+    - file: database/user-1-values-email
+      sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: database/user-1-values-username
+      sha: 1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
+    - file: database/user-2-position
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-2-values-age
+      sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
+    - file: database/user-2-values-email
+      sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: database/user-2-values-username
+      sha: 24d4b96f58da6d4a8512313bbd02a28ebf0ca95dec6e4c86ef78ce7f01e788ac
+    - file: database/user-3-position
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+    - file: database/user-3-values-age
+      sha: 71ee45a3c0db9a9865f7313dd3372cf60dca6479d46261f3542eb9346e4a04d6
+    - file: database/user-3-values-email
+      sha: f471d398872e7dbaeed48f933c8695e9bbf149965064308f120e94b9ee7361c4
+    - file: database/user-3-values-username
+      sha: ccc68482d9e0eee0789e64c7674421076738f8836857ea89bcd0afb832bf3fc3
+    - file: database/user-keys-email-26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-keys-email-c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-keys-email-f471d398872e7dbaeed48f933c8695e9bbf149965064308f120e94b9ee7361c4
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+    - file: database/user-keys-username-1957b9981fc9cfa67abff7eb73045b55f99b9673f7637e138fd3f8c7a1313e94
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-keys-username-24d4b96f58da6d4a8512313bbd02a28ebf0ca95dec6e4c86ef78ce7f01e788ac
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-keys-username-ccc68482d9e0eee0789e64c7674421076738f8836857ea89bcd0afb832bf3fc3
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+    - file: database/user-last-id
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+    - file: database/user-list-1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-list-2
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-list-3
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
+    - file: database/user-size
+      sha: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce

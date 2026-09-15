@@ -1,0 +1,8 @@
+cli-output: |
+    Keep v0.1.0
+    found: {id: 2, email: ana@gmail.com, age: 31}
+    wrote TestDir/users.txt with 2 users
+exit-code: 0
+tree:
+    - file: users.txt
+      sha: b5ade757c8142637a057486093d11542f49391748146d3b7161b45561a1ed1a9

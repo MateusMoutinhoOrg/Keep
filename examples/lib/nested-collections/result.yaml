@@ -1,0 +1,39 @@
+cli-output: |
+    session 1: token-1, 1000 -> 2000
+    session 2: token-2, 1500 -> 2500
+    refused under mateus: value for key "token" already exists
+    accepted under ana: token-1
+    Get on a nested field: field "sessions" is a nested collection, use ListAll("sessions")
+    ana's sessions after removing mateus: 1
+exit-code: 0
+tree:
+    - file: database/user-2-position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-sessions-1-position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-sessions-1-values-creation
+      sha: a176eeb31e601c3877c87c2843a2f584968975269e369d5c86788b4c2f92d2a2
+    - file: database/user-2-sessions-1-values-expiration
+      sha: b090147020e033534635010c4f7eb6fc270d44e5df67ea9e744a8087df9ca106
+    - file: database/user-2-sessions-1-values-token
+      sha: 3f08aace122ee2368432c1ca23a049bc640bafbf00fdf33a52429f38ba12dbf9
+    - file: database/user-2-sessions-keys-token-3f08aace122ee2368432c1ca23a049bc640bafbf00fdf33a52429f38ba12dbf9
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-sessions-last-id
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-sessions-list-1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-sessions-size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/user-2-values-age
+      sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
+    - file: database/user-2-values-email
+      sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: database/user-keys-email-26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-last-id
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-list-1
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: database/user-size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b

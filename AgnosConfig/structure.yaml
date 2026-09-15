@@ -1,0 +1,125 @@
+AgnosConfig:
+  order: 1
+  dir: true
+  description: written once by `start`, read by every `build`
+sandbox:
+  order: 2
+  dir: true
+  description: "closed: imports nothing outside sandbox/, no OS packages"
+  children:
+    new.go:
+      order: 1
+      gen: true
+      description: New(deps) *api.Sandbox, one <x>.New<X> per api/ file
+    api:
+      order: 2
+      dir: true
+      description: contracts only; imports nothing but sandbox/deps
+      children:
+        sandbox.go:
+          order: 1
+          gen: true
+          description: one field per other file of api/, plus Deps
+        databases.go:
+          order: 2
+          description: the Databases contract, plus Props, Schema, Item, Error and the objects a database hands back
+        info.go:
+          order: 3
+          description: the Info contract - the library's own name and version
+    deps:
+      order: 3
+      dir: true
+      description: one dir per capability the sandbox needs from outside; each imports nothing at all
+      children:
+        deps.go:
+          order: 1
+          gen: true
+          description: one field per sub-directory, title-cased
+        storagedeps:
+          order: 2
+          dir: true
+          description: the single-key storage backend - the whole of what Keep asks of one
+    internal:
+      order: 4
+      dir: true
+      description: the logic; unreachable from outside the sandbox
+      children:
+        config:
+          order: 1
+          dir: true
+          description: (gen) ProjectName and Version, from AgnosConfig/project.yaml
+        databases:
+          order: 2
+          dir: true
+          description: NewDatabases, and the DatabaseHandle a Props is bound to
+        schemainstance:
+          order: 3
+          dir: true
+          description: one collection - insert, find, list
+        schemaitem:
+          order: 4
+          dir: true
+          description: one record - read, update, remove, and the nested collections under it
+        dense:
+          order: 5
+          dir: true
+          description: the key layout and value encoding of the dense record pattern
+        liberror:
+          order: 6
+          dir: true
+          description: the constructors every *api.Error is built by
+        info:
+          order: 7
+          dir: true
+          description: NewInfo
+adapters:
+  order: 3
+  dir: true
+  description: the only place OS-bound and third-party code lives
+  children:
+    libs:
+      order: 1
+      dir: true
+      description: one dir per adapter, each exporting Bind and carrying an adapter.yaml
+      children:
+        filestorage:
+          order: 1
+          dir: true
+          description: storagedeps over one file per key
+        memstorage:
+          order: 2
+          dir: true
+          description: storagedeps over a map, lost when the process exits
+    availables:
+      order: 2
+      dir: true
+      description: one dir per selection of adapters; new.go beside each is generated from its available.yaml
+      children:
+        standard:
+          order: 1
+          dir: true
+          description: filestorage - what a program that wants a database on disk imports
+        native:
+          order: 2
+          dir: true
+          description: memstorage - the same library with nothing written anywhere
+examples:
+  order: 4
+  dir: true
+  description: one dir per example under lib/, each a package main checked against its golden
+  children:
+    lib:
+      order: 1
+      dir: true
+      description: "<name>/example.go + props.yaml, and the result.yaml exec-test writes"
+docs:
+  order: 5
+  dir: true
+  description: one dir per doc, holding doc.md + props.yaml. README.md indexes them all
+go.mod:
+  order: 6
+  description: written by `start`; add-dep and remove-dep edit its require block
+README.md:
+  order: 7
+  gen: true
+  description: "`render AgnosConfig/docs/ReadmeHeader.md` + the documentation index"

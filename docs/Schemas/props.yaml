@@ -1,0 +1,4 @@
+description: 'Declaring a database: Props, schemas, field types and nested collections'
+name: Schemas
+themes:
+    - lib-usage

@@ -33,5 +33,11 @@ go.work.sum
 # .idea/
 # .vscode/
 
-# Sample database output
-testDatabase/
+# What `agnos exec-test` writes while it runs an example: the tree the example
+# produced and the copy it asserts. The golden result.yaml beside them is
+# committed; these two are rebuilt from scratch on every run.
+examples/*/*/TestDir/
+examples/*/*/AssertDir/
+
+# `agnos compile`
+release/

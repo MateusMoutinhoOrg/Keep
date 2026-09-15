@@ -1,0 +1,34 @@
+# GeneratedFiles
+
+`once` = written the first time, then yours to edit. `always` = rewritten by every
+`agnos build`, so an edit to it is lost — change the declaration it is rendered from instead.
+
+| File | Written by | Rewrite |
+|---|---|---|
+| `AgnosConfig/{project,themes,structure,ignore,paths}.yaml` | `start` | once |
+| `AgnosConfig/docs/ReadmeHeader.md` | `start` | once. The whole of `README.md` above the doc index, itself a template |
+| `go.mod` | `start` | once. `add-dep` / `remove-dep` edit `require` |
+| `go.sum` | `go mod tidy` | - |
+| `LICENSE` | `start` | once. A placeholder; its text is pasted into `README.md`'s License section |
+| `README.md` | `build` | always. `ReadmeHeader.md` + one index section per theme of `themes.yaml` |
+| `sandbox/new.go` | `build` | always. One `<x>.New<X>(&self)` per other file of `sandbox/api/` |
+| `sandbox/api/sandbox.go` | `build` | always. One field per other file of `sandbox/api/`, plus `Deps` while the project carries the deps layer |
+| `sandbox/internal/config/config.go` | `build` | always. `ProjectName`, `Version` from `project.yaml` |
+| `docs/{Requirements,Workflow,Rules,Structure,EntriesYaml,DepList,GeneratedFiles,LibUsage,LibExamples,PublicApi,Commands}/` | `build` | always. Both `doc.md` and `props.yaml` |
+| `docs/**/Index.md` | `build` | always, for every doc that has sub-docs |
+| `sandbox/deps/deps.go` | `build` | always. One `<Title> <dir>.Sandbox` per dir of `sandbox/deps/` |
+| `adapters/availables/<name>/new.go` | `build` | always. One `<adapter>.Bind(&deps)` per entry of that available's `available.yaml`; an available with no `available.yaml` is hand-written and left alone |
+| `adapters/availables/<name>/available.yaml` | `deps-init` | once, then rewritten by `add-dep` / `remove-dep` — never by hand |
+| `sandbox/deps/<dep>/*.go`, `adapters/libs/<adapter>/*.go` | `add-dep` | once |
+| `adapters/libs/<adapter>/adapter.yaml` | `add-dep` | once |
+| `sandbox/deps/<dep>/*.go` of a remote dep | `add-dep <module>` | rewritten by `set-dep`; a copy of that module's `sandbox/api/` |
+| `adapters/libs/<dep>/<dep>.go` of a remote dep | `add-dep <module>` | rewritten by `set-dep`; the generated shim |
+| `assets/asset.go` | `add-dep embeddeps` | once |
+| `docs/<Name>/{props.yaml,doc.md}` | `add-doc` | once |
+| `examples/lib/<name>/example.go` | `add-lib-example` | once. A stub that already runs |
+| `examples/<side>/<name>/result.yaml` | `exec-test` | on `update-test <name>`, on `--update` or when absent — never by hand |
+
+Everything not listed is yours: `sandbox/internal/<pkg>/`, the contracts under `sandbox/api/`
+and `sandbox/deps/` that you write, their `sandbox/internal/<x>/new.go` and `adapters/libs/`
+halves, and any
+directory of `adapters/availables/` other than `standard`.

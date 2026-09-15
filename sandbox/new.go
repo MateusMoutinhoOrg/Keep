@@ -1,16 +1,17 @@
-package lib
+package sandbox
 
 import (
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/api"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/contracts/deps"
-	"github.com/MateusMoutinhoOrg/Keep/sandbox/lib"
+	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
+	deps "github.com/MateusMoutinhoOrg/Keep/sandbox/deps"
+	databases "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/databases"
+	info "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/info"
 )
 
-// New injects a Deps implementation into the library and returns
-// the api.Lib entry point. It delegates to the internal lib
-// constructor, which stores the deps on the struct and runs the
-// factories over it, each of which fills one function field with a
-// closure reading those deps.
-func New(d deps.Deps) api.Lib {
-	return lib.New(d)
+func New(deps *deps.Deps) *api.Sandbox {
+	self := api.Sandbox{Deps: deps}
+
+	self.Databases = databases.NewDatabases(&self)
+	self.Info = info.NewInfo(&self)
+
+	return &self
 }
