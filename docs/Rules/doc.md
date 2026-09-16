@@ -23,6 +23,20 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
   a formatting editor has saved.
 - `build` compiles `./cmd/... ./sandbox/... ./adapters/...`, never `./...`.
 
+## Extensions
+
+- What this project generates is declared in `AgnosConfig/extensions.yaml`, one key per
+  mechanic, and nowhere else: `build` never infers a mechanic from a directory being present.
+  A missing declaration is a hard error, not a default. **(verify)**
+- Only the keys of the catalog may appear, and no `sandbox-<x>` mechanic is on while `sandbox`
+  is off. **(verify)**
+- `false` means *stop generating*, never *delete*: agnos leaves what the mechanic already
+  wrote exactly as it is, for the project to keep or edit by hand. Removing those files is
+  what an `<x>-purge` does — and it is the same command that writes the `false`.
+- The declaration is written by `agnos enable-extension` / `disable-extension` and
+  by every `<x>-init` / `<x>-purge` pair, never by hand.
+- Every key is in [Extensions](../Extensions/doc.md).
+
 ## Layers
 
 - `sandbox/` is closed: a file there imports only `sandbox/` packages — the stdlib included. A
@@ -74,8 +88,8 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
 - A command handler is always `CommandHandler(sandbox *api.Sandbox, command *api.Command) int`.
 - A package's first file is named after the package (`sandbox/deps/iodeps/iodeps.go`,
   `adapters/libs/iodeps/iodeps.go`); a second file is named after what it holds.
-- A dep is named after the contract it installs; an adapter after what backs it (`argvdeps`,
-  adapter `verb`). The two are separate names because one dep may have several adapters.
+- A dep is named after the contract it installs; an adapter after what backs it (`sortdeps`,
+  adapter `reflectsort`). The two are separate names because one dep may have several adapters.
 - Reusable logic goes in `sandbox/internal/<pkg>/`, one directory per concern.
 
 ## Output channels
@@ -118,6 +132,7 @@ Never `fmt.Printf`.
 - Say a rule once, in this page, and link to it. Links are relative to the file that carries
   them: `../X/doc.md` inside `docs/`, `docs/X/doc.md` in `README.md` and `ReadmeHeader.md`.
 
+
 ## Examples
 
 - An example is `examples/<side>/<name>/`, holding exactly one `example.go` under `lib/`. Create and delete them with `add-lib-example` /
@@ -136,3 +151,4 @@ Never `fmt.Printf`.
   resolved version: those are normalized away or make the golden machine-specific.
 
 Details: [LibExamples](../LibExamples/doc.md).
+

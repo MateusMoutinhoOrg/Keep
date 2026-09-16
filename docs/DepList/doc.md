@@ -9,15 +9,14 @@ in [PublicApi](../PublicApi/doc.md#dependency-contracts).
 
 | Dep | `Deps` field | Adapters | Backed by | Provides |
 |---|---|---|---|---|
-| `argvdeps` | `Argvdeps` | `verb` | `github.com/MateusMoutinhoOrg/Verb` (pinned in `go.mod`) | Per-call argv parser. Installed by `cli-init` |
-| `dbdeps` | `Dbdeps` | `keep` | `github.com/MateusMoutinhoOrg/Keep` (pinned) | Schema database |
+| `argvdeps` | `Argvdeps` | `argvdeps` | `strings`, `strconv`, `time` | Per-call argv parser. Installed by `cli-init` |
 | `embeddeps` | `Embeddeps` | `embeddeps` + `assets/asset.go` | `embed`, `text/template` | Read and render files compiled into the binary |
 | `goimportsdeps` | `Goimportsdeps` | `goimportsdeps` | `go/parser` | Go source reader (package, imports, declarations) |
 | `hashdeps` | `Hashdeps` | `hashdeps` | `crypto/sha256`, `encoding/hex` | SHA-256 of a byte slice, lower-case hex |
 | `iodeps` | `Iodeps` | `iodeps` | `os`, `path/filepath` | Filesystem. `WriteFile` creates parents; `RemoveDir` removes files too; `Join`/`Dir` build host paths |
 | `requestdeps` | `Requestdeps` | `requestdeps` | `net/http` (30s timeout) | Per-call HTTP request |
 | `rundeps` | `Rundeps` | `rundeps` | `os/exec` | Run a program to completion; stdout+stderr merged; non-zero exit is `Result.ExitCode`, not an error |
-| `serializables` | `Serializables` | `serializables` | `gopkg.in/yaml.v3`, `encoding/json` | Generic JSON/YAML values |
+| `serializables` | `Serializables` | `serializables` | `encoding/json` + a bundled YAML codec | Generic JSON/YAML values. The YAML side reads the block subset (no anchors, aliases or explicit tags) |
 | `serverdeps` | `Serverdeps` | `serverdeps` | `net/http` | Http server: opens the port, applies timeouts, hands every request to one handler. Installed by `server-init` |
 | `sortdeps` | `Sortdeps` | `sortdeps`, `reflectsort` | `sort` / `reflect` | Sort a string slice, or any slice by a less function |
 | `std` | `Std` | `std` | `time`, `fmt`, `runtime`, `os.Stdout/Stderr` | Clock, `Sprintf`, the host `Goos` and the three output channels. Installed by `cli-init` |
