@@ -36,14 +36,14 @@ type Contract struct {
 	// creating the key when it is absent.
 	Write func(key []string, value []byte) error
 
-	// WriteIfKeyNotExists stores value only when key holds nothing.
-	// written is false when the key already exists, which is not an error.
-	WriteIfKeyNotExists func(key []string, value []byte) (written bool, err error)
+	// WriteIfAbsent stores value only when key holds nothing. written is
+	// false when the key already exists, which is not an error.
+	WriteIfAbsent func(key []string, value []byte) (written bool, err error)
 
 	// WriteIfValueEquals stores value only when the current value of key is
-	// exactly old_value. written is false when the key is absent or holds
+	// exactly oldValue. written is false when the key is absent or holds
 	// something else, which is not an error.
-	WriteIfValueEquals func(key []string, value []byte, old_value []byte) (written bool, err error)
+	WriteIfValueEquals func(key []string, value []byte, oldValue []byte) (written bool, err error)
 
 	// Append adds value to the end of the current value of key, creating
 	// the key when it is absent.
@@ -78,7 +78,7 @@ type Contract struct {
 	// report locked == true and do nothing.
 	Lock func(key []string, seconds int) (locked bool, err error)
 
-	// UnLock releases a lease taken by Lock. Releasing a lease nobody holds
+	// Unlock releases a lease taken by Lock. Releasing a lease nobody holds
 	// is not an error.
-	UnLock func(key []string) error
+	Unlock func(key []string) error
 }

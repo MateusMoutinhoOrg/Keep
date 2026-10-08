@@ -50,14 +50,14 @@ Everything else is regenerated over.
 - **The sandbox may not import the standard library.** `fmt` is `sandbox.Deps.StdDeps.Sprintf`,
   `strconv`/`strings` are `sandbox.Deps.StringsDeps`, `crypto/sha256` is
   `sandbox.Deps.HashDeps`, and storage is `sandbox.Deps.StorageDeps`. A new capability is a
-  new contract under `sandbox/deps/`, filled by every binding (`standard` and `native`).
+  new contract under `sandbox/deps/`, filled by every binding (`standard` and `memory`).
 - **`sandbox/deps/storagedeps` reports no expected condition as an error.** Absent is
   `found == false`, a conditional write that did not apply is `written == false`. That is why
   it needs no sentinel values and so no import. See
   [docs/StorageContract](docs/StorageContract/doc.md).
 - **The write orderings are load-bearing.** An insert commits on its last write; an update
   to a `Key` field writes the new index entry before it moves the value. Changing
-  `sandbox/internal/dense` or `sandbox/internal/schemaitem` means preserving every invariant
+  `sandbox/internal/dense` or `sandbox/internal/record` means preserving every invariant
   of [docs/DenseRecordPattern](docs/DenseRecordPattern/doc.md).
 - **No api type carries a `Deps` field.** `Sandbox.Deps` is the only one, and it is the one
   field that does not cross into a consumer. A record reaches storage through the closure it

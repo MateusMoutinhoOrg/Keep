@@ -9,13 +9,13 @@ import (
 // docs/DenseRecordPattern. Everything here is expressed as single-key reads
 // and writes against sandbox.Deps.StorageDeps, and assumes a single writer.
 // The record operations built on top of these helpers live in the
-// schemaitem package.
+// record package.
 //
 // This package names no object type of the api beyond the plain-data ones,
-// with the single exception of api.SchemaItem, which EncodeValue accepts as
-// the value of a Link field and reads nothing but the Id off. It names the
-// type, never the schemaitem package, which is what keeps the package graph
-// acyclic: schemaitem may import dense, dense may never import schemaitem.
+// with the single exception of api.Record, which EncodeValue accepts as
+// the value of a Link field and reads nothing but the ID off. It names the
+// type, never the record package, which is what keeps the package graph
+// acyclic: record may import dense, dense may never import record.
 
 // stringer is what a caller-supplied value may implement to be stored in a
 // Key field without being a string. The sandbox may not import `fmt`, so
@@ -56,9 +56,9 @@ func SizeKey(sandbox *api.Sandbox, prefix []string) []string {
 	return Key(sandbox, prefix, "size")
 }
 
-// LastIdKey holds the highest id ever allocated in a collection. It only
+// LastIDKey holds the highest id ever allocated in a collection. It only
 // grows, which is what makes an id never reused.
-func LastIdKey(sandbox *api.Sandbox, prefix []string) []string {
+func LastIDKey(sandbox *api.Sandbox, prefix []string) []string {
 	return Key(sandbox, prefix, "last-id")
 }
 
@@ -66,19 +66,19 @@ func LastIdKey(sandbox *api.Sandbox, prefix []string) []string {
 // Positions run from 1 to the value of SizeKey with no gap, which is what
 // makes iteration possible without listing keys.
 func ListKey(sandbox *api.Sandbox, prefix []string, position int64) []string {
-	return Key(sandbox, prefix, "list", formatId(sandbox, position))
+	return Key(sandbox, prefix, "list", formatID(sandbox, position))
 }
 
 // PositionKey holds the position a record currently occupies in the dense
 // list. It is the back-pointer that makes a removal cost the same whatever
 // the size of the collection, and its presence is what marks a record live.
 func PositionKey(sandbox *api.Sandbox, prefix []string, id int64) []string {
-	return Key(sandbox, prefix, formatId(sandbox, id), "position")
+	return Key(sandbox, prefix, formatID(sandbox, id), "position")
 }
 
 // ValueKey holds one field value of one record.
 func ValueKey(sandbox *api.Sandbox, prefix []string, id int64, field string) []string {
-	return Key(sandbox, prefix, formatId(sandbox, id), "values", field)
+	return Key(sandbox, prefix, formatID(sandbox, id), "values", field)
 }
 
 // IndexKey holds the id owning one value of one Key field — the unique
@@ -87,16 +87,16 @@ func IndexKey(sandbox *api.Sandbox, prefix []string, field string, hash string) 
 	return Key(sandbox, prefix, "keys", field, hash)
 }
 
-// SubPrefix is the collection prefix of a nested (Database) field of one
-// record. A nested collection is a collection like any other, which is why
-// every helper here works on it unchanged.
+// SubPrefix is the collection prefix of a Nested field of one record. A
+// nested collection is a collection like any other, which is why every
+// helper here works on it unchanged.
 func SubPrefix(sandbox *api.Sandbox, prefix []string, id int64, field string) []string {
-	return Key(sandbox, prefix, formatId(sandbox, id), field)
+	return Key(sandbox, prefix, formatID(sandbox, id), field)
 }
 
-// formatId renders an id or a position as the decimal segment every key
+// formatID renders an id or a position as the decimal segment every key
 // above carries it as.
-func formatId(sandbox *api.Sandbox, value int64) string {
+func formatID(sandbox *api.Sandbox, value int64) string {
 	return sandbox.Deps.StringsDeps.FormatInt(value, 10)
 }
 
@@ -107,35 +107,35 @@ func HashIndexValue(sandbox *api.Sandbox, encoded string) string {
 	return sandbox.Deps.HashDeps.Sha256Hex([]byte(lowered))
 }
 
-// FindItem returns the schema field with the given name. ok is false when
+// FindField returns the schema field with the given name. ok is false when
 // the schema declares no such field.
-func FindItem(sandbox *api.Sandbox, items []api.Item, name string) (item api.Item, ok bool) {
-	for _, candidate := range items {
+func FindField(sandbox *api.Sandbox, fields []api.Field, name string) (field api.Field, ok bool) {
+	for _, candidate := range fields {
 		if candidate.Name == name {
 			return candidate, true
 		}
 	}
-	return api.Item{}, false
+	return api.Field{}, false
 }
 
 // LinkResolver returns the fields and the key prefix of the collection a
-// Link field targets, by the schema name Item.Target carries. ok is false
+// Link field targets, by the schema name Field.Target carries. ok is false
 // when the database declares no schema under that name. It is built once
-// from the Props a handle was created with and carried down every nesting
+// from the Props a database was created with and carried down every nesting
 // level, so a record of a nested collection follows a link exactly the way
 // a top-level one does.
-type LinkResolver func(target string) (items []api.Item, prefix []string, ok bool)
+type LinkResolver func(target string) (fields []api.Field, prefix []string, ok bool)
 
-// NewLinkResolver builds the resolver a database handle hands to every
-// collection it creates, closing over its Props. It is the link half of
-// what GetSchema does: a record reaches the collection it points at through
-// the closure it was built with, never through a field a caller could read
-// or replace.
+// NewLinkResolver builds the resolver a database hands to every collection
+// it creates, closing over its Props. It is the link half of what
+// Database.Collection does: a record reaches the collection it points at
+// through the closure it was built with, never through a field a caller
+// could read or replace.
 func NewLinkResolver(sandbox *api.Sandbox, props api.Props) LinkResolver {
-	return func(target string) ([]api.Item, []string, bool) {
+	return func(target string) ([]api.Field, []string, bool) {
 		for _, schema := range props.Schemas {
 			if schema.Name == target {
-				return schema.Itens, RootPrefix(sandbox, props.Path, schema.Name), true
+				return schema.Fields, RootPrefix(sandbox, props.Path, schema.Name), true
 			}
 		}
 		return nil, nil, false
@@ -148,8 +148,8 @@ func InternalError(sandbox *api.Sandbox, err error) *api.Error {
 	return liberror.New(sandbox, api.Internal, "", err.Error())
 }
 
-// ParseId reads an id back from the decimal form WriteInt stores it in.
-func ParseId(sandbox *api.Sandbox, raw []byte) (int64, error) {
+// ParseID reads an id back from the decimal form WriteInt stores it in.
+func ParseID(sandbox *api.Sandbox, raw []byte) (int64, error) {
 	id, err := sandbox.Deps.StringsDeps.ParseInt(string(raw), 10, 64)
 	if err != nil {
 		return 0, sandbox.Deps.StdDeps.Errorf("keep: invalid id: %s", string(raw))
@@ -159,8 +159,8 @@ func ParseId(sandbox *api.Sandbox, raw []byte) (int64, error) {
 
 // EncodeValue converts a caller-provided value to the canonical string form
 // it is stored in, validating it against the field's type on the way.
-func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.Error) {
-	switch item.Type {
+func EncodeValue(sandbox *api.Sandbox, field api.Field, value any) (string, *api.Error) {
+	switch field.Type {
 	case api.Key, api.String:
 		switch typed := value.(type) {
 		case string:
@@ -168,8 +168,8 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 		case stringer:
 			return typed.String(), nil
 		default:
-			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.StdDeps.Sprintf("field %q expects a string value, got %T", item.Name, value))
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, field.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a string value, got %T", field.Name, value))
 		}
 	case api.Int:
 		switch typed := value.(type) {
@@ -180,8 +180,8 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 		case int64:
 			return sandbox.Deps.StringsDeps.FormatInt(typed, 10), nil
 		default:
-			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.StdDeps.Sprintf("field %q expects an integer value, got %T", item.Name, value))
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, field.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects an integer value, got %T", field.Name, value))
 		}
 	case api.Float:
 		switch typed := value.(type) {
@@ -196,20 +196,20 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 		case int64:
 			return formatFloat(sandbox, float64(typed)), nil
 		default:
-			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.StdDeps.Sprintf("field %q expects a floating-point value, got %T", item.Name, value))
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, field.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a floating-point value, got %T", field.Name, value))
 		}
 	case api.Link:
 		// A Link naming no collection is a mistake in the schema, and the
 		// one thing about a link this function can catch: whether the id
 		// still names a live record is a read, and is left to GetLink.
-		if item.Target == "" {
-			return "", liberror.New(sandbox, api.InvalidField, item.Name,
-				sandbox.Deps.StdDeps.Sprintf("link field %q declares no Target schema", item.Name))
+		if field.Target == "" {
+			return "", liberror.New(sandbox, api.InvalidField, field.Name,
+				sandbox.Deps.StdDeps.Sprintf("link field %q declares no Target schema", field.Name))
 		}
 		switch typed := value.(type) {
-		case api.SchemaItem:
-			return sandbox.Deps.StringsDeps.FormatInt(typed.Id, 10), nil
+		case api.Record:
+			return sandbox.Deps.StringsDeps.FormatInt(typed.ID, 10), nil
 		case int:
 			return sandbox.Deps.StringsDeps.FormatInt(int64(typed), 10), nil
 		case int32:
@@ -217,21 +217,21 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 		case int64:
 			return sandbox.Deps.StringsDeps.FormatInt(typed, 10), nil
 		default:
-			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.StdDeps.Sprintf("field %q expects a record or a record id, got %T", item.Name, value))
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, field.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a record or a record id, got %T", field.Name, value))
 		}
 	case api.Bytes:
 		// A Go string holds any bytes at all, so the conversion is lossless
 		// and the value reaches storage exactly as the caller gave it.
 		typed, ok := value.([]byte)
 		if !ok {
-			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.StdDeps.Sprintf("field %q expects a byte slice value, got %T", item.Name, value))
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, field.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a byte slice value, got %T", field.Name, value))
 		}
 		return string(typed), nil
 	default:
-		return "", liberror.New(sandbox, api.InvalidField, item.Name,
-			sandbox.Deps.StdDeps.Sprintf("field %q cannot be encoded as a plain value", item.Name))
+		return "", liberror.New(sandbox, api.InvalidField, field.Name,
+			sandbox.Deps.StdDeps.Sprintf("field %q cannot be encoded as a plain value", field.Name))
 	}
 }
 
@@ -243,15 +243,15 @@ func formatFloat(sandbox *api.Sandbox, value float64) string {
 }
 
 // DecodeValue converts a stored value back to the typed form a caller of
-// SchemaItem.Get receives: an int64 for an Int or Link field, a float64 for
+// Record.Get receives: an int64 for an Int or Link field, a float64 for
 // a Float field, a []byte for a Bytes field, a string otherwise. A Bytes
 // value is handed back as a copy of its own, so a caller writing into it
 // never reaches the bytes the backend holds. A stored value carries no type
 // tag, so the schema is the only thing that says how to read its bytes back
 // — a field type with no case here falls through and is handed back as a
 // string.
-func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Error) {
-	switch item.Type {
+func DecodeValue(sandbox *api.Sandbox, field api.Field, raw []byte) (any, *api.Error) {
+	switch field.Type {
 	case api.Int, api.Link:
 		number, err := sandbox.Deps.StringsDeps.ParseInt(string(raw), 10, 64)
 		if err != nil {
@@ -273,10 +273,10 @@ func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Err
 	}
 }
 
-// ReadCount reads an integer key, treating a key that holds nothing as
+// ReadInt reads an integer key, treating a key that holds nothing as
 // zero: a collection nothing was ever written to has no size key, and its
 // size is zero.
-func ReadCount(sandbox *api.Sandbox, key []string) (int64, error) {
+func ReadInt(sandbox *api.Sandbox, key []string) (int64, error) {
 	raw, found, err := sandbox.Deps.StorageDeps.Read(key)
 	if err != nil {
 		return 0, err

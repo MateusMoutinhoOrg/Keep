@@ -27,7 +27,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "handle", Type: api.String, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -42,18 +42,18 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
 
-	mateus, failure := users.NewItem(map[string]any{
+	mateus, failure := users.Insert(map[string]any{
 		"email": "mateus@gmail.com", "handle": "mateus", "age": 27,
 	})
 	if failure != nil {
 		panic(failure.Message)
 	}
-	ana, failure := users.NewItem(map[string]any{
+	ana, failure := users.Insert(map[string]any{
 		"email": "ana@gmail.com", "handle": "ana", "age": 31,
 	})
 	if failure != nil {
@@ -72,8 +72,8 @@ func main() {
 	fmt.Println("found under the old email:", ok)
 
 	// The record is still the same record: its id never changed.
-	byId, _ := users.FindById(mateus.Id)
-	fmt.Println("by id:", byId.String())
+	byID, _ := users.FindByID(mateus.ID)
+	fmt.Println("by id:", byID.String())
 
 	// A value another live record already holds is refused, and nothing is
 	// written — the old value stays indexed.
@@ -81,7 +81,7 @@ func main() {
 	if failure == nil || failure.Type != api.KeyConflict {
 		panic("taking another record's key should be refused")
 	}
-	fmt.Printf("refused: %s (field %q, value %v)\n", failure.Message, failure.Key, failure.KeyValue)
+	fmt.Printf("refused: %s (field %q, value %v)\n", failure.Message, failure.Field, failure.Value)
 
 	current, _ := mateus.Get("email")
 	fmt.Println("email after the refusal:", current)

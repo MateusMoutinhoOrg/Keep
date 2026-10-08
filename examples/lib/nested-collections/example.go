@@ -24,13 +24,13 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
 				{
 					Name: "sessions",
-					Type: api.Database,
-					Itens: []api.Item{
+					Type: api.Nested,
+					Fields: []api.Field{
 						{Name: "token", Type: api.Key, Required: true},
 						{Name: "creation", Type: api.Int, Required: true},
 						{Name: "expiration", Type: api.Int, Required: true},
@@ -42,7 +42,7 @@ var Props = api.Props{
 		},
 		{
 			Name: "device",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "serial", Type: api.Key, Required: true},
 				{Name: "label", Type: api.String, Required: true},
 			},
@@ -56,24 +56,24 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
 
-	mateus, failure := users.NewItem(map[string]any{"email": "mateus@gmail.com", "age": 27})
+	mateus, failure := users.Insert(map[string]any{"email": "mateus@gmail.com", "age": 27})
 	if failure != nil {
 		panic(failure.Message)
 	}
-	ana, failure := users.NewItem(map[string]any{"email": "ana@gmail.com", "age": 31})
+	ana, failure := users.Insert(map[string]any{"email": "ana@gmail.com", "age": 31})
 	if failure != nil {
 		panic(failure.Message)
 	}
 
 	// "device" is a top-level collection, not a nested one: a laptop
 	// outlives any session opened from it.
-	devices, _ := db.GetSchema("device")
-	laptop, failure := devices.NewItem(map[string]any{"serial": "SN-1", "label": "work laptop"})
+	devices, _ := db.Collection("device")
+	laptop, failure := devices.Insert(map[string]any{"serial": "SN-1", "label": "work laptop"})
 	if failure != nil {
 		panic(failure.Message)
 	}
@@ -82,36 +82,36 @@ func main() {
 		{"token": "token-1", "creation": 1000, "expiration": 2000, "device": laptop},
 		{"token": "token-2", "creation": 1500, "expiration": 2500},
 	} {
-		if _, failure := mateus.NewSubItem("sessions", session); failure != nil {
+		if _, failure := mateus.InsertNested("sessions", session); failure != nil {
 			panic(failure.Message)
 		}
 	}
 
-	for _, session := range mateus.ListAll("sessions") {
+	for _, session := range mateus.ListNested("sessions") {
 		token, _ := session.Get("token")
 		creation, _ := session.Get("creation")
 		expiration, _ := session.Get("expiration")
-		fmt.Printf("session %d: %v, %v -> %v\n", session.Id, token, creation, expiration)
+		fmt.Printf("session %d: %v, %v -> %v\n", session.ID, token, creation, expiration)
 	}
 
 	// A record of a nested collection follows a Link exactly the way a
 	// top-level one does: the Target names a schema of the same Props, at
 	// any depth.
-	first := mateus.ListAll("sessions")[0]
+	first := mateus.ListNested("sessions")[0]
 	device, ok := first.GetLink("device")
 	if !ok {
 		panic("the session should have resolved its device")
 	}
 	label, _ := device.Get("label")
-	fmt.Printf("session %d opened from: %v\n", first.Id, label)
+	fmt.Printf("session %d opened from: %v\n", first.ID, label)
 
 	// The second session set no device, so there is nothing to follow.
-	_, ok = mateus.ListAll("sessions")[1].GetLink("device")
+	_, ok = mateus.ListNested("sessions")[1].GetLink("device")
 	fmt.Println("second session has a device:", ok)
 
 	// A Key of a nested collection is unique inside that collection only,
 	// so the same token can live under another user.
-	_, failure = mateus.NewSubItem("sessions", map[string]any{
+	_, failure = mateus.InsertNested("sessions", map[string]any{
 		"token": "token-1", "creation": 3000, "expiration": 4000,
 	})
 	if failure == nil || failure.Type != api.KeyConflict {
@@ -119,14 +119,14 @@ func main() {
 	}
 	fmt.Println("refused under mateus:", failure.Message)
 
-	if _, failure := ana.NewSubItem("sessions", map[string]any{
+	if _, failure := ana.InsertNested("sessions", map[string]any{
 		"token": "token-1", "creation": 3000, "expiration": 4000,
 	}); failure != nil {
 		panic(failure.Message)
 	}
 	fmt.Println("accepted under ana: token-1")
 
-	// A nested field is not a value: Get refuses it, ListAll is the way in.
+	// A nested field is not a value: Get refuses it, ListNested is the way in.
 	_, failure = mateus.Get("sessions")
 	fmt.Println("Get on a nested field:", failure.Message)
 
@@ -134,11 +134,11 @@ func main() {
 	if failure := mateus.Remove(); failure != nil {
 		panic(failure.Message)
 	}
-	fmt.Println("ana's sessions after removing mateus:", len(ana.ListAll("sessions")))
+	fmt.Println("ana's sessions after removing mateus:", len(ana.ListNested("sessions")))
 
 	// The device is a collection of its own, so nothing nested under mateus
 	// took it with it. A link is a reference, never ownership.
-	_, ok = devices.FindById(laptop.Id)
+	_, ok = devices.FindByID(laptop.ID)
 	fmt.Println("device still there:", ok)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {

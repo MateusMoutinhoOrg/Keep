@@ -23,7 +23,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "product",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "sku", Type: api.Key, Required: true},
 				{Name: "title", Type: api.String, Required: true},
 				{Name: "price", Type: api.Float, Required: true},
@@ -38,12 +38,12 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	products, ok := db.GetSchema("product")
+	products, ok := db.Collection("product")
 	if !ok {
 		panic(`the Props declares no "product" schema`)
 	}
 
-	first, failure := products.NewItem(map[string]any{
+	first, failure := products.Insert(map[string]any{
 		"sku":   "kb-001",
 		"title": "Mechanical Keyboard",
 		"price": 249.90,
@@ -67,7 +67,7 @@ func main() {
 
 	// A String carries no unique index, so a second record may hold the
 	// same title. The sku is a Key, so that one still has to differ.
-	second, failure := products.NewItem(map[string]any{
+	second, failure := products.Insert(map[string]any{
 		"sku":   "kb-002",
 		"title": "Mechanical Keyboard",
 		"price": 199,
@@ -90,7 +90,7 @@ func main() {
 	_, ok = products.FindByKey("title", "Mechanical Keyboard")
 	fmt.Println("found by title:", ok)
 	found, ok := products.FindByKey("sku", "kb-002")
-	fmt.Println("found by sku:", ok, found.Id)
+	fmt.Println("found by sku:", ok, found.ID)
 
 	// An Update to either type is a single write: neither moves an index.
 	if failure := second.Update("price", 179.5); failure != nil {
@@ -103,7 +103,7 @@ func main() {
 	fmt.Println("second price after update:", price)
 
 	// The wrong Go type is refused before anything is written.
-	_, failure = products.NewItem(map[string]any{
+	_, failure = products.Insert(map[string]any{
 		"sku": "kb-003", "title": "Numpad", "price": "cheap",
 	})
 	if failure == nil || failure.Type != api.InvalidField {

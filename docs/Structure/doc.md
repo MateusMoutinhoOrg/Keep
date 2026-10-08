@@ -20,7 +20,7 @@ sandbox/               closed: imports nothing outside sandbox/, no OS packages
   api/                 contracts only; imports nothing but sandbox/deps
     sandbox.go         (gen) every <x>sandbox.go part embedded, plus Config and Deps
     projectsandbox.go  the Databases and Info fields Keep adds to the Sandbox
-    databases.go       the Databases contract, plus Props, Schema, Item, Error and the objects a database hands back
+    databases.go       the Databases contract, plus Props, Schema, Field, Error and the objects a database hands back
     info.go            the Info contract - the library's own name and version
   constructors/        one Constructor per field of the Sandbox, each called by new.go
   deps/                one dir per capability the sandbox needs from outside; each imports nothing at all
@@ -28,9 +28,9 @@ sandbox/               closed: imports nothing outside sandbox/, no OS packages
     storagedeps/       the single-key storage backend - the whole of what Keep asks of one
   internal/            the logic; unreachable from outside the sandbox
     generated/         (gen) the config, ProjectName and Version from AgnosConfig/project.yaml
-    databases/         NewDatabases, and the DatabaseHandle a Props is bound to
-    schemainstance/    one collection - insert, find, list
-    schemaitem/        one record - read, update, remove, and the nested collections under it
+    databases/         NewDatabases, and the Database a Props is bound to
+    collection/        one collection - insert, find, list
+    record/            one record - read, update, remove, and the nested collections under it
     dense/             the key layout and value encoding of the dense record pattern
     liberror/          the constructors every *api.Error is built by
     info/              NewInfo
@@ -40,7 +40,7 @@ adapters/              the only place OS-bound and third-party code lives
     memstorage/        storagedeps over a map, lost when the process exits
   bindings/            one dir per selection of adapters; new.go beside each is generated from its binding.yaml
     standard/          filestorage - what a program that wants a database on disk imports
-    native/            memstorage - the same library with nothing written anywhere
+    memory/            memstorage - the same library with nothing written anywhere
 examples/              one dir per example under lib/, each a package main checked against its golden
   lib/                 <name>/example.go + props.yaml, and the result.yaml run-examples writes
 docs/                  one dir per doc, holding doc.md + doc.yaml. README.md indexes them all

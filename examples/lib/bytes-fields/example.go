@@ -23,7 +23,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "file",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "name", Type: api.Key, Required: true},
 				{Name: "content", Type: api.Bytes, Required: true},
 			},
@@ -37,7 +37,7 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	files, ok := db.GetSchema("file")
+	files, ok := db.Collection("file")
 	if !ok {
 		panic(`the Props declares no "file" schema`)
 	}
@@ -46,7 +46,7 @@ func main() {
 	// end besides — exactly what a string field could not be trusted with.
 	header := []byte{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0x00}
 
-	logo, failure := files.NewItem(map[string]any{
+	logo, failure := files.Insert(map[string]any{
 		"name":    "logo.png",
 		"content": header,
 	})
@@ -77,7 +77,7 @@ func main() {
 
 	// A Bytes field takes a []byte and nothing else: a string is refused
 	// before anything is written.
-	_, failure = files.NewItem(map[string]any{
+	_, failure = files.Insert(map[string]any{
 		"name": "notes.txt", "content": "plain text",
 	})
 	if failure == nil || failure.Type != api.InvalidField {

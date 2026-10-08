@@ -4,11 +4,11 @@ Every operation that can fail returns `*api.Error`, and `nil` means success. It 
 data: no behaviour, no wrapping, no `errors.Is`.
 
 ```go
-user, failure := users.NewItem(fields)
+user, failure := users.Insert(fields)
 if failure != nil {
 	switch failure.Type {
 	case api.KeyConflict:
-		// failure.Key names the field, failure.KeyValue the value refused
+		// failure.Field names the field, failure.Value the value refused
 	case api.MissingField, api.InvalidField:
 		// the call was wrong
 	case api.Internal:
@@ -23,36 +23,36 @@ constants may not.
 | Field | Carries |
 |---|---|
 | `Type` | one of the five constants below |
-| `Key` | the field the failure involves, empty when it involves no particular field |
-| `KeyValue` | the value the failure involves, when there is one |
+| `Field` | the field the failure involves, empty when it involves no particular field |
+| `Value` | the value the failure involves, when there is one |
 | `Message` | the human-readable description |
 
 ## The five causes
 
 | `Error.Type` | Raised by | Means |
 |---|---|---|
-| `api.KeyConflict` | `NewItem`, `NewSubItem`, `Update` | another live record of the same collection already holds that value for that `Key` field. Nothing was written |
-| `api.NotFound` | `Get` | the field is declared by the schema and this record has no value stored for it |
-| `api.MissingField` | `NewItem`, `NewSubItem` | a field declared `Required` was left out of the fields map |
-| `api.InvalidField` | `NewItem`, `NewSubItem`, `Get`, `Update` | the field is not in the schema, the value is the wrong Go type for it, a nested (`api.Database`) field was used where a plain value was expected, or an `api.Link` field declares no `Target` |
+| `api.KeyConflict` | `Insert`, `InsertNested`, `Update` | another live record of the same collection already holds that value for that `Key` field. Nothing was written |
+| `api.NoValue` | `Get` | the field is declared by the schema and this record has no value stored for it |
+| `api.MissingField` | `Insert`, `InsertNested` | a field declared `Required` was left out of the fields map |
+| `api.InvalidField` | `Insert`, `InsertNested`, `Get`, `Update` | the field is not in the schema, the value is the wrong Go type for it, an `api.Nested` field was used where a plain value was expected, or an `api.Link` field declares no `Target` |
 | `api.Internal` | any | the storage backend reported a failure. `Message` is what it said |
 
-`NotFound` and `InvalidField` are different answers to what looks like one question: a field
+`NoValue` and `InvalidField` are different answers to what looks like one question: a field
 the schema does not declare is a mistake in the code, a declared field with no value is a
-fact about that record. `CheckKeysPresence` answers the second for several fields at once
+fact about that record. `HasValues` answers the second for several fields at once
 without reading any value.
 
 ## What returns no error
 
-A lookup that finds nothing is not a failure — `FindByKey`, `FindById`, `GetLink` and
-`DatabaseHandle.GetSchema` report it as `ok == false`, because an absent record is an
+A lookup that finds nothing is not a failure — `FindByKey`, `FindByID`, `GetLink` and
+`Database.Collection` report it as `ok == false`, because an absent record is an
 ordinary outcome and these types are structs with no nil form:
 
 ```go
 user, ok := users.FindByKey("email", "nobody@gmail.com")   // ok == false
 ```
 
-`SchemaItem.ListAll(fieldName)` returns `nil` when the schema declares no nested field of
+`Record.ListNested(fieldName)` returns `nil` when the schema declares no nested field of
 that name, and `Remove` on a record that is already gone returns `nil`: absent before and
 absent after is the same outcome. `GetLink` folds every reason a link does not resolve into
 the same `ok == false` — no value, an unknown `Target`, or a record that has been removed

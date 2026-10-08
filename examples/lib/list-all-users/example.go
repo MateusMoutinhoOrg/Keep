@@ -22,7 +22,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "username", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -37,7 +37,7 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
@@ -54,7 +54,7 @@ func main() {
 		{"email": "ana@gmail.com", "username": "ana", "age": 31},
 		{"email": "bruno@gmail.com", "username": "bruno", "age": 44},
 	} {
-		if _, failure := users.NewItem(fields); failure != nil {
+		if _, failure := users.Insert(fields); failure != nil {
 			panic(failure.Message)
 		}
 	}

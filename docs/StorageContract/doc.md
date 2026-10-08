@@ -13,7 +13,7 @@ picks between them:
 | Adapter | Available | Backed by | Survives the process |
 |---|---|---|---|
 | `filestorage` | `standard` | one file per key, under the working directory | yes |
-| `memstorage` | `native` | a map | no |
+| `memstorage` | `memory` | a map | no |
 
 ## Keys
 
@@ -56,7 +56,7 @@ absent key turns an ordinary lookup into a reported failure.
 | Field | Must |
 |---|---|
 | `Write` | overwrite an existing value, create an absent key, and create whatever the backend needs around it (a parent directory, a bucket) |
-| `WriteIfKeyNotExists` | be atomic against a concurrent writer where the backend can be, and report `written == false` for a key that already exists |
+| `WriteIfAbsent` | be atomic against a concurrent writer where the backend can be, and report `written == false` for a key that already exists |
 | `WriteIfValueEquals` | compare the whole current value byte for byte; report `written == false` both for an absent key and for a different value |
 | `Append` | create the key when it is absent, so appending to nothing yields the value |
 | `InsertAt` | count `position` in bytes from the start; refuse a position past the current length — it would leave a hole |
@@ -65,7 +65,7 @@ absent key turns an ordinary lookup into a reported failure.
 | `ReadAt` | count `position` in bytes; truncate a range reaching past the end rather than refusing it |
 | `Delete` | succeed on a key that holds nothing, and leave behind nothing the backend created only for that key (a directory, a bucket prefix) |
 | `Lock` | take an advisory lease expiring after `seconds`; a backend with no leases may report `locked == true` and do nothing |
-| `UnLock` | succeed when nobody holds the lease |
+| `Unlock` | succeed when nobody holds the lease |
 
 Keep itself calls `Write`, `Read`, `Exists` and `Delete`. The other seven are part of the
 contract so that a backend is described once and completely, and so a program holding the

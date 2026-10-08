@@ -1,4 +1,4 @@
-package native
+package memory
 
 import (
 	memstorage "github.com/MateusMoutinhoOrg/Keep/adapters/impls/memstorage"

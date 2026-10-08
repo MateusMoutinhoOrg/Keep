@@ -22,7 +22,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "username", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -37,7 +37,7 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
@@ -46,7 +46,7 @@ func main() {
 		{"email": "mateus@gmail.com", "username": "mateus", "age": 27},
 		{"email": "ana@gmail.com", "username": "ana", "age": 31},
 	} {
-		if _, failure := users.NewItem(fields); failure != nil {
+		if _, failure := users.Insert(fields); failure != nil {
 			panic(failure.Message)
 		}
 	}
@@ -66,7 +66,7 @@ func main() {
 
 	// The index is case-insensitive.
 	found, ok = users.FindByKey("email", "MATEUS@GMAIL.COM")
-	fmt.Println("by upper-cased email:", ok, found.Id)
+	fmt.Println("by upper-cased email:", ok, found.ID)
 
 	// A value nobody holds is a miss, not a failure.
 	_, ok = users.FindByKey("email", "nobody@gmail.com")

@@ -22,7 +22,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "username", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -40,12 +40,12 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
 
-	user, failure := users.NewItem(map[string]any{
+	user, failure := users.Insert(map[string]any{
 		"email":    "mateus@gmail.com",
 		"username": "mateus",
 		"age":      27,
@@ -70,8 +70,8 @@ func main() {
 	// it: the field exists in the schema and holds nothing. It is a String
 	// rather than a Key, so leaving it unset costs no index entry either.
 	_, failure = user.Get("nickname")
-	if failure == nil || failure.Type != api.NotFound {
-		panic("an unset field should report NotFound")
+	if failure == nil || failure.Type != api.NoValue {
+		panic("an unset field should report NoValue")
 	}
 	fmt.Println("nickname:", failure.Message)
 
@@ -82,10 +82,10 @@ func main() {
 	}
 	fmt.Println("phone:", failure.Message)
 
-	// CheckKeysPresence answers the same question for several fields at
+	// HasValues answers the same question for several fields at
 	// once, without reading any value.
-	fmt.Println("has email and age:", user.CheckKeysPresence([]string{"email", "age"}))
-	fmt.Println("has email and nickname:", user.CheckKeysPresence([]string{"email", "nickname"}))
+	fmt.Println("has email and age:", user.HasValues([]string{"email", "age"}))
+	fmt.Println("has email and nickname:", user.HasValues([]string{"email", "nickname"}))
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)

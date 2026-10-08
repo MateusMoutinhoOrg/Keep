@@ -2,7 +2,7 @@
 
 A database is a value. `api.Props` names the prefix every key is written under and the
 collections the database holds; nothing else describes it, so a database can be written,
-read, diffed and versioned like any other literal. Building the handle writes no key —
+read, diffed and versioned like any other literal. Building the database writes no key —
 the first record does.
 
 ```go
@@ -11,7 +11,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "username", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -20,8 +20,8 @@ var Props = api.Props{
 				{Name: "nickname", Type: api.Key},
 				{
 					Name: "sessions",
-					Type: api.Database,
-					Itens: []api.Item{
+					Type: api.Nested,
+					Fields: []api.Field{
 						{Name: "token", Type: api.Key, Required: true},
 						{Name: "creation", Type: api.Int, Required: true},
 					},
@@ -32,7 +32,7 @@ var Props = api.Props{
 }
 
 db := lib.Databases.New(Props)
-users, ok := db.GetSchema("user")
+users, ok := db.Collection("user")
 ```
 
 `ok` is false when the `Props` declares no schema under that name. Signatures for every
@@ -43,10 +43,10 @@ type named here are in [PublicApi](../PublicApi/doc.md).
 | Unit | Is | Key field |
 |---|---|---|
 | `Props` | one database | `Path`, the prefix every key starts with |
-| `Schema` | one collection of records | `Name`, what `GetSchema` takes |
-| `Item` | one field of a collection | `Name`, what `Get`, `Update` and the fields map take |
+| `Schema` | one collection of records | `Name`, what `Database.Collection` takes |
+| `Field` | one field of a collection | `Name`, what `Get`, `Update` and the fields map take |
 
-An `Item` of type `api.Link` carries one more: `Target`, the `Name` of the schema it points
+A `Field` of type `api.Link` carries one more: `Target`, the `Name` of the schema it points
 at.
 
 `Path` is a prefix, not a directory: it is split on slashes into the leading segments of
@@ -54,19 +54,17 @@ every key, so a backend that maps keys to files reads it as one, and an in-memor
 backend keeps it as part of the key. Empty segments are dropped, which makes a trailing
 slash optional and harmless either way.
 
-`Itens` is spelled that way in `Schema` and in `Item`. It is part of the api.
-
 ## Field types
 
-| `Item.Type` | Go type written | Go type read back | Indexed |
+| `Field.Type` | Go type written | Go type read back | Indexed |
 |---|---|---|---|
 | `api.Key` | `string`, or anything with a `String() string` method | `string` | yes — unique across the collection |
 | `api.String` | `string`, or anything with a `String() string` method | `string` | no |
 | `api.Int` | `int`, `int32`, `int64` | `int64` | no |
 | `api.Float` | `float64`, `float32`, `int`, `int32`, `int64` | `float64` | no |
-| `api.Link` | `api.SchemaItem`, `int`, `int32`, `int64` | `int64` | no |
+| `api.Link` | `api.Record`, `int`, `int32`, `int64` | `int64` | no |
 | `api.Bytes` | `[]byte` | `[]byte` | no |
-| `api.Database` | never written directly | never read directly | — |
+| `api.Nested` | never written directly | never read directly | — |
 
 `api.String` is `api.Key` without the index: same values in, same values out, but two live
 records may hold the same one and `FindByKey` never reads it. `api.Float` stores the
@@ -81,11 +79,11 @@ A value of the wrong Go type is refused with `InvalidField` before anything is w
 list of failures is in [Errors](../Errors/doc.md).
 
 `Required: true` makes an insert that leaves the field out fail with `MissingField`. It is
-ignored on an `api.Database` field, which is never provided to an insert.
+ignored on an `api.Nested` field, which is never provided to an insert.
 
 ## Keys
 
-A `Key` field carries a unique index, which is what `SchemaInstance.FindByKey` reads:
+A `Key` field carries a unique index, which is what `Collection.FindByKey` reads:
 
 - **Unique.** Two live records of one collection can never hold the same value for it. An
   insert or an `Update` that would break that fails with `KeyConflict` and writes nothing.
@@ -100,33 +98,33 @@ A collection may declare any number of `Key` fields, and each indexes its own va
 
 ## Nested collections
 
-An `api.Database` field is a collection rooted at the record that owns it. It behaves like
+An `api.Nested` field is a collection rooted at the record that owns it. It behaves like
 a top-level collection in every way — own ids, own unique indexes, same listing — and it is
-reached through the record rather than through `GetSchema`:
+reached through the record rather than through `Database.Collection`:
 
 ```go
-session, failure := user.NewSubItem("sessions", map[string]any{
+session, failure := user.InsertNested("sessions", map[string]any{
 	"token": "token-1", "creation": 1000,
 })
-for _, session := range user.ListAll("sessions") { … }
+for _, session := range user.ListNested("sessions") { … }
 ```
 
 `Get` on such a field fails with `InvalidField`: it is not a value. Removing the owning
 record removes every record under it, at any depth.
 
-Nesting has no depth limit — an `Item` of an `api.Database` field may itself be an
-`api.Database`.
+Nesting has no depth limit — a `Field` of an `api.Nested` field may itself be an
+`api.Nested`.
 
 ## Pointing one record at another
 
-Every record carries a permanent `Id`, and ids are allocated from a counter that only
+Every record carries a permanent `ID`, and ids are allocated from a counter that only
 grows. An `api.Link` field stores one and names the collection it belongs to, so the record
 is followed in one call:
 
 ```go
 {Name: "author", Type: api.Link, Target: "user", Required: true}
 
-posts.NewItem(map[string]any{"slug": "…", "author": author})      // or author.Id
+posts.Insert(map[string]any{"slug": "…", "author": author})      // or author.ID
 resolved, ok := post.GetLink("author")
 ```
 
@@ -140,13 +138,13 @@ same target, and a link to a record that was never written is stored like any ot
 it cannot do is resolve to the wrong record — nothing is ever handed a used id again, so a
 stale link resolves to nothing rather than to whatever took its place.
 
-Use an `api.Int` field plus `SchemaInstance.FindById` for the same reference when the
+Use an `api.Int` field plus `Collection.FindByID` for the same reference when the
 schema cannot name the target — a link across databases, or one whose collection is chosen
 at run time:
 
 ```go
-posts.NewItem(map[string]any{"slug": "…", "author": author.Id})   // an api.Int field
-resolved, ok := users.FindById(authorId)
+posts.Insert(map[string]any{"slug": "…", "author": author.ID})   // an api.Int field
+resolved, ok := users.FindByID(authorID)
 ```
 
 Use a nested collection when the children belong to the parent and die with it, and a link

@@ -24,14 +24,14 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
 			},
 		},
 		{
 			Name: "post",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "slug", Type: api.Key, Required: true},
 				{Name: "author", Type: api.Link, Target: "user", Required: true},
 			},
@@ -45,10 +45,10 @@ func main() {
 	lib := sandbox.New(&deps)
 
 	db := lib.Databases.New(Props)
-	users, _ := db.GetSchema("user")
-	posts, _ := db.GetSchema("post")
+	users, _ := db.Collection("user")
+	posts, _ := db.Collection("post")
 
-	author, failure := users.NewItem(map[string]any{
+	author, failure := users.Insert(map[string]any{
 		"email": "mateus@gmail.com",
 		"age":   27,
 	})
@@ -56,8 +56,8 @@ func main() {
 		panic(failure.Message)
 	}
 
-	// A Link takes the record itself, or its Id — both store the same id.
-	post, failure := posts.NewItem(map[string]any{
+	// A Link takes the record itself, or its ID — both store the same id.
+	post, failure := posts.Insert(map[string]any{
 		"slug":   "storage-independent-databases",
 		"author": author,
 	})
@@ -67,7 +67,7 @@ func main() {
 	fmt.Println("post:", post.String())
 
 	// GetLink reads the id and resolves it in the collection Target names,
-	// with no GetSchema and no FindById at the call site.
+	// with no Collection and no FindByID at the call site.
 	resolved, ok := post.GetLink("author")
 	if !ok {
 		panic("the author should have resolved")
@@ -83,14 +83,14 @@ func main() {
 
 	// A Link may be repointed like any other field: it carries no index,
 	// so two posts may name the same author.
-	other, failure := users.NewItem(map[string]any{
+	other, failure := users.Insert(map[string]any{
 		"email": "other@gmail.com",
 		"age":   31,
 	})
 	if failure != nil {
 		panic(failure.Message)
 	}
-	if failure := post.Update("author", other.Id); failure != nil {
+	if failure := post.Update("author", other.ID); failure != nil {
 		panic(failure.Message)
 	}
 	resolved, _ = post.GetLink("author")

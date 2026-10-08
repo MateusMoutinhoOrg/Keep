@@ -28,7 +28,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
 			},
@@ -40,16 +40,16 @@ func main() {
 	deps := standard.New()    // one file per key
 	lib := sandbox.New(&deps) // *api.Sandbox
 
-	users, _ := lib.Databases.New(Props).GetSchema("user")
+	users, _ := lib.Databases.New(Props).Collection("user")
 
-	users.NewItem(map[string]any{"email": "mateus@gmail.com", "age": 27})
+	users.Insert(map[string]any{"email": "mateus@gmail.com", "age": 27})
 
 	found, _ := users.FindByKey("email", "mateus@gmail.com")
 	fmt.Println(found.String())
 }
 ```
 
-Swap `adapters/bindings/standard` for `adapters/bindings/native` and the same program
+Swap `adapters/bindings/standard` for `adapters/bindings/memory` and the same program
 runs entirely in memory. Nothing else changes: the library only ever calls the eleven
 single-key functions of `sandbox/deps/storagedeps`, and which implementation stands behind
 them is decided by the one import a program picks.

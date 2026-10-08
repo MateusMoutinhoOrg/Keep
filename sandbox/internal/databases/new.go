@@ -5,11 +5,11 @@ import (
 )
 
 // NewFactory fills api.Databases.New with the closure that binds a Props
-// description to the sandbox, handing back the handle every schema of that
-// database is reached through.
-func NewFactory(sandbox *api.Sandbox, databases *api.Databases) func(props api.Props) api.DatabaseHandle {
-	return func(props api.Props) api.DatabaseHandle {
-		return NewHandle(sandbox, props)
+// description to the sandbox, handing back the database every collection of
+// it is reached through.
+func NewFactory(sandbox *api.Sandbox, databases *api.Databases) func(props api.Props) api.Database {
+	return func(props api.Props) api.Database {
+		return NewDatabase(sandbox, props)
 	}
 }
 

@@ -2,7 +2,7 @@
 
 The key layout that lets a schema database run over a backend with nothing but `get`, `set`
 and `delete`. Not needed to use Keep — [Schemas](../Schemas/doc.md) is — but it is what
-`sandbox/internal/dense` and `sandbox/internal/schemaitem` implement, and what a change to
+`sandbox/internal/dense` and `sandbox/internal/record` implement, and what a change to
 either has to preserve.
 
 Three properties, and everything below follows from them:
@@ -73,8 +73,8 @@ fills it instead.
 | Step | Does |
 |---|---|
 | 1 | read `{c}/{id}/position` → `p`. Absent means already gone: a no-op |
-| 2 | read `{c}/size`, then `{c}/list/{size}` → `lastId` |
-| 3 | when `p != size`: write `{c}/list/{p}` = `lastId`, `{c}/{lastId}/position` = `p` |
+| 2 | read `{c}/size`, then `{c}/list/{size}` → `lastID` |
+| 3 | when `p != size`: write `{c}/list/{p}` = `lastID`, `{c}/{lastID}/position` = `p` |
 | 4 | delete `{c}/list/{size}`, write `{c}/size` = size-1 |
 | 5 | for every `Key` field: read the value, delete `{c}/keys/{field}/{hash}` |
 | 6 | delete every value key, clear every nested collection, delete `{c}/{id}/position` |
@@ -123,7 +123,7 @@ inserts can both pass step 1, or both read the same `last-id`.
 **Keep assumes a single writer.** Readers are always safe, given the visibility `size`
 guarantees. A backend with transactions or atomic batches should wrap each operation in
 one, and the orderings then only document intent. `Deps.StorageDeps` carries `Lock` and
-`UnLock` for a backend that offers advisory leases; Keep never calls them itself — see
+`Unlock` for a backend that offers advisory leases; Keep never calls them itself — see
 [StorageContract](../StorageContract/doc.md).
 
 ## Invariants

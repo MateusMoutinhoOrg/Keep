@@ -55,7 +55,7 @@ func New() storagedeps.Contract {
 			s.values[name] = append([]byte(nil), value...)
 			return nil
 		},
-		WriteIfKeyNotExists: func(key []string, value []byte) (bool, error) {
+		WriteIfAbsent: func(key []string, value []byte) (bool, error) {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			name := flatten(key)
@@ -151,7 +151,7 @@ func New() storagedeps.Contract {
 			s.leases[name] = time.Now().Add(time.Duration(seconds) * time.Second)
 			return true, nil
 		},
-		UnLock: func(key []string) error {
+		Unlock: func(key []string) error {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			name := flatten(key)

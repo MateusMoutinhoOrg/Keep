@@ -85,7 +85,7 @@ func New(base string) storagedeps.Contract {
 			}
 			return os.WriteFile(path, value, 0o644)
 		},
-		WriteIfKeyNotExists: func(key []string, value []byte) (bool, error) {
+		WriteIfAbsent: func(key []string, value []byte) (bool, error) {
 			path := s.path(key)
 			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				return false, err
@@ -247,7 +247,7 @@ func New(base string) storagedeps.Contract {
 			}
 			return true, nil
 		},
-		UnLock: func(key []string) error {
+		Unlock: func(key []string) error {
 			err := os.Remove(s.lockPath(key))
 			if err != nil && !errors.Is(err, os.ErrNotExist) {
 				return err

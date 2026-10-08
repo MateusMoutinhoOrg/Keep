@@ -13,7 +13,7 @@ import (
 //
 // A database is described by a value: Props names the prefix every key is
 // written under and the collections it holds. Nothing is created until the
-// first record is written, so building the handle is free.
+// first record is written, so building the database is free.
 
 // Props describes the database this example writes.
 var Props = api.Props{
@@ -21,7 +21,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "username", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
@@ -36,12 +36,12 @@ func main() {
 	lib := sandbox.New(&deps) // *api.Sandbox
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
 
-	created, failure := users.NewItem(map[string]any{
+	created, failure := users.Insert(map[string]any{
 		"email":    "mateus@gmail.com",
 		"username": "mateus",
 		"age":      27,
@@ -54,7 +54,7 @@ func main() {
 	// "email" and "username" are Key fields, so the value of each is unique
 	// across every live record of the collection. Inserting the same email
 	// again is refused before anything is written.
-	_, failure = users.NewItem(map[string]any{
+	_, failure = users.Insert(map[string]any{
 		"email":    "mateus@gmail.com",
 		"username": "other",
 		"age":      31,
@@ -63,13 +63,13 @@ func main() {
 	case failure == nil:
 		panic("the duplicate email should have been refused")
 	case failure.Type == api.KeyConflict:
-		fmt.Printf("refused: %s (field %q, value %v)\n", failure.Message, failure.Key, failure.KeyValue)
+		fmt.Printf("refused: %s (field %q, value %v)\n", failure.Message, failure.Field, failure.Value)
 	default:
 		panic(failure.Message)
 	}
 
 	// A required field left out is refused the same way, with its own Type.
-	_, failure = users.NewItem(map[string]any{"email": "other@gmail.com"})
+	_, failure = users.Insert(map[string]any{"email": "other@gmail.com"})
 	if failure == nil || failure.Type != api.MissingField {
 		panic("the missing field should have been refused")
 	}

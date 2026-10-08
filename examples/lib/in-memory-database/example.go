@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/native"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/memory"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
@@ -14,7 +14,7 @@ import (
 //
 // Every other example builds its deps from adapters/bindings/standard,
 // which binds filestorage and writes one file per key. This one imports
-// native instead, which binds memstorage and writes nothing anywhere. Not a
+// memory instead, which binds memstorage and writes nothing anywhere. Not a
 // line below the import changes: the sandbox calls the same eleven
 // single-key functions either way, and which implementation stands behind
 // them is decided by the binding a program picks.
@@ -26,7 +26,7 @@ var Props = api.Props{
 	Schemas: []api.Schema{
 		{
 			Name: "user",
-			Itens: []api.Item{
+			Fields: []api.Field{
 				{Name: "email", Type: api.Key, Required: true},
 				{Name: "age", Type: api.Int, Required: true},
 			},
@@ -36,13 +36,13 @@ var Props = api.Props{
 
 func main() {
 
-	deps := native.New()      // memstorage in place of filestorage
+	deps := memory.New()      // memstorage in place of filestorage
 	lib := sandbox.New(&deps) // *api.Sandbox, the same type
 
 	fmt.Printf("%s %s\n", lib.Info.Name(), lib.Info.Version())
 
 	db := lib.Databases.New(Props)
-	users, ok := db.GetSchema("user")
+	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
 	}
@@ -51,7 +51,7 @@ func main() {
 		{"email": "mateus@gmail.com", "age": 27},
 		{"email": "ana@gmail.com", "age": 31},
 	} {
-		if _, failure := users.NewItem(fields); failure != nil {
+		if _, failure := users.Insert(fields); failure != nil {
 			panic(failure.Message)
 		}
 	}

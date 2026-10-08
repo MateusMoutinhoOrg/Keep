@@ -25,7 +25,7 @@ sandbox:
           description: the Databases and Info fields Keep adds to the Sandbox
         databases.go:
           order: 3
-          description: the Databases contract, plus Props, Schema, Item, Error and the objects a database hands back
+          description: the Databases contract, plus Props, Schema, Field, Error and the objects a database hands back
         info.go:
           order: 4
           description: the Info contract - the library's own name and version
@@ -58,12 +58,12 @@ sandbox:
         databases:
           order: 2
           dir: true
-          description: NewDatabases, and the DatabaseHandle a Props is bound to
-        schemainstance:
+          description: NewDatabases, and the Database a Props is bound to
+        collection:
           order: 3
           dir: true
           description: one collection - insert, find, list
-        schemaitem:
+        record:
           order: 4
           dir: true
           description: one record - read, update, remove, and the nested collections under it
@@ -106,7 +106,7 @@ adapters:
           order: 1
           dir: true
           description: filestorage - what a program that wants a database on disk imports
-        native:
+        memory:
           order: 2
           dir: true
           description: memstorage - the same library with nothing written anywhere
