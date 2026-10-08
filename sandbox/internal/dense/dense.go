@@ -220,6 +220,15 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
 				sandbox.Deps.StdDeps.Sprintf("field %q expects a record or a record id, got %T", item.Name, value))
 		}
+	case api.Bytes:
+		// A Go string holds any bytes at all, so the conversion is lossless
+		// and the value reaches storage exactly as the caller gave it.
+		typed, ok := value.([]byte)
+		if !ok {
+			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a byte slice value, got %T", item.Name, value))
+		}
+		return string(typed), nil
 	default:
 		return "", liberror.New(sandbox, api.InvalidField, item.Name,
 			sandbox.Deps.StdDeps.Sprintf("field %q cannot be encoded as a plain value", item.Name))
@@ -235,9 +244,11 @@ func formatFloat(sandbox *api.Sandbox, value float64) string {
 
 // DecodeValue converts a stored value back to the typed form a caller of
 // SchemaItem.Get receives: an int64 for an Int or Link field, a float64 for
-// a Float field, a string otherwise. A stored value carries no type tag, so
-// the schema is the only thing that says how to read its bytes back — a
-// field type with no case here falls through and is handed back as a
+// a Float field, a []byte for a Bytes field, a string otherwise. A Bytes
+// value is handed back as a copy of its own, so a caller writing into it
+// never reaches the bytes the backend holds. A stored value carries no type
+// tag, so the schema is the only thing that says how to read its bytes back
+// — a field type with no case here falls through and is handed back as a
 // string.
 func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Error) {
 	switch item.Type {
@@ -253,6 +264,10 @@ func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Err
 			return nil, InternalError(sandbox, err)
 		}
 		return number, nil
+	case api.Bytes:
+		copied := make([]byte, len(raw))
+		copy(copied, raw)
+		return copied, nil
 	default:
 		return string(raw), nil
 	}

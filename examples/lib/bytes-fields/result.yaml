@@ -1,0 +1,22 @@
+cli-output: |
+    logo: {id: 1, name: logo.png, content: 9 bytes}
+    content: 89 50 4e 47 0d 0a 1a 0a 00 ([]uint8)
+    same bytes: true
+    after update: "GIF89a", 6 bytes
+    refused: field "content" expects a byte slice value, got string
+exit-code: 0
+tree:
+    - file: database/file/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/file/1/values/content
+      sha: 610f5ae4d76e332636a17bd357fd6ce99029316a99d320280d4d77a746bf29e8
+    - file: database/file/1/values/name
+      sha: ab211233b6576dbb0f8b5826447eeac61e2a833a99ac5d788fbc1a174c3c6ce5
+    - file: database/file/keys/name/ab211233b6576dbb0f8b5826447eeac61e2a833a99ac5d788fbc1a174c3c6ce5
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/file/last-id
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/file/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: database/file/size
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b

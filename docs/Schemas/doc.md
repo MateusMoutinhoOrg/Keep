@@ -65,6 +65,7 @@ slash optional and harmless either way.
 | `api.Int` | `int`, `int32`, `int64` | `int64` | no |
 | `api.Float` | `float64`, `float32`, `int`, `int32`, `int64` | `float64` | no |
 | `api.Link` | `api.SchemaItem`, `int`, `int32`, `int64` | `int64` | no |
+| `api.Bytes` | `[]byte` | `[]byte` | no |
 | `api.Database` | never written directly | never read directly | — |
 
 `api.String` is `api.Key` without the index: same values in, same values out, but two live
@@ -72,6 +73,9 @@ records may hold the same one and `FindByKey` never reads it. `api.Float` stores
 shortest decimal form that parses back to the same number, so writing the same value twice
 writes the same bytes. `api.Link` stores a record id exactly as `api.Int` does, and adds
 `Target` — see [Pointing one record at another](#pointing-one-record-at-another).
+`api.Bytes` stores the slice verbatim, with no text encoding, so any content — non-UTF-8
+and zero bytes included — comes back byte for byte; `String()` prints its length rather
+than its contents.
 
 A value of the wrong Go type is refused with `InvalidField` before anything is written; the
 list of failures is in [Errors](../Errors/doc.md).

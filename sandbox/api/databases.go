@@ -40,6 +40,12 @@ const (
 	// any id it is never reused, so a link to a removed record resolves to
 	// nothing rather than to whatever took its place.
 	Link
+	// Bytes is a plain binary field. It is written as a []byte and stored
+	// exactly as given, with no text encoding, so any content — a file, an
+	// image, a hash — comes back byte for byte as a []byte. Like a String
+	// it carries no index, and SchemaItem.String prints its length rather
+	// than its contents.
+	Bytes
 )
 
 // Failure causes, reported by Error.Type. Switch on the constant rather
@@ -68,7 +74,7 @@ type Item struct {
 	// Name is the field's name, as used in the fields map of an insert and
 	// in SchemaItem.Get.
 	Name string
-	// Type is one of Key, Int, Float, String, Link or Database.
+	// Type is one of Key, Int, Float, String, Link, Bytes or Database.
 	Type int
 	// Required reports whether an insert must provide this field. It is
 	// ignored on a Database field, which is never provided directly.
@@ -134,7 +140,7 @@ type SchemaItem struct {
 	Id int64
 	// Get returns the typed value stored for a field: a string for a Key
 	// or String field, an int64 for an Int or Link field, a float64 for a
-	// Float field. It fails with NotFound when the field has no stored
+	// Float field, a []byte for a Bytes field. It fails with NotFound when the field has no stored
 	// value and with InvalidField when the schema declares no such field or
 	// the field is a nested collection.
 	Get func(fieldName string) (any, *Error)

@@ -25,7 +25,7 @@ struct of function fields, filled by a binder.
 | --- | --- |
 | [`sandbox/api/sandbox.go`](api.sandbox.md) | `Sandbox` |
 | [`sandbox/api/config.go`](api.config.md) | `Config` |
-| [`sandbox/api/databases.go`](api.databases.md) | `Key`, `Int`, `Database`, `Float`, `String`, `Link`, `KeyConflict`, `NotFound`, `MissingField`, `InvalidField`, `Internal`, `Item`, `Schema`, `Props`, `Error`, `SchemaItem`, `SchemaInstance`, `DatabaseHandle`, `Databases` |
+| [`sandbox/api/databases.go`](api.databases.md) | `Key`, `Int`, `Database`, `Float`, `String`, `Link`, `Bytes`, `KeyConflict`, `NotFound`, `MissingField`, `InvalidField`, `Internal`, `Item`, `Schema`, `Props`, `Error`, `SchemaItem`, `SchemaInstance`, `DatabaseHandle`, `Databases` |
 | [`sandbox/api/info.go`](api.info.md) | `Info` |
 | [`sandbox/api/projectconfig.go`](api.projectconfig.md) | `ProjectConfig` |
 | [`sandbox/api/projectsandbox.go`](api.projectsandbox.md) | `ProjectSandbox` |

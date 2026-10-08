@@ -13,6 +13,7 @@ remove one.
 
 | Example | Description | Source |
 |---|---|---|
+| `bytes-fields` | Store raw binary content in a Bytes field and read it back byte for byte | [example.go](../../examples/lib/bytes-fields/example.go) |
 | `create-user` | Insert a record, and see a unique key and a required field refused | [example.go](../../examples/lib/create-user/example.go) |
 | `delete-user` | Remove a record with its index entries and everything nested under it | [example.go](../../examples/lib/delete-user/example.go) |
 | `find-user-by-id` | Resolve a record straight from its permanent id, with no index read and no reuse | [example.go](../../examples/lib/find-user-by-id/example.go) |

@@ -1,0 +1,1 @@
+description: "Store raw binary content in a Bytes field and read it back byte for byte"

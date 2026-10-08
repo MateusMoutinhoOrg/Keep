@@ -293,6 +293,12 @@ func StringFactory(sandbox *api.Sandbox, record *api.SchemaItem) func() string {
 			if failure != nil {
 				continue
 			}
+			// A Bytes value prints as its length: its contents are binary,
+			// and may be as large as a file.
+			if raw, ok := value.([]byte); ok {
+				parts = append(parts, sandbox.Deps.StdDeps.Sprintf("%s: %d bytes", item.Name, len(raw)))
+				continue
+			}
 			parts = append(parts, sandbox.Deps.StdDeps.Sprintf("%s: %v", item.Name, value))
 		}
 		joined := sandbox.Deps.StringsDeps.Join(parts, ", ")
