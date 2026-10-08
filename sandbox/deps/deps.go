@@ -2,7 +2,7 @@ package deps
 
 import (
 	hashdeps "github.com/MateusMoutinhoOrg/Keep/sandbox/deps/hashdeps"
-	std "github.com/MateusMoutinhoOrg/Keep/sandbox/deps/std"
+	stddeps "github.com/MateusMoutinhoOrg/Keep/sandbox/deps/stddeps"
 	storagedeps "github.com/MateusMoutinhoOrg/Keep/sandbox/deps/storagedeps"
 	stringsdeps "github.com/MateusMoutinhoOrg/Keep/sandbox/deps/stringsdeps"
 )
@@ -11,8 +11,8 @@ import (
 // per sub-contract directory of sandbox/deps/. An adapter fills the fields; the
 // sandbox only calls them, which is what keeps it free of OS packages.
 type Deps struct {
-	Hashdeps    hashdeps.Sandbox
-	Std         std.Sandbox
-	Storagedeps storagedeps.Sandbox
-	Stringsdeps stringsdeps.Sandbox
+	HashDeps    hashdeps.Contract
+	StdDeps     stddeps.Contract
+	StorageDeps storagedeps.Contract
+	StringsDeps stringsdeps.Contract
 }

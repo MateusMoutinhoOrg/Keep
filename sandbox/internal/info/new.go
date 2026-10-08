@@ -2,22 +2,22 @@ package info
 
 import (
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
-	config "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/config"
 )
 
-// NameFactory fills api.Info.Name.
+// NameFactory fills api.Info.Name from sandbox.Config, which the build
+// renders from AgnosConfig/project.yaml.
 func NameFactory(sandbox *api.Sandbox, info *api.Info) func() string {
 	return func() string {
-		return sandbox.Deps.Stringsdeps.TrimSpace(config.ProjectName)
+		return sandbox.Deps.StringsDeps.TrimSpace(sandbox.Config.ProjectName)
 	}
 }
 
-// VersionFactory fills api.Info.Version. The constant is generated from
-// AgnosConfig/project.yaml, and is trimmed of whatever whitespace it is
-// written with so a caller can compare it as it stands.
+// VersionFactory fills api.Info.Version. The value is rendered from
+// AgnosConfig/project.yaml into sandbox.Config, and is trimmed of whatever
+// whitespace it is written with so a caller can compare it as it stands.
 func VersionFactory(sandbox *api.Sandbox, info *api.Info) func() string {
 	return func() string {
-		return sandbox.Deps.Stringsdeps.TrimSpace(config.Version)
+		return sandbox.Deps.StringsDeps.TrimSpace(sandbox.Config.Version)
 	}
 }
 

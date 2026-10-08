@@ -1,0 +1,5 @@
+adapters:
+    - memstorage
+    - osstd
+    - sha256hash
+    - stdstrings

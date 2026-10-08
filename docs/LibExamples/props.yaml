@@ -1,6 +1,0 @@
-description: "Index of every runnable example of Keep as a Go module"
-name: "LibExamples"
-order: 3
-themes:
-  - lib-usage
-  - reference

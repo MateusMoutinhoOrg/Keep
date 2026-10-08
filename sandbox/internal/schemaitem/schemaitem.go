@@ -29,19 +29,19 @@ func GetFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName str
 		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
 		if !ok {
 			return nil, liberror.New(sandbox, api.InvalidField, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q is not part of the schema", fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q is not part of the schema", fieldName))
 		}
 		if item.Type == api.Database {
 			return nil, liberror.New(sandbox, api.InvalidField, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q is a nested collection, use ListAll(%q)", fieldName, fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q is a nested collection, use ListAll(%q)", fieldName, fieldName))
 		}
-		raw, found, err := sandbox.Deps.Storagedeps.Read(dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName))
+		raw, found, err := sandbox.Deps.StorageDeps.Read(dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName))
 		if err != nil {
 			return nil, dense.InternalError(sandbox, err)
 		}
 		if !found {
 			return nil, liberror.New(sandbox, api.NotFound, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q has no value for this record", fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q has no value for this record", fieldName))
 		}
 		return dense.DecodeValue(sandbox, item, raw)
 	}
@@ -62,7 +62,7 @@ func GetLinkFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.
 		if !ok {
 			return api.SchemaItem{}, false
 		}
-		raw, found, err := sandbox.Deps.Storagedeps.Read(dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName))
+		raw, found, err := sandbox.Deps.StorageDeps.Read(dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName))
 		if err != nil || !found {
 			return api.SchemaItem{}, false
 		}
@@ -81,17 +81,17 @@ func UpdateFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName 
 		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
 		if !ok {
 			return liberror.New(sandbox, api.InvalidField, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q is not part of the schema", fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q is not part of the schema", fieldName))
 		}
 		if item.Type == api.Database {
 			return liberror.New(sandbox, api.InvalidField, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q is a nested collection and cannot be updated directly", fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q is a nested collection and cannot be updated directly", fieldName))
 		}
 		encoded, failure := dense.EncodeValue(sandbox, item, value)
 		if failure != nil {
 			return failure
 		}
-		storage := sandbox.Deps.Storagedeps
+		storage := sandbox.Deps.StorageDeps
 		valueKey := dense.ValueKey(sandbox, record.Prefix, record.Id, fieldName)
 
 		if item.Type != api.Key {
@@ -120,7 +120,7 @@ func UpdateFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName 
 			}
 			if otherId != record.Id {
 				return liberror.NewWithValue(sandbox, api.KeyConflict, fieldName, value,
-					sandbox.Deps.Std.Sprintf("value for key %q already exists", fieldName))
+					sandbox.Deps.StdDeps.Sprintf("value for key %q already exists", fieldName))
 			}
 		}
 
@@ -151,7 +151,7 @@ func UpdateFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(fieldName 
 // freed position, so list order is not stable across removals.
 func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.LinkResolver) func() *api.Error {
 	return func() *api.Error {
-		storage := sandbox.Deps.Storagedeps
+		storage := sandbox.Deps.StorageDeps
 
 		// Step 1: read the victim's position. Absent means already gone.
 		position, live, err := readPosition(sandbox, record.Prefix, record.Id)
@@ -173,7 +173,7 @@ func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.L
 		}
 		if !found {
 			return liberror.New(sandbox, api.Internal, "",
-				sandbox.Deps.Std.Sprintf("position %d of the list is missing", size))
+				sandbox.Deps.StdDeps.Sprintf("position %d of the list is missing", size))
 		}
 		lastId, err := dense.ParseId(sandbox, lastRaw)
 		if err != nil {
@@ -240,7 +240,7 @@ func RemoveFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve dense.L
 func CheckKeysPresenceFactory(sandbox *api.Sandbox, record *api.SchemaItem) func(keys []string) bool {
 	return func(keys []string) bool {
 		for _, key := range keys {
-			exists, err := sandbox.Deps.Storagedeps.Exists(dense.ValueKey(sandbox, record.Prefix, record.Id, key))
+			exists, err := sandbox.Deps.StorageDeps.Exists(dense.ValueKey(sandbox, record.Prefix, record.Id, key))
 			if err != nil || !exists {
 				return false
 			}
@@ -273,7 +273,7 @@ func NewSubItemFactory(sandbox *api.Sandbox, record *api.SchemaItem, resolve den
 		item, ok := dense.FindItem(sandbox, record.Items, fieldName)
 		if !ok || item.Type != api.Database {
 			return api.SchemaItem{}, liberror.New(sandbox, api.InvalidField, fieldName,
-				sandbox.Deps.Std.Sprintf("field %q is not a nested collection of the schema", fieldName))
+				sandbox.Deps.StdDeps.Sprintf("field %q is not a nested collection of the schema", fieldName))
 		}
 		nested := dense.SubPrefix(sandbox, record.Prefix, record.Id, fieldName)
 		return New(sandbox, item.Itens, nested, resolve, fields)
@@ -293,17 +293,17 @@ func StringFactory(sandbox *api.Sandbox, record *api.SchemaItem) func() string {
 			if failure != nil {
 				continue
 			}
-			parts = append(parts, sandbox.Deps.Std.Sprintf("%s: %v", item.Name, value))
+			parts = append(parts, sandbox.Deps.StdDeps.Sprintf("%s: %v", item.Name, value))
 		}
-		joined := sandbox.Deps.Stringsdeps.Join(parts, ", ")
-		return sandbox.Deps.Std.Sprintf("{id: %d, %s}", record.Id, joined)
+		joined := sandbox.Deps.StringsDeps.Join(parts, ", ")
+		return sandbox.Deps.StdDeps.Sprintf("{id: %d, %s}", record.Id, joined)
 	}
 }
 
 // readPosition reads the back-pointer that marks a record live. live is
 // false when the record was never written or has been removed.
 func readPosition(sandbox *api.Sandbox, prefix []string, id int64) (position int64, live bool, err error) {
-	raw, found, err := sandbox.Deps.Storagedeps.Read(dense.PositionKey(sandbox, prefix, id))
+	raw, found, err := sandbox.Deps.StorageDeps.Read(dense.PositionKey(sandbox, prefix, id))
 	if err != nil || !found {
 		return 0, false, err
 	}
@@ -336,18 +336,18 @@ func Build(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dens
 // id, write the data, then publish by growing the list — the size key is
 // the commit point, so a crash before it leaves an orphan nothing reads.
 func New(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, fields map[string]any) (api.SchemaItem, *api.Error) {
-	storage := sandbox.Deps.Storagedeps
+	storage := sandbox.Deps.StorageDeps
 
 	// Every provided field has to be a plain field of the schema.
 	for name := range fields {
 		item, ok := dense.FindItem(sandbox, items, name)
 		if !ok {
 			return api.SchemaItem{}, liberror.New(sandbox, api.InvalidField, name,
-				sandbox.Deps.Std.Sprintf("field %q is not part of the schema", name))
+				sandbox.Deps.StdDeps.Sprintf("field %q is not part of the schema", name))
 		}
 		if item.Type == api.Database {
 			return api.SchemaItem{}, liberror.New(sandbox, api.InvalidField, name,
-				sandbox.Deps.Std.Sprintf("field %q is a nested collection and cannot be set directly", name))
+				sandbox.Deps.StdDeps.Sprintf("field %q is a nested collection and cannot be set directly", name))
 		}
 	}
 	// Every required field has to be provided.
@@ -355,7 +355,7 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.
 		if item.Required && item.Type != api.Database {
 			if _, ok := fields[item.Name]; !ok {
 				return api.SchemaItem{}, liberror.New(sandbox, api.MissingField, item.Name,
-					sandbox.Deps.Std.Sprintf("required field %q is missing", item.Name))
+					sandbox.Deps.StdDeps.Sprintf("required field %q is missing", item.Name))
 			}
 		}
 	}
@@ -386,7 +386,7 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.
 		}
 		if exists {
 			return api.SchemaItem{}, liberror.NewWithValue(sandbox, api.KeyConflict, item.Name, fields[item.Name],
-				sandbox.Deps.Std.Sprintf("value for key %q already exists", item.Name))
+				sandbox.Deps.StdDeps.Sprintf("value for key %q already exists", item.Name))
 		}
 	}
 
@@ -449,7 +449,7 @@ func New(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.
 // removed; ids are never reused, so a stale id never resolves to a
 // different record.
 func ResolveById(sandbox *api.Sandbox, items []api.Item, prefix []string, resolve dense.LinkResolver, id int64) (api.SchemaItem, bool) {
-	exists, err := sandbox.Deps.Storagedeps.Exists(dense.PositionKey(sandbox, prefix, id))
+	exists, err := sandbox.Deps.StorageDeps.Exists(dense.PositionKey(sandbox, prefix, id))
 	if err != nil || !exists {
 		return api.SchemaItem{}, false
 	}
@@ -512,10 +512,10 @@ func ClearCollection(sandbox *api.Sandbox, items []api.Item, prefix []string, re
 			return failure
 		}
 	}
-	if err := sandbox.Deps.Storagedeps.Delete(dense.SizeKey(sandbox, prefix)); err != nil {
+	if err := sandbox.Deps.StorageDeps.Delete(dense.SizeKey(sandbox, prefix)); err != nil {
 		return dense.InternalError(sandbox, err)
 	}
-	if err := sandbox.Deps.Storagedeps.Delete(dense.LastIdKey(sandbox, prefix)); err != nil {
+	if err := sandbox.Deps.StorageDeps.Delete(dense.LastIdKey(sandbox, prefix)); err != nil {
 		return dense.InternalError(sandbox, err)
 	}
 	return nil

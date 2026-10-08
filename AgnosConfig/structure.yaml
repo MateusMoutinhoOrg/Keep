@@ -10,7 +10,7 @@ sandbox:
     new.go:
       order: 1
       gen: true
-      description: New(deps) *api.Sandbox, one <x>.New<X> per api/ file
+      description: New(deps) *api.Sandbox, one <x>.Constructor per dir of constructors/
     api:
       order: 2
       dir: true
@@ -19,15 +19,22 @@ sandbox:
         sandbox.go:
           order: 1
           gen: true
-          description: one field per other file of api/, plus Deps
-        databases.go:
+          description: every <x>sandbox.go part embedded, plus Config and Deps
+        projectsandbox.go:
           order: 2
+          description: the Databases and Info fields Keep adds to the Sandbox
+        databases.go:
+          order: 3
           description: the Databases contract, plus Props, Schema, Item, Error and the objects a database hands back
         info.go:
-          order: 3
+          order: 4
           description: the Info contract - the library's own name and version
-    deps:
+    constructors:
       order: 3
+      dir: true
+      description: one Constructor per field of the Sandbox, each called by new.go
+    deps:
+      order: 4
       dir: true
       description: one dir per capability the sandbox needs from outside; each imports nothing at all
       children:
@@ -40,14 +47,14 @@ sandbox:
           dir: true
           description: the single-key storage backend - the whole of what Keep asks of one
     internal:
-      order: 4
+      order: 5
       dir: true
       description: the logic; unreachable from outside the sandbox
       children:
-        config:
+        generated:
           order: 1
           dir: true
-          description: (gen) ProjectName and Version, from AgnosConfig/project.yaml
+          description: (gen) the config, ProjectName and Version from AgnosConfig/project.yaml
         databases:
           order: 2
           dir: true
@@ -77,7 +84,7 @@ adapters:
   dir: true
   description: the only place OS-bound and third-party code lives
   children:
-    libs:
+    impls:
       order: 1
       dir: true
       description: one dir per adapter, each exporting Bind and carrying an adapter.yaml
@@ -90,10 +97,10 @@ adapters:
           order: 2
           dir: true
           description: storagedeps over a map, lost when the process exits
-    availables:
+    bindings:
       order: 2
       dir: true
-      description: one dir per selection of adapters; new.go beside each is generated from its available.yaml
+      description: one dir per selection of adapters; new.go beside each is generated from its binding.yaml
       children:
         standard:
           order: 1
@@ -111,11 +118,11 @@ examples:
     lib:
       order: 1
       dir: true
-      description: "<name>/example.go + props.yaml, and the result.yaml exec-test writes"
+      description: "<name>/example.go + props.yaml, and the result.yaml run-examples writes"
 docs:
   order: 5
   dir: true
-  description: one dir per doc, holding doc.md + props.yaml. README.md indexes them all
+  description: one dir per doc, holding doc.md + doc.yaml. README.md indexes them all
 go.mod:
   order: 6
   description: written by `start`; add-dep and remove-dep edit its require block

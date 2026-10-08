@@ -1,4 +1,4 @@
-# Keep
+# <no value>
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/MateusMoutinhoOrg/Keep.svg)](https://pkg.go.dev/github.com/MateusMoutinhoOrg/Keep)
 [![Release](https://img.shields.io/github/v/release/MateusMoutinhoOrg/Keep)](https://github.com/MateusMoutinhoOrg/Keep/releases/latest)
@@ -18,7 +18,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/standard"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/standard"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
@@ -49,7 +49,7 @@ func main() {
 }
 ```
 
-Swap `adapters/availables/standard` for `adapters/availables/native` and the same program
+Swap `adapters/bindings/standard` for `adapters/bindings/native` and the same program
 runs entirely in memory. Nothing else changes: the library only ever calls the eleven
 single-key functions of `sandbox/deps/storagedeps`, and which implementation stands behind
 them is decided by the one import a program picks.
@@ -64,7 +64,7 @@ them is decided by the one import a program picks.
 
 This repository is generated and checked by [agnos](https://github.com/MateusMoutinhoOrg/Agnos):
 `agnos build` rewrites every generated file, `agnos verify` checks the schema, and
-`agnos exec-test` runs every example against its golden. See
+`agnos run-examples` runs every example against its golden. See
 [Requirements](docs/Requirements/doc.md) and [Workflow](docs/Workflow/doc.md).
 
 
@@ -95,7 +95,7 @@ How the project is put together - layers, boundaries, data flow
 
 | Doc | Description |
 | --- | --- |
-| [Adapters](docs/Adapters/doc.md) | Contract, adapter and available: three units, one field of Deps, and who fills it |
+| [Adapters](docs/Adapters/doc.md) | Contract, adapter and binding: three units, one field of Deps, and who fills it |
 | [Dense Record Pattern](docs/DenseRecordPattern/doc.md) | The key layout that makes a schema database run over single-key storage |
 
 ### Development
@@ -115,12 +115,10 @@ Lookup tables - schemas, file formats, generated file listings
 
 | Doc | Description |
 | --- | --- |
-| [EntriesYaml](docs/EntriesYaml/doc.md) | Every key of a command's entries.yaml and what the generated code does with it |
 | [Extensions](docs/Extensions/doc.md) | The generation mechanics this project turns on, and what each one writes |
 | [DepList](docs/DepList/doc.md) | Every dep `agnos add-dep` can add, the adapters that fill it, and what backs each one |
 | [GeneratedFiles](docs/GeneratedFiles/doc.md) | Every file agnos writes into this project and whether build overwrites it |
-| [LibExamples](docs/LibExamples/doc.md) | Index of every runnable example of Keep as a Go module |
-| [Storage Contract](docs/StorageContract/doc.md) | What an adapter filling Deps.Storagedeps has to guarantee, field by field |
+| [Storage Contract](docs/StorageContract/doc.md) | What an adapter filling Deps.StorageDeps has to guarantee, field by field |
 
 ## License
 

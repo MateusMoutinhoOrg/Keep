@@ -35,7 +35,7 @@ func FindByKeyFactory(sandbox *api.Sandbox, instance *api.SchemaInstance, resolv
 			return api.SchemaItem{}, false
 		}
 		indexKey := dense.IndexKey(sandbox, instance.Prefix, key, dense.HashIndexValue(sandbox, encoded))
-		raw, found, err := sandbox.Deps.Storagedeps.Read(indexKey)
+		raw, found, err := sandbox.Deps.StorageDeps.Read(indexKey)
 		if err != nil || !found {
 			return api.SchemaItem{}, false
 		}

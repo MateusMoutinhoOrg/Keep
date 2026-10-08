@@ -1,7 +1,7 @@
 package storagedeps
 
 // This package is the sandbox's *copy* of the api a single-key storage
-// backend exposes — the same mechanic as hashdeps, std and stringsdeps, for
+// backend exposes — the same mechanic as hashdeps, stddeps and stringsdeps, for
 // the same reason: reaching a file, a socket or a remote store is an
 // OS-bound effect, so `os`, `net` and every driver package may not appear
 // inside the sandbox. The contract is restated here, and the adapter — which
@@ -28,10 +28,10 @@ package storagedeps
 // error result is reserved for a backend that actually failed. This is why
 // the contract needs no sentinel error values, and so no import at all.
 
-// Sandbox is the storage library injected whole as the Deps.Storagedeps
+// Contract is the storage library injected whole as the Deps.StorageDeps
 // field. The first group of fields writes, the second reads, and the last
 // two are the optional advisory lease a multi-writer backend can offer.
-type Sandbox struct {
+type Contract struct {
 	// Write stores value under key, overwriting any current value and
 	// creating the key when it is absent.
 	Write func(key []string, value []byte) error

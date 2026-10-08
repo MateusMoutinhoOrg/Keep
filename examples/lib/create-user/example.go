@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/standard"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/standard"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
@@ -17,7 +17,7 @@ import (
 
 // Props describes the database this example writes.
 var Props = api.Props{
-	Path: "TestDir/database/",
+	Path: "test-dir/database/",
 	Schemas: []api.Schema{
 		{
 			Name: "user",
@@ -32,7 +32,7 @@ var Props = api.Props{
 
 func main() {
 
-	deps := standard.New()    // filestorage, hashdeps, std, stringsdeps
+	deps := standard.New()    // filestorage, osstd, sha256hash, stdstrings
 	lib := sandbox.New(&deps) // *api.Sandbox
 
 	db := lib.Databases.New(Props)
@@ -75,7 +75,7 @@ func main() {
 	}
 	fmt.Printf("refused: %s\n", failure.Message)
 
-	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
+	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)
 	}
 }

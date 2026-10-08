@@ -23,32 +23,34 @@ authority over anything written here:
 ```bash
 agnos build        # verify + regenerate everything + go mod tidy + compile
 agnos verify       # the schema check alone, writes nothing
-agnos exec-test    # run every example and check it against its golden
+agnos run-examples # run every example and check it against its golden
 ```
 
 Run `agnos build` after every hand edit. It is idempotent.
 
 Never create a doc, an example or an adapter by hand: `agnos add-doc`, `agnos
-add-lib-example`, `agnos add-dep` / `add-adapter` / `add-available` scaffold them and
+add-lib-example`, `agnos add-dep` / `add-adapter` / `add-binding` scaffold them and
 rewrite the indexes that list them.
 
-## The four hand-written places
+## The hand-written places
 
 Everything else is regenerated over.
 
 | File | Holds |
 |---|---|
-| `sandbox/api/<x>.go` | one contract — the file name is the `api.Sandbox` field, and the type of that name must be declared in it |
+| `sandbox/api/<x>.go` | one contract — the type of that name must be declared in it |
+| `sandbox/api/projectsandbox.go` | `ProjectSandbox`, embedded in `api.Sandbox`: one field per contract (`Databases`, `Info`) |
 | `sandbox/internal/<x>/new.go` | `New<X>(sandbox *api.Sandbox) api.<X>`, plus the implementation beside it |
-| `sandbox/deps/<x>/<x>.go` | one capability the sandbox needs from outside. **Imports nothing at all** |
-| `adapters/libs/<x>/<x>.go` | `Bind(deps *deps.Deps)`, beside its `adapter.yaml`. The only place OS-bound code may live |
+| `sandbox/constructors/<x>/constructor.go` | `Constructor(sandbox *api.Sandbox)`, written once by `build`, then ours |
+| `sandbox/deps/<x>/<x>.go` | one capability the sandbox needs from outside, `type Contract struct`. **Imports nothing at all** |
+| `adapters/impls/<x>/<x>.go` | `Bind(deps *deps.Deps)`, beside its `adapter.yaml`. The only place OS-bound code may live |
 
 ## Keep-specific things that are easy to get wrong
 
-- **The sandbox may not import the standard library.** `fmt` is `sandbox.Deps.Std.Sprintf`,
-  `strconv`/`strings` are `sandbox.Deps.Stringsdeps`, `crypto/sha256` is
-  `sandbox.Deps.Hashdeps`, and storage is `sandbox.Deps.Storagedeps`. A new capability is a
-  new contract under `sandbox/deps/`, filled by every available.
+- **The sandbox may not import the standard library.** `fmt` is `sandbox.Deps.StdDeps.Sprintf`,
+  `strconv`/`strings` are `sandbox.Deps.StringsDeps`, `crypto/sha256` is
+  `sandbox.Deps.HashDeps`, and storage is `sandbox.Deps.StorageDeps`. A new capability is a
+  new contract under `sandbox/deps/`, filled by every binding (`standard` and `native`).
 - **`sandbox/deps/storagedeps` reports no expected condition as an error.** Absent is
   `found == false`, a conditional write that did not apply is `written == false`. That is why
   it needs no sentinel values and so no import. See
@@ -65,7 +67,8 @@ Everything else is regenerated over.
   and panics on first call, so every `<Field>Factory` must be called from the `New` that
   builds its object.
 - **A release bump is `version:` in `AgnosConfig/project.yaml`**, then `agnos build`. It
-  regenerates `sandbox/internal/config/config.go`, which `api.Info.Version` reports.
+  regenerates `sandbox/internal/generated/config/new.go`, which fills `sandbox.Config` —
+  what `api.Info.Name` and `api.Info.Version` report.
 
 ## Adding an api surface
 
@@ -73,10 +76,15 @@ Two files, then `agnos build` writes the wiring:
 
 1. `sandbox/api/<x>.go` — `type <X> struct { … }` of function fields, every declaration
    doc-commented (`verify` fails without it, and `docs/PublicApi` is generated from those
-   comments).
+   comments). Add the field `<X> <X>`, doc-commented, to `ProjectSandbox` in
+   `sandbox/api/projectsandbox.go` — `verify` fails on a contract no part of the Sandbox
+   declares.
 2. `sandbox/internal/<x>/new.go` — `func New<X>(sandbox *api.Sandbox) api.<X>`, assigning
    each field from its factory.
 
+`build` then writes `sandbox/constructors/<x>/constructor.go` once and calls it from
+`sandbox/new.go`.
+
 An example goes with it: `agnos add-lib-example <name>`, write `example.go`, add a
-`props.yaml` with a one-line `description:`, then `agnos exec-test` to write the golden. An
-example that copies nothing out of `TestDir` into `AssertDir` fails.
+`props.yaml` with a one-line `description:`, then `agnos run-examples` to write the golden. An
+example that copies nothing out of `test-dir` into `assert-dir` fails.

@@ -1,5 +1,0 @@
-adapters:
-    - filestorage
-    - hashdeps
-    - std
-    - stringsdeps

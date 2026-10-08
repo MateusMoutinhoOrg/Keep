@@ -1,7 +1,7 @@
 cli-output: |
     Keep v0.1.0
     found: {id: 2, email: ana@gmail.com, age: 31}
-    wrote TestDir/users.txt with 2 users
+    wrote test-dir/users.txt with 2 users
 exit-code: 0
 tree:
     - file: users.txt

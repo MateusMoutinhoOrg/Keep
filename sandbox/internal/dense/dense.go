@@ -7,7 +7,7 @@ import (
 
 // Key layout and value encoding of the Dense Record Pattern, documented in
 // docs/DenseRecordPattern. Everything here is expressed as single-key reads
-// and writes against sandbox.Deps.Storagedeps, and assumes a single writer.
+// and writes against sandbox.Deps.StorageDeps, and assumes a single writer.
 // The record operations built on top of these helpers live in the
 // schemaitem package.
 //
@@ -41,7 +41,7 @@ func Key(sandbox *api.Sandbox, prefix []string, segments ...string) []string {
 // directory-looking string it has always been.
 func RootPrefix(sandbox *api.Sandbox, path string, name string) []string {
 	prefix := make([]string, 0, 4)
-	for _, segment := range sandbox.Deps.Stringsdeps.Split(path, "/") {
+	for _, segment := range sandbox.Deps.StringsDeps.Split(path, "/") {
 		if segment == "" {
 			continue
 		}
@@ -97,14 +97,14 @@ func SubPrefix(sandbox *api.Sandbox, prefix []string, id int64, field string) []
 // formatId renders an id or a position as the decimal segment every key
 // above carries it as.
 func formatId(sandbox *api.Sandbox, value int64) string {
-	return sandbox.Deps.Stringsdeps.FormatInt(value, 10)
+	return sandbox.Deps.StringsDeps.FormatInt(value, 10)
 }
 
 // HashIndexValue normalizes and hashes an encoded value, so index lookups
 // are case-insensitive and a key never grows with the value it indexes.
 func HashIndexValue(sandbox *api.Sandbox, encoded string) string {
-	lowered := sandbox.Deps.Stringsdeps.ToLower(encoded)
-	return sandbox.Deps.Hashdeps.Sha256Hex([]byte(lowered))
+	lowered := sandbox.Deps.StringsDeps.ToLower(encoded)
+	return sandbox.Deps.HashDeps.Sha256Hex([]byte(lowered))
 }
 
 // FindItem returns the schema field with the given name. ok is false when
@@ -150,9 +150,9 @@ func InternalError(sandbox *api.Sandbox, err error) *api.Error {
 
 // ParseId reads an id back from the decimal form WriteInt stores it in.
 func ParseId(sandbox *api.Sandbox, raw []byte) (int64, error) {
-	id, err := sandbox.Deps.Stringsdeps.ParseInt(string(raw), 10, 64)
+	id, err := sandbox.Deps.StringsDeps.ParseInt(string(raw), 10, 64)
 	if err != nil {
-		return 0, sandbox.Deps.Std.Errorf("keep: invalid id: %s", string(raw))
+		return 0, sandbox.Deps.StdDeps.Errorf("keep: invalid id: %s", string(raw))
 	}
 	return id, nil
 }
@@ -169,19 +169,19 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 			return typed.String(), nil
 		default:
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.Std.Sprintf("field %q expects a string value, got %T", item.Name, value))
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a string value, got %T", item.Name, value))
 		}
 	case api.Int:
 		switch typed := value.(type) {
 		case int:
-			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(int64(typed), 10), nil
 		case int32:
-			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(int64(typed), 10), nil
 		case int64:
-			return sandbox.Deps.Stringsdeps.FormatInt(typed, 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(typed, 10), nil
 		default:
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.Std.Sprintf("field %q expects an integer value, got %T", item.Name, value))
+				sandbox.Deps.StdDeps.Sprintf("field %q expects an integer value, got %T", item.Name, value))
 		}
 	case api.Float:
 		switch typed := value.(type) {
@@ -197,7 +197,7 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 			return formatFloat(sandbox, float64(typed)), nil
 		default:
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.Std.Sprintf("field %q expects a floating-point value, got %T", item.Name, value))
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a floating-point value, got %T", item.Name, value))
 		}
 	case api.Link:
 		// A Link naming no collection is a mistake in the schema, and the
@@ -205,24 +205,24 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 		// still names a live record is a read, and is left to GetLink.
 		if item.Target == "" {
 			return "", liberror.New(sandbox, api.InvalidField, item.Name,
-				sandbox.Deps.Std.Sprintf("link field %q declares no Target schema", item.Name))
+				sandbox.Deps.StdDeps.Sprintf("link field %q declares no Target schema", item.Name))
 		}
 		switch typed := value.(type) {
 		case api.SchemaItem:
-			return sandbox.Deps.Stringsdeps.FormatInt(typed.Id, 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(typed.Id, 10), nil
 		case int:
-			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(int64(typed), 10), nil
 		case int32:
-			return sandbox.Deps.Stringsdeps.FormatInt(int64(typed), 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(int64(typed), 10), nil
 		case int64:
-			return sandbox.Deps.Stringsdeps.FormatInt(typed, 10), nil
+			return sandbox.Deps.StringsDeps.FormatInt(typed, 10), nil
 		default:
 			return "", liberror.NewWithValue(sandbox, api.InvalidField, item.Name, value,
-				sandbox.Deps.Std.Sprintf("field %q expects a record or a record id, got %T", item.Name, value))
+				sandbox.Deps.StdDeps.Sprintf("field %q expects a record or a record id, got %T", item.Name, value))
 		}
 	default:
 		return "", liberror.New(sandbox, api.InvalidField, item.Name,
-			sandbox.Deps.Std.Sprintf("field %q cannot be encoded as a plain value", item.Name))
+			sandbox.Deps.StdDeps.Sprintf("field %q cannot be encoded as a plain value", item.Name))
 	}
 }
 
@@ -230,7 +230,7 @@ func EncodeValue(sandbox *api.Sandbox, item api.Item, value any) (string, *api.E
 // to the same number, which is what keeps a stored value stable byte for
 // byte across writes of the same value.
 func formatFloat(sandbox *api.Sandbox, value float64) string {
-	return sandbox.Deps.Stringsdeps.FormatFloat(value, 'g', -1, 64)
+	return sandbox.Deps.StringsDeps.FormatFloat(value, 'g', -1, 64)
 }
 
 // DecodeValue converts a stored value back to the typed form a caller of
@@ -242,13 +242,13 @@ func formatFloat(sandbox *api.Sandbox, value float64) string {
 func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Error) {
 	switch item.Type {
 	case api.Int, api.Link:
-		number, err := sandbox.Deps.Stringsdeps.ParseInt(string(raw), 10, 64)
+		number, err := sandbox.Deps.StringsDeps.ParseInt(string(raw), 10, 64)
 		if err != nil {
 			return nil, InternalError(sandbox, err)
 		}
 		return number, nil
 	case api.Float:
-		number, err := sandbox.Deps.Stringsdeps.ParseFloat(string(raw), 64)
+		number, err := sandbox.Deps.StringsDeps.ParseFloat(string(raw), 64)
 		if err != nil {
 			return nil, InternalError(sandbox, err)
 		}
@@ -262,19 +262,19 @@ func DecodeValue(sandbox *api.Sandbox, item api.Item, raw []byte) (any, *api.Err
 // zero: a collection nothing was ever written to has no size key, and its
 // size is zero.
 func ReadCount(sandbox *api.Sandbox, key []string) (int64, error) {
-	raw, found, err := sandbox.Deps.Storagedeps.Read(key)
+	raw, found, err := sandbox.Deps.StorageDeps.Read(key)
 	if err != nil {
 		return 0, err
 	}
 	if !found {
 		return 0, nil
 	}
-	return sandbox.Deps.Stringsdeps.ParseInt(string(raw), 10, 64)
+	return sandbox.Deps.StringsDeps.ParseInt(string(raw), 10, 64)
 }
 
 // WriteInt stores an integer under key in the canonical decimal form every
 // reader here expects.
 func WriteInt(sandbox *api.Sandbox, key []string, value int64) error {
-	encoded := sandbox.Deps.Stringsdeps.FormatInt(value, 10)
-	return sandbox.Deps.Storagedeps.Write(key, []byte(encoded))
+	encoded := sandbox.Deps.StringsDeps.FormatInt(value, 10)
+	return sandbox.Deps.StorageDeps.Write(key, []byte(encoded))
 }

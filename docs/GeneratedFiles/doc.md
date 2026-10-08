@@ -12,25 +12,31 @@
 | `go.sum` | `go mod tidy` | - |
 | `LICENSE` | `start` | once. A placeholder; its text is pasted into `README.md`'s License section |
 | `README.md` | `build` | always. `ReadmeHeader.md` + one index section per theme of `themes.yaml` |
-| `sandbox/new.go` | `build` | always. One `<x>.New<X>(&self)` per other file of `sandbox/api/` |
-| `sandbox/api/sandbox.go` | `build` | always. One field per other file of `sandbox/api/`, plus `Deps` while the project carries the deps layer |
-| `sandbox/internal/config/config.go` | `build` | always. `ProjectName`, `Version` from `project.yaml` |
-| `docs/{Requirements,Workflow,Rules,Extensions,Structure,EntriesYaml,DepList,GeneratedFiles,LibUsage,PublicApi}/` | `build` | always. Both `doc.md` and `props.yaml` |
+| `sandbox/new.go` | `build` | always. One `<x>.Constructor(&self)` per directory of `sandbox/constructors/` |
+| `sandbox/constructors/<x>/constructor.go` | `build` | once, per contract of `sandbox/api/` that has a `sandbox/internal/<x>/new.go`. Then yours — write your own package there and `new.go` calls it too |
+| `sandbox/api/sandbox.go` | `build` | always. Every struct of `sandbox/api/<x>sandbox.go` embedded, plus `Config` and `Deps` while the project carries the deps layer |
+| `sandbox/api/config.go` | `build` | always. The `Config` contract: every struct of `sandbox/api/<x>config.go` embedded, `ProjectName`, `Version` |
+| `sandbox/api/projectsandbox.go` | `start` | once. `api.ProjectSandbox`, embedded in `api.Sandbox` — declare the project's own fields of the sandbox there |
+| `sandbox/api/projectconfig.go` | `start` | once. `api.ProjectConfig`, embedded in `api.Config` — declare the project's own config fields there |
+| `sandbox/internal/generated/config/new.go` | `build` | always. `NewConfig`, filled with `ProjectName` and `Version` from `project.yaml` |
+| `docs/{Requirements,Workflow,Rules,Extensions,Structure,DepList,GeneratedFiles,LibUsage,PublicApi}/` | `build` | always. Both `doc.md` and `doc.yaml` |
 | `docs/**/Index.md` | `build` | always, for every doc that has sub-docs |
-| `docs/LibExamples/` | `build` | always. Both `doc.md` and `props.yaml` |
-| `sandbox/deps/deps.go` | `build` | always. One `<Title> <dir>.Sandbox` per dir of `sandbox/deps/` |
-| `adapters/availables/<name>/new.go` | `build` | always. One `<adapter>.Bind(&deps)` per entry of that available's `available.yaml`; an available with no `available.yaml` is hand-written and left alone |
-| `adapters/availables/<name>/available.yaml` | `deps-init` | once, then rewritten by `add-dep` / `remove-dep` — never by hand |
-| `sandbox/deps/<dep>/*.go`, `adapters/libs/<adapter>/*.go` | `add-dep` | once |
-| `adapters/libs/<adapter>/adapter.yaml` | `add-dep` | once |
+| `docs/PublicApi/<contract>.md` | `build` | always. One page per file of `sandbox/api/` and per contract of `sandbox/deps/`; `docs/PublicApi/doc.md` indexes them by the symbols each declares |
+| `docs/LibExamples/` | `build` | always. Both `doc.md` and `doc.yaml` |
+| `sandbox/deps/deps.go` | `build` | always. One `<Field> <dir>.Contract` per dir of `sandbox/deps/` (`<dir>.Sandbox` for a remote dep, which keeps the name of the api it copies) |
+| `adapters/bindings/<name>/new.go` | `build` | always. One `<adapter>.Bind(&deps)` per entry of that binding's `binding.yaml`; a binding with no `binding.yaml` is hand-written and left alone |
+| `adapters/bindings/<name>/binding.yaml` | `deps-init` | once, then rewritten by `add-dep` / `remove-dep` — never by hand |
+| `sandbox/deps/<dep>/*.go`, `adapters/impls/<adapter>/*.go` | `add-dep` | once |
+| `adapters/impls/<adapter>/adapter.yaml` | `add-dep` | once |
 | `sandbox/deps/<dep>/*.go` of a remote dep | `add-dep <module>` | rewritten by `set-dep`; a copy of that module's `sandbox/api/` |
-| `adapters/libs/<dep>/<dep>.go` of a remote dep | `add-dep <module>` | rewritten by `set-dep`; the generated shim |
+| `adapters/impls/<dep>/<dep>.go` of a remote dep | `add-dep <module>` | rewritten by `set-dep`; the generated shim |
 | `assets/asset.go` | `add-dep embeddeps` | once |
-| `docs/<Name>/{props.yaml,doc.md}` | `add-doc` | once |
+| `docs/<Name>/{doc.yaml,doc.md}` | `add-doc` | once |
 | `examples/lib/<name>/example.go` | `add-lib-example` | once. A stub that already runs |
-| `examples/<side>/<name>/result.yaml` | `exec-test` | on `update-test <name>`, on `--update` or when absent — never by hand |
+| `examples/<side>/<name>/result.yaml` | `run-examples` | on `update-example <name>`, on `--update` or when absent — never by hand |
 
-Everything not listed is yours: `sandbox/internal/<pkg>/`, the contracts under `sandbox/api/`
-and `sandbox/deps/` that you write, their `sandbox/internal/<x>/new.go` and `adapters/libs/`
+Everything under `sandbox/internal/generated/` is `always`. Everything not listed is yours:
+`sandbox/internal/<pkg>/`, the contracts under `sandbox/api/`
+and `sandbox/deps/` that you write, their `sandbox/internal/<x>/new.go` and `adapters/impls/`
 halves, and any
-directory of `adapters/availables/` other than `standard`.
+directory of `adapters/bindings/` other than `standard`.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/standard"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/standard"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
@@ -18,7 +18,7 @@ import (
 
 // Props describes the database this example writes.
 var Props = api.Props{
-	Path: "TestDir/database/",
+	Path: "test-dir/database/",
 	Schemas: []api.Schema{
 		{
 			Name: "user",
@@ -76,7 +76,7 @@ func main() {
 	_, ok = users.FindByKey("age", 27)
 	fmt.Println("non-key field found:", ok)
 
-	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
+	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)
 	}
 }

@@ -122,7 +122,7 @@ inserts can both pass step 1, or both read the same `last-id`.
 
 **Keep assumes a single writer.** Readers are always safe, given the visibility `size`
 guarantees. A backend with transactions or atomic batches should wrap each operation in
-one, and the orderings then only document intent. `Deps.Storagedeps` carries `Lock` and
+one, and the orderings then only document intent. `Deps.StorageDeps` carries `Lock` and
 `UnLock` for a backend that offers advisory leases; Keep never calls them itself — see
 [StorageContract](../StorageContract/doc.md).
 

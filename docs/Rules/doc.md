@@ -9,7 +9,8 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
 
 - **Generate over hand-write.** A file that can be rendered from a template, a collector or a
   declaration must be. Hand-written code is contracts, adapters, `sandbox/internal/` and
-  `handler.go` only; a new hand-written file needs a reason why generation cannot cover it.
+  `handler.go` only; a new hand-written file needs a reason why generation cannot
+  cover it.
 - **Every file is an instance of a pattern.** New code copies an existing sibling exactly:
   same filenames, same function names, same ordering. If no pattern fits, define and document
   the pattern first — `verify` and the collectors read shape by convention, so a one-off
@@ -19,6 +20,13 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
 - A generated file is never edited — the `always` rows of
   [GeneratedFiles](../GeneratedFiles/doc.md), `(gen)` in [Structure](../Structure/doc.md).
   Change the declaration it is rendered from, then run `build`.
+- `sandbox/internal/generated/` holds every package `build` rewrites whole and nothing else: no
+  file there is ever edited, and no hand-written package is ever put there. It holds the
+  registries and config alone — code that is the same in every project is an `OpinionatedAgnos<X>`
+  lib, not a generated package. Importing a package an older build generated there names its
+  replacement. **(verify)** A package mixing a
+  generated file with a hand-written one — a command, a route, a database — stays under
+  `sandbox/internal/`.
 - Generated `.go` is gofmt'ed as it is written, so a regenerated tree diffs to zero against one
   a formatting editor has saved.
 - `build` compiles `./cmd/... ./sandbox/... ./adapters/...`, never `./...`.
@@ -28,9 +36,9 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
 - What this project generates is declared in `AgnosConfig/extensions.yaml`, one key per
   mechanic, and nowhere else: `build` never infers a mechanic from a directory being present.
   A missing declaration is a hard error, not a default. **(verify)**
-- Only the keys of the catalog may appear, and no `sandbox-<x>` mechanic is on while `sandbox`
+- Only the keys of the catalog may appear, and no mechanic that renders into the sandbox is on while `sandbox`
   is off. **(verify)**
-- `false` means *stop generating*, never *delete*: agnos leaves what the mechanic already
+- `false` means *stop generating*, never *delete*: `agnos` leaves what the mechanic already
   wrote exactly as it is, for the project to keep or edit by hand. Removing those files is
   what an `<x>-purge` does — and it is the same command that writes the `false`.
 - The declaration is written by `agnos enable-extension` / `disable-extension` and
@@ -42,65 +50,95 @@ makes each kind of change is in [Workflow](../Workflow/doc.md).
 - `sandbox/` is closed: a file there imports only `sandbox/` packages — the stdlib included. A
   capability from outside (io, text, sorting, hashing, templating) is restated as a contract
   under `sandbox/deps/` and reached as `sandbox.Deps.<Contract>`. **(verify)**
-- `sandbox/` holds only `api`, `deps`, `internal` and `new.go`. **(verify)**
-- `sandbox/api/*` imports nothing but the loose `sandbox/deps` package, and imports that
-  only for `Sandbox.Deps`. **(verify)**
+- `sandbox/` holds only `api`, `constructors`, `deps`, `internal` and `new.go`. **(verify)**
+- `sandbox/api/*` imports nothing but the loose `sandbox/deps` package, for `Sandbox.Deps`, and
+  the `sandbox/deps/OpinionatedAgnos<X>` contracts, for the aliases a mechanic's api file is made
+  of. **(verify)**
 - Every function of `sandbox/internal/` takes `sandbox *api.Sandbox` as
   its first parameter and nothing else standing for the outside world: deps is reached as
   `sandbox.Deps.<Contract>`, and the rest of the api as `sandbox.<Field>`. Holding the api is
   what lets one part of it call another, and what makes a field a caller replaced take effect
   everywhere.
 - `sandbox/deps/<x>/` imports nothing at all: a contract is written in Go's builtin types only,
-  and the adapter converts. The loose `sandbox/deps/*.go` is the one exception — it may name
-  `sandbox/deps` packages, to compose `deps.Deps`. **(verify)**
+  and the adapter converts. The loose `sandbox/deps/*.go` may name `sandbox/deps` packages, to
+  compose `deps.Deps`, and an `OpinionatedAgnos<X>/` contract may import other contracts under
+  `sandbox/deps/` and nothing else. **(verify)**
+- A dep states a library's raw capability and never a decision of the project using it — except
+  an **opinionated lib**, `OpinionatedAgnos<X>`, the one kind of dep that carries an agnos mechanic
+  itself: `OpinionatedAgnosCli` (the command types, the dispatch chain, binding, failures, triggers),
+  `OpinionatedAgnosServer` (the route types, the request chain, binding, json-schema, writers),
+  `OpinionatedAgnosFront` (the file layer of `assets/front/`), `OpinionatedAgnosDatabase` (the readers
+  every `methods.go` shares). Each mechanic's `-init` installs its lib, and a mechanic is never on
+  without it. **(verify)** The lib holds no dep: what it reaches the outside world through is
+  handed to it — a `MainProps` built by the generated registry, or the one dep a call needs as
+  its first parameter. What stays in the sandbox is what the project declares or edits.
 - Every `sandbox/api/<x>.go` other than `sandbox.go`, `command.go` and `route.go` is a field of
-  the `Sandbox`, built by the `New<X>(sandbox) api.<X>` its `sandbox/internal/<x>/new.go`
-  declares — the one name `sandbox/new.go` calls. A contract with no such file is a field
-  nothing fills, and `sandbox/new.go` leaves it alone. **(verify)**
+  the `Sandbox`, built by the `New<X>(sandbox) api.<X>` its `sandbox/internal/<x>/new.go` —
+  or `sandbox/internal/<x>/<x>/new.go`, for a layer split into packages — declares — the one name `sandbox/constructors/<x>/constructor.go` calls. A contract with no
+  such file is a field nothing fills, and no constructor is written for it. **(verify)**
+- `sandbox/new.go` is one `<x>.Constructor(&self)` per directory of `sandbox/constructors/`,
+  in name order, and nothing else. The directories are the list, so a constructor written by
+  hand is called exactly like a generated one.
+- Every directory under `sandbox/constructors/` holds a `constructor.go` declaring
+  `Constructor(sandbox *api.Sandbox)`, and is named after the package it declares.
+  **(verify)**
+- `sandbox/constructors/<x>/constructor.go` is written **once**, by the first `build` that
+  finds the contract, and no build rewrites it: how a field of the `Sandbox` is built — wrapped,
+  decorated, swapped for another implementation — is the project's, not the generator's.
+- `sandbox/api/projectsandbox.go` and `sandbox/api/projectconfig.go` are written **once**, by `start`,
+  and no build rewrites them: `api.Sandbox` embeds `api.ProjectSandbox` and `api.Config` embeds
+  `api.ProjectConfig`, so what the project declares there is read as `sandbox.<Field>` and
+  `sandbox.Config.<Field>`. Neither is a field of its own, so neither gets a constructor: a
+  `ProjectSandbox` field is filled by a package of the project's under `sandbox/constructors/`, a
+  `ProjectConfig` one in `sandbox/constructors/config/constructor.go`. Each must be there while the
+  file embedding it is. **(verify)**
 - Every file of `sandbox/api/` and `sandbox/deps/` parses, and every exported type, func, const
   and var in them carries a doc comment — [PublicApi](../PublicApi/doc.md) is generated from
   those comments. **(verify)**
 - `adapters/` is the only place OS-bound and third-party code lives, and holds only
-  `availables` and `libs`. **(verify)**
-- Every `adapters/libs/<adapter>/` exports `Bind(deps *deps.Deps)` and carries the
+  `bindings` and `impls`. **(verify)**
+- Every `adapters/impls/<adapter>/` exports `Bind(deps *deps.Deps)` and carries the
   `adapter.yaml` naming the dep it fills. **(verify)**
-- Every available fills every field of `Deps` **exactly once**: zero is a nil func that panics
+- Every binding fills every field of `Deps` **exactly once**: zero is a nil func that panics
   on first use, two is a silent overwrite in which the last binder wins. Which adapter fills
   which field is read from `adapter.yaml`, never from the body of a `Bind`. **(verify)**
-- `adapters/availables/<name>/available.yaml` is the only place the choice of adapter is
-  recorded; `set-adapter` is its only editor. An available with no `available.yaml` is
+- `adapters/bindings/<name>/binding.yaml` is the only place the choice of adapter is
+  recorded; `set-adapter` is its only editor. A binding with no `binding.yaml` is
   hand-written and no build touches it.
 - Every type of `sandbox/api/` is convertible: its underlying type is identical
   in a copy of the package made elsewhere, or it is a struct the generator can
   write a converter for. No generics, no `chan`, no anonymous struct or
-  interface, no embedded field, and no identifier that is neither predeclared
+  interface, no embedded field but a struct the package declares, and no identifier that is neither predeclared
   nor declared in the package. `Sandbox.Deps` is the one field exempt, because
   it is the one field that does not cross: a consumer installs the api of a
-  repo, never its wiring, so the copy drops it. This is what makes every agnos
+  repo, never its wiring, so the copy drops it. A mechanic's surface — an alias of an
+  `OpinionatedAgnos<X>` type, and a part holding only those — is exempt for the same reason: it is
+  the lib's, and the copy drops it too. This is what makes every agnos
   repo installable as a dep. **(verify)**
 - `cmd/main/` wires an adapter into the sandbox and holds no logic.
 
 ## Naming
 
-- A `Deps` field is the title-cased `sandbox/deps/<dir>` (`iodeps` -> `deps.Iodeps`). Always
+- A `Deps` field is the title-cased `sandbox/deps/<dir>` (`iodeps` -> `deps.IoDeps`). Always
   use that spelling; an added contract never renames an existing one.
-- An adapter's binder is always `Bind(deps *deps.Deps)` in `adapters/libs/<adapter>/<adapter>.go`.
-- A command handler is always `CommandHandler(sandbox *api.Sandbox, command *api.Command) int`.
+- An adapter's binder is always `Bind(deps *deps.Deps)` in `adapters/impls/<adapter>/<adapter>.go`.
+- A command handler is always `Handle(sandbox *api.Sandbox, props *commandprops.CommandProps, input *Input, response *api.CommandResponse) error`.
 - A package's first file is named after the package (`sandbox/deps/iodeps/iodeps.go`,
-  `adapters/libs/iodeps/iodeps.go`); a second file is named after what it holds.
-- A dep is named after the contract it installs; an adapter after what backs it (`sortdeps`,
-  adapter `reflectsort`). The two are separate names because one dep may have several adapters.
+  `adapters/impls/osio/osio.go`); a second file is named after what it holds.
+- A dep is named after the contract it installs, `<x>deps`; an adapter `<impl><x>`, after what
+  backs it (`sortdeps`, adapters `stdsort` and `reflectsort`). The two are separate names because one dep may have several adapters.
 - Reusable logic goes in `sandbox/internal/<pkg>/`, one directory per concern.
 
 ## Output channels
 
-| Channel | Stream | Carries | `--quiet` |
+| Channel | Stream | Carries | Silenced |
 |---|---|---|---|
-| `deps.Std.Printf` | stdout | The result (listings, version, help) | kept |
-| `deps.Std.Log` | stderr | Progress | silenced |
-| `deps.Std.Error` | stderr | Usage errors and failures | kept |
+| `deps.StdDeps.Printf` | stdout | The result (listings, version, help) | never |
+| `deps.StdDeps.Logf` | stderr | Progress | by a middleware that turns it off |
+| `deps.StdDeps.Eprintf` | stderr | Usage errors and failures | never |
 
-Never `fmt.Printf`.
+Never `fmt.Printf`. A generated cli declares no `--quiet`: add it as a
+`--middleware` whose handler silences `Log` when the project wants one.
 
 ## Exit codes
 
@@ -112,9 +150,9 @@ Never `fmt.Printf`.
 
 ## Docs
 
-- A doc is `docs/<Name>/{doc.md,props.yaml}`; sub-docs nest as `docs/<Name>/<Sub>/`. Other
+- A doc is `docs/<Name>/{doc.md,doc.yaml}`; sub-docs nest as `docs/<Name>/<Sub>/`. Other
   files in a doc dir are assets. Create and delete them with `add-doc` / `remove-doc`.
-- Every `docs/**` dir has a parsable `props.yaml`; a first-level doc names at least one theme of
+- Every `docs/**` dir has a parsable `doc.yaml`; a first-level doc names at least one theme of
   `AgnosConfig/themes.yaml`, a sub-doc names none. A theme no doc names renders no README
   section and is not an error. **(verify)**
 - A theme only groups a doc into a section of `README.md`.
@@ -125,7 +163,7 @@ Never `fmt.Printf`.
   [PublicApi](../PublicApi/doc.md) from the doc comments of `sandbox/api/` and `sandbox/deps/`,
   [Structure](../Structure/doc.md) from
   `AgnosConfig/structure.yaml`, `README.md` from
-  `AgnosConfig/docs/ReadmeHeader.md` and every `props.yaml`.
+  `AgnosConfig/docs/ReadmeHeader.md` and every `doc.yaml`.
 - Docs are short, objective and dense: tables, commands, file paths and rules — no prose, no
   narrative, no tutorials, no motivation sections. One page per topic; no sub-doc unless the
   content is a real list of independent items.
@@ -139,14 +177,14 @@ Never `fmt.Printf`.
   `remove-lib-example`,
   never by hand — the same rule as `add-doc` / `remove-doc`.
 - An example runs with its own directory as the working directory and writes only inside its own
-  `TestDir`, which `exec-test` removes before every run.
-- An example ends by copying out of `TestDir` into `AssertDir` the paths it asserts, each keeping
-  the place it holds in the tree — `AssertDir` is what `result.yaml` records, and `exec-test`
-  removes it before every run too. Copying is not moving: `TestDir` stays whole, for reading.
+  `test-dir`, which `run-examples` removes before every run.
+- An example ends by copying out of `test-dir` into `assert-dir` the paths it asserts, each keeping
+  the place it holds in the tree — `assert-dir` is what `result.yaml` records, and `run-examples`
+  removes it before every run too. Copying is not moving: `test-dir` stays whole, for reading.
 - An example that copies nothing out fails. Assert the paths the example is about and no more:
   a golden holding the whole project breaks on every unrelated template change.
-- `result.yaml` is generated by `exec-test`. Refresh one golden with `update-test <name>`, the
-  whole suite with `exec-test --update`, or delete it; never edit one.
+- `result.yaml` is generated by `run-examples`. Refresh one golden with `update-example <name>`, the
+  whole suite with `run-examples --update`, or delete it; never edit one.
 - An example's output carries no absolute path other than its own directory, no timestamp and no
   resolved version: those are normalized away or make the golden machine-specific.
 

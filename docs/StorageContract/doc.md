@@ -90,17 +90,17 @@ Two files and a line of yaml, the same as any adapter — the recipe is in
 [Workflow](../Workflow/doc.md#add-a-dependency):
 
 ```
-adapters/libs/<name>/<name>.go       func Bind(deps *deps.Deps) { deps.Storagedeps = … }
-adapters/libs/<name>/adapter.yaml    dep: storagedeps
+adapters/impls/<name>/<name>.go      func Bind(deps *deps.Deps) { deps.StorageDeps = … }
+adapters/impls/<name>/adapter.yaml   dep: storagedeps
 ```
 
-Then point an available at it:
+Then point a binding at it:
 
 ```bash
-agnos add-available <name>
-agnos set-adapter storagedeps <name> --available <name>
+agnos add-binding <name>
+agnos set-adapter storagedeps <name> --binding <name>
 agnos list-adapters
 ```
 
-`adapters/libs/memstorage/memstorage.go` is the shortest complete implementation to copy
+`adapters/impls/memstorage/memstorage.go` is the shortest complete implementation to copy
 from: it is roughly 150 lines over a map, and it fills every field.

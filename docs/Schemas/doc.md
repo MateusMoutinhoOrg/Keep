@@ -7,7 +7,7 @@ the first record does.
 
 ```go
 var Props = api.Props{
-	Path: "TestDir/database/",
+	Path: "test-dir/database/",
 	Schemas: []api.Schema{
 		{
 			Name: "user",

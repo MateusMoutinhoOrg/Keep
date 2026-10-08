@@ -18,7 +18,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/standard"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/standard"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
@@ -49,7 +49,7 @@ func main() {
 }
 ```
 
-Swap `adapters/availables/standard` for `adapters/availables/native` and the same program
+Swap `adapters/bindings/standard` for `adapters/bindings/native` and the same program
 runs entirely in memory. Nothing else changes: the library only ever calls the eleven
 single-key functions of `sandbox/deps/storagedeps`, and which implementation stands behind
 them is decided by the one import a program picks.
@@ -64,5 +64,5 @@ them is decided by the one import a program picks.
 
 This repository is generated and checked by [agnos](https://github.com/MateusMoutinhoOrg/Agnos):
 `agnos build` rewrites every generated file, `agnos verify` checks the schema, and
-`agnos exec-test` runs every example against its golden. See
+`agnos run-examples` runs every example against its golden. See
 [Requirements](docs/Requirements/doc.md) and [Workflow](docs/Workflow/doc.md).

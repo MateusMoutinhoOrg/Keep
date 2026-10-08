@@ -5,19 +5,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/MateusMoutinhoOrg/Keep/adapters/availables/native"
+	"github.com/MateusMoutinhoOrg/Keep/adapters/bindings/native"
 	"github.com/MateusMoutinhoOrg/Keep/sandbox"
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
 )
 
 // The same database over a different backend.
 //
-// Every other example builds its deps from adapters/availables/standard,
+// Every other example builds its deps from adapters/bindings/standard,
 // which binds filestorage and writes one file per key. This one imports
 // native instead, which binds memstorage and writes nothing anywhere. Not a
 // line below the import changes: the sandbox calls the same eleven
 // single-key functions either way, and which implementation stands behind
-// them is decided by the available a program picks.
+// them is decided by the binding a program picks.
 
 // Props describes the database this example builds. Path is still a prefix
 // — the in-memory backend just keeps it as part of the key.
@@ -75,15 +75,15 @@ func main() {
 		report.WriteString(user.String())
 		report.WriteString("\n")
 	}
-	if err := os.MkdirAll("TestDir", 0o755); err != nil {
+	if err := os.MkdirAll("test-dir", 0o755); err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile("TestDir/users.txt", []byte(report.String()), 0o644); err != nil {
+	if err := os.WriteFile("test-dir/users.txt", []byte(report.String()), 0o644); err != nil {
 		panic(err)
 	}
-	fmt.Println("wrote TestDir/users.txt with", len(all), "users")
+	fmt.Println("wrote test-dir/users.txt with", len(all), "users")
 
-	if err := os.CopyFS("AssertDir", os.DirFS("TestDir")); err != nil {
+	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)
 	}
 }
