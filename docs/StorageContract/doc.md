@@ -28,7 +28,8 @@ slash — `["a", "b.txt"]` becomes `a/b.txt` — on one condition: **the flatten
 injective**. Two different segment lists must never resolve to the same place, which is why
 both shipped adapters escape each segment *before* joining: `["a/b"]` and `["a", "b"]` stay
 two different keys. `filestorage` uses one directory per segment, which also keeps a key
-from reaching outside its base directory.
+from reaching outside its base directory, and removes a directory as soon as the last key
+under it is deleted, so a removed record leaves nothing behind on disk.
 
 A value is an arbitrary byte slice. Keep stores short ASCII in practice — decimal integers
 and field values — but nothing in the contract bounds either.
@@ -62,7 +63,7 @@ absent key turns an ordinary lookup into a reported failure.
 | `Exists` | answer without reading the value, where the backend allows it |
 | `Read` | return the whole value, and `nil` with `found == false` for a key that holds nothing |
 | `ReadAt` | count `position` in bytes; truncate a range reaching past the end rather than refusing it |
-| `Delete` | succeed on a key that holds nothing |
+| `Delete` | succeed on a key that holds nothing, and leave behind nothing the backend created only for that key (a directory, a bucket prefix) |
 | `Lock` | take an advisory lease expiring after `seconds`; a backend with no leases may report `locked == true` and do nothing |
 | `UnLock` | succeed when nobody holds the lease |
 

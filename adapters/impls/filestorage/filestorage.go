@@ -45,6 +45,20 @@ func (s *store) lockPath(key []string) string {
 	return s.path(key) + ".keeplock"
 }
 
+// prune removes the directories a deleted key leaves empty, deepest first,
+// so removing a record leaves nothing behind it on disk. It stops at the
+// first directory still holding another key — os.Remove refuses a non-empty
+// one — and never removes the base directory itself.
+func (s *store) prune(key []string) {
+	base := s.path(nil)
+	for end := len(key) - 1; end > 0; end-- {
+		dir := s.path(key[:end])
+		if dir == base || os.Remove(dir) != nil {
+			return
+		}
+	}
+}
+
 // describe renders a key for an error message, in the ["a", "b.txt"] ->
 // "a/b.txt" form the whole contract reads keys as.
 func describe(key []string) string {
@@ -195,10 +209,11 @@ func New(base string) storagedeps.Contract {
 		},
 		Delete: func(key []string) error {
 			err := os.Remove(s.path(key))
-			if errors.Is(err, os.ErrNotExist) {
-				return nil
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
 			}
-			return err
+			s.prune(key)
+			return nil
 		},
 		Lock: func(key []string, seconds int) (bool, error) {
 			path := s.lockPath(key)
@@ -234,10 +249,11 @@ func New(base string) storagedeps.Contract {
 		},
 		UnLock: func(key []string) error {
 			err := os.Remove(s.lockPath(key))
-			if errors.Is(err, os.ErrNotExist) {
-				return nil
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
 			}
-			return err
+			s.prune(key)
+			return nil
 		},
 	}
 }
