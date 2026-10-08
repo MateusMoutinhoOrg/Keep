@@ -30,7 +30,8 @@ package storagedeps
 
 // Contract is the storage library injected whole as the Deps.StorageDeps
 // field. The first group of fields writes, the second reads, and the last
-// two are the optional advisory lease a multi-writer backend can offer.
+// two are the advisory lease Keep takes on a collection before writing to
+// it.
 type Contract struct {
 	// Write stores value under key, overwriting any current value and
 	// creating the key when it is absent.
@@ -72,13 +73,17 @@ type Contract struct {
 	Delete func(key []string) error
 
 	// Lock takes an advisory lease on key for seconds seconds. locked is
-	// false when someone else already holds a lease that has not expired,
-	// which is not an error. Keep never calls it itself — a database is
-	// written by one writer at a time — so a backend with no leases may
-	// report locked == true and do nothing.
+	// false when anyone — this process included — already holds a lease on
+	// key that has not expired, which is not an error. Keep takes one on the
+	// prefix of a top-level collection around every write to it, and waits
+	// while it is held, so writers in different processes sharing the
+	// backend never interleave. A lease lives beside the keys, never among
+	// them: taking one on ["a"] never reads, writes or shadows the key ["a"].
+	// A backend with no leases may report locked == true and do nothing;
+	// writers are then serialized only within one process.
 	Lock func(key []string, seconds int) (locked bool, err error)
 
-	// Unlock releases a lease taken by Lock. Releasing a lease nobody holds
-	// is not an error.
+	// Unlock releases a lease taken by Lock, whoever took it. Releasing a
+	// lease nobody holds is not an error.
 	Unlock func(key []string) error
 }

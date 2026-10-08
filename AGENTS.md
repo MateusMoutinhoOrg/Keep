@@ -49,8 +49,10 @@ Everything else is regenerated over.
 
 - **The sandbox may not import the standard library.** `fmt` is `sandbox.Deps.StdDeps.Sprintf`,
   `strconv`/`strings` are `sandbox.Deps.StringsDeps`, `crypto/sha256` is
-  `sandbox.Deps.HashDeps`, and storage is `sandbox.Deps.StorageDeps`. A new capability is a
-  new contract under `sandbox/deps/`, filled by every binding (`standard` and `memory`).
+  `sandbox.Deps.HashDeps`, `time.Sleep` is `sandbox.Deps.SleepDeps`, Unicode case folding is
+  `sandbox.Deps.FoldDeps`, and storage is `sandbox.Deps.StorageDeps`. A mutex is a buffered
+  `chan struct{}` — a builtin. A new capability is a new contract under `sandbox/deps/`,
+  filled by every binding (`standard` and `memory`).
 - **`sandbox/deps/storagedeps` reports no expected condition as an error.** Absent is
   `found == false`, a conditional write that did not apply is `written == false`. That is why
   it needs no sentinel values and so no import. See
@@ -58,7 +60,16 @@ Everything else is regenerated over.
 - **The write orderings are load-bearing.** An insert commits on its last write; an update
   to a `Key` field writes the new index entry before it moves the value. Changing
   `sandbox/internal/dense` or `sandbox/internal/record` means preserving every invariant
-  of [docs/DenseRecordPattern](docs/DenseRecordPattern/doc.md).
+  of [docs/DenseRecordPattern](docs/DenseRecordPattern/doc.md), and keeping every one of its
+  operations correct when run again after it stopped part-way.
+- **Never trust a key on its own.** A record is live only by `dense.Live`, a list slot by
+  `dense.SlotLive`, an index entry by `dense.IndexOwner` — a failed write leaves keys behind
+  that look like data. Delete an index entry only while it still names the record deleting
+  it.
+- **The write lock is not reentrant.** A public closure that writes takes
+  `writelock.Acquire` on the top-level collection and calls only internal functions; a public
+  closure called while the lock is held deadlocks. `ClearCollection` calls `remove`, never
+  `Record.Remove`.
 - **No api type carries a `Deps` field.** `Sandbox.Deps` is the only one, and it is the one
   field that does not cross into a consumer. A record reaches storage through the closure it
   was built with, which is what keeps every api type convertible and Keep installable as a

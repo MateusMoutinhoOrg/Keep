@@ -36,7 +36,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	files, ok := db.Collection("file")
 	if !ok {
 		panic(`the Props declares no "file" schema`)

@@ -1,12 +1,12 @@
 cli-output: |
-    updated: {id: 1, email: mateus@keep.dev, handle: mateus, age: 27}
+    updated: {id: 1, email: "mateus@keep.dev", handle: "mateus", age: 27}
     found under the new email: true
     found under the old email: false
-    by id: {id: 1, email: mateus@keep.dev, handle: mateus, age: 27}
+    by id: {id: 1, email: "mateus@keep.dev", handle: "mateus", age: 27}
     refused: value for key "email" already exists (field "email", value ana@gmail.com)
     email after the refusal: mateus@keep.dev
     handles: ana and ana
-    found by handle: false
+    lookup by handle refused: true
 exit-code: 0
 tree:
     - file: database/user/1/position

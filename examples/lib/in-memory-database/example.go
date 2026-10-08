@@ -15,9 +15,9 @@ import (
 // Every other example builds its deps from adapters/bindings/standard,
 // which binds filestorage and writes one file per key. This one imports
 // memory instead, which binds memstorage and writes nothing anywhere. Not a
-// line below the import changes: the sandbox calls the same eleven
-// single-key functions either way, and which implementation stands behind
-// them is decided by the binding a program picks.
+// line below the import changes: the sandbox calls the same single-key
+// functions either way, and which implementation stands behind them is
+// decided by the binding a program picks.
 
 // Props describes the database this example builds. Path is still a prefix
 // — the in-memory backend just keeps it as part of the key.
@@ -41,7 +41,10 @@ func main() {
 
 	fmt.Printf("%s %s\n", lib.Info.Name(), lib.Info.Version())
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -56,8 +59,8 @@ func main() {
 		}
 	}
 
-	found, ok := users.FindByKey("email", "ana@gmail.com")
-	if !ok {
+	found, ok, failure := users.FindByKey("email", "ana@gmail.com")
+	if failure != nil || !ok {
 		panic("ana should have been found")
 	}
 	fmt.Println("found:", found.String())

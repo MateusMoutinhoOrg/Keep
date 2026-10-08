@@ -1,8 +1,9 @@
 cli-output: |
-    post: {id: 1, slug: storage-independent-databases, author: 1}
-    author: {id: 1, email: mateus@gmail.com, age: 27}
+    post: {id: 1, slug: "storage-independent-databases", author: 1}
+    author: {id: 1, email: "mateus@gmail.com", age: 27}
     author id: 1 (int64)
-    author after update: {id: 2, email: other@gmail.com, age: 31}
+    author after update: {id: 2, email: "other@gmail.com", age: 31}
+    a post as the author refused: true
     author after removal: false
 exit-code: 0
 tree:

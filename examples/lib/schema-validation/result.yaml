@@ -1,0 +1,12 @@
+cli-output: |
+    a field with no Type: field "user.city", field "user.city" declares no Type
+    a field declared twice: field "user.email", field "user.email" is declared twice
+    a link to no schema: field "user.team", link field "user.team" targets "teams", which is not a schema of the Props
+    a nested field under a reserved name: field "user.values", nested field "user.values" takes a reserved name: a record already keeps its "values" key
+    a schema declared twice: field "user", schema "user" is declared twice
+    a Path leaving its base: field "", Path "../outside/" holds a ".." segment: give the backend the base directory instead
+    a valid Props: accepted
+exit-code: 0
+tree:
+    - file: refusals.txt
+      sha: a06dd9798e5e00c95467d7420f184836b4d60748a051f9294a6ea5fbc00d35fd

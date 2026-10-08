@@ -1,0 +1,5 @@
+dep: sleepdeps
+help: Pause the calling goroutine over time.Sleep
+module: ""
+name: timesleep
+origin: local

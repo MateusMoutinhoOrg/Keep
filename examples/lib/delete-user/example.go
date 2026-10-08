@@ -42,7 +42,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -58,7 +61,10 @@ func main() {
 		}
 	}
 
-	mateus, _ := users.FindByKey("email", "mateus@gmail.com")
+	mateus, _, failure := users.FindByKey("email", "mateus@gmail.com")
+	if failure != nil {
+		panic(failure.Message)
+	}
 	if _, failure := mateus.InsertNested("sessions", map[string]any{"token": "token-1"}); failure != nil {
 		panic(failure.Message)
 	}
@@ -69,8 +75,14 @@ func main() {
 		panic(failure.Message)
 	}
 
-	_, ok = users.FindByKey("email", "mateus@gmail.com")
+	_, ok, _ = users.FindByKey("email", "mateus@gmail.com")
 	fmt.Println("found after removal:", ok)
+
+	// A record handle outlives its record, but it cannot write to it any
+	// more: an update to a removed record is refused, rather than bringing
+	// back values nothing lists.
+	failure = mateus.Update("age", 28)
+	fmt.Println("update after removal refused:", failure != nil && failure.Type == api.Removed)
 
 	// Removing a record that is already gone is not a failure.
 	if failure := mateus.Remove(); failure != nil {

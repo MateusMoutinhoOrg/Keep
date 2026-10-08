@@ -37,7 +37,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	products, ok := db.Collection("product")
 	if !ok {
 		panic(`the Props declares no "product" schema`)
@@ -86,10 +89,11 @@ func main() {
 	fmt.Printf("second price: %v (%T)\n", price, price)
 
 	// FindByKey only reads the index of a Key field, so it never finds a
-	// record by a String — not even one holding that exact value.
-	_, ok = products.FindByKey("title", "Mechanical Keyboard")
-	fmt.Println("found by title:", ok)
-	found, ok := products.FindByKey("sku", "kb-002")
+	// record by a String — not even one holding that exact value. Asking is
+	// a mistake in the call, and is refused as one.
+	_, _, failure = products.FindByKey("title", "Mechanical Keyboard")
+	fmt.Println("lookup by title refused:", failure != nil && failure.Type == api.InvalidField)
+	found, ok, _ := products.FindByKey("sku", "kb-002")
 	fmt.Println("found by sku:", ok, found.ID)
 
 	// An Update to either type is a single write: neither moves an index.

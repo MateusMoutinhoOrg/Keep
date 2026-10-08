@@ -26,18 +26,23 @@ sandbox/               closed: imports nothing outside sandbox/, no OS packages
   deps/                one dir per capability the sandbox needs from outside; each imports nothing at all
     deps.go            (gen) one field per sub-directory, title-cased
     storagedeps/       the single-key storage backend - the whole of what Keep asks of one
+    folddeps/          Unicode case folding - what makes a Key ignore case in every script
+    sleepdeps/         a pause - what a writer waits with while another process holds the lease
   internal/            the logic; unreachable from outside the sandbox
     generated/         (gen) the config, ProjectName and Version from AgnosConfig/project.yaml
-    databases/         NewDatabases, and the Database a Props is bound to
+    databases/         NewDatabases, the Database a Props is bound to, and the check of a Props (validate.go)
     collection/        one collection - insert, find, list
-    record/            one record - read, update, remove, and the nested collections under it
-    dense/             the key layout and value encoding of the dense record pattern
+    record/            one record - read, update, remove (remove.go), and the repair of a collection (repair.go)
+    dense/             the key layout, the value encoding, and what makes a record, a slot or an index entry live (live.go)
+    writelock/         the write lock of a top-level collection - in-process, then a storage lease
     liberror/          the constructors every *api.Error is built by
     info/              NewInfo
 adapters/              the only place OS-bound and third-party code lives
   impls/               one dir per adapter, each exporting Bind and carrying an adapter.yaml
     filestorage/       storagedeps over one file per key
     memstorage/        storagedeps over a map, lost when the process exits
+    xtextfold/         folddeps over golang.org/x/text
+    timesleep/         sleepdeps over time.Sleep
   bindings/            one dir per selection of adapters; new.go beside each is generated from its binding.yaml
     standard/          filestorage - what a program that wants a database on disk imports
     memory/            memstorage - the same library with nothing written anywhere

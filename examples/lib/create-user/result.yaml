@@ -1,5 +1,5 @@
 cli-output: |
-    created: {id: 1, email: mateus@gmail.com, username: mateus, age: 27}
+    created: {id: 1, email: "mateus@gmail.com", username: "mateus", age: 27}
     refused: value for key "email" already exists (field "email", value mateus@gmail.com)
     refused: required field "username" is missing
 exit-code: 0

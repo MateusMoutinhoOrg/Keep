@@ -1,9 +1,9 @@
 cli-output: |
     before any insert: 0
     users: 3
-     - {id: 1, email: mateus@gmail.com, username: mateus, age: 27}
-     - {id: 2, email: ana@gmail.com, username: ana, age: 31}
-     - {id: 3, email: bruno@gmail.com, username: bruno, age: 44}
+     - {id: 1, email: "mateus@gmail.com", username: "mateus", age: 27}
+     - {id: 2, email: "ana@gmail.com", username: "ana", age: 31}
+     - {id: 3, email: "bruno@gmail.com", username: "bruno", age: 44}
 exit-code: 0
 tree:
     - file: database/user/1/position

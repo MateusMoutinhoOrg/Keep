@@ -1,9 +1,9 @@
 cli-output: |
-    first: {id: 1, sku: kb-001, title: Mechanical Keyboard, price: 249.9}
+    first: {id: 1, sku: "kb-001", title: "Mechanical Keyboard", price: 249.9}
     price: 249.90 (float64), title: Mechanical Keyboard (string)
-    second: {id: 2, sku: kb-002, title: Mechanical Keyboard, price: 199}
+    second: {id: 2, sku: "kb-002", title: "Mechanical Keyboard", price: 199}
     second price: 199 (float64)
-    found by title: false
+    lookup by title refused: true
     found by sku: true 2
     second price after update: 179.5
     refused: field "price" expects a floating-point value, got string

@@ -1,0 +1,1 @@
+description: "Insert from many goroutines at once, and see a contested unique key won exactly once"

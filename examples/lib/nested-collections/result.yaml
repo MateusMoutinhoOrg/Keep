@@ -5,8 +5,9 @@ cli-output: |
     second session has a device: false
     refused under mateus: value for key "token" already exists
     accepted under ana: token-1
-    Get on a nested field: field "sessions" is a nested collection, use ListNested("sessions")
+    Get on a nested field: field "sessions" is a nested collection, use Nested("sessions")
     ana's sessions after removing mateus: 1
+    insert under removed mateus refused: true
     device still there: true
 exit-code: 0
 tree:

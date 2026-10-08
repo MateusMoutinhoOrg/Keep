@@ -65,7 +65,9 @@ The contracts available to patch:
 
 | Field | Contract package |
 | --- | --- |
+| `deps.FoldDeps` | `sandbox/deps/folddeps` |
 | `deps.HashDeps` | `sandbox/deps/hashdeps` |
+| `deps.SleepDeps` | `sandbox/deps/sleepdeps` |
 | `deps.StdDeps` | `sandbox/deps/stddeps` |
 | `deps.StorageDeps` | `sandbox/deps/storagedeps` |
 | `deps.StringsDeps` | `sandbox/deps/stringsdeps` |
@@ -80,6 +82,8 @@ exposing the same `Bind(deps *deps.Deps)` entry point:
 | `adapters/impls/osstd` | `osstd.Bind(&deps)` |
 | `adapters/impls/sha256hash` | `sha256hash.Bind(&deps)` |
 | `adapters/impls/stdstrings` | `stdstrings.Bind(&deps)` |
+| `adapters/impls/timesleep` | `timesleep.Bind(&deps)` |
+| `adapters/impls/xtextfold` | `xtextfold.Bind(&deps)` |
 
 Starting from `standard.New()` is the safe default: an unfilled field is a nil func that
 panics on first call. For a permanent mix, write your own

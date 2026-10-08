@@ -6,8 +6,9 @@ cli-output: |
     bio = writes databases (string)
     nickname: field "nickname" has no value for this record
     phone: field "phone" is not part of the schema
-    has email and age: true
-    has email and nickname: false
+    has [email age]: true
+    has [email nickname]: false
+    HasValues with phone refused: true
 exit-code: 0
 tree:
     - file: database/user/1/position

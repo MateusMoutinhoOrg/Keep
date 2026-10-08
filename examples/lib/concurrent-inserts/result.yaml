@@ -1,0 +1,11 @@
+cli-output: |
+    distinct inserts: 80
+    same email: won 1 refused 7
+    failures: 0
+    listed: 81
+exit-code: 0
+tree:
+    - file: database/user/last-id
+      sha: 5316ca1c5ddca8e6ceccfce58f3b8540e540ee22f6180fb89492904051b3d531
+    - file: database/user/size
+      sha: 5316ca1c5ddca8e6ceccfce58f3b8540e540ee22f6180fb89492904051b3d531

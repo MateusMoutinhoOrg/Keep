@@ -44,7 +44,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, _ := db.Collection("user")
 	posts, _ := db.Collection("post")
 
@@ -68,8 +71,8 @@ func main() {
 
 	// GetLink reads the id and resolves it in the collection Target names,
 	// with no Collection and no FindByID at the call site.
-	resolved, ok := post.GetLink("author")
-	if !ok {
+	resolved, ok, failure := post.GetLink("author")
+	if failure != nil || !ok {
 		panic("the author should have resolved")
 	}
 	fmt.Println("author:", resolved.String())
@@ -93,8 +96,14 @@ func main() {
 	if failure := post.Update("author", other.ID); failure != nil {
 		panic(failure.Message)
 	}
-	resolved, _ = post.GetLink("author")
+	resolved, _, _ = post.GetLink("author")
 	fmt.Println("author after update:", resolved.String())
+
+	// A record of another collection is refused: its id would name a
+	// different user. Only the id of a user, or a user record, is a link
+	// "author" can hold.
+	failure = post.Update("author", post)
+	fmt.Println("a post as the author refused:", failure != nil && failure.Type == api.InvalidField)
 
 	// Remove the author and the link stops resolving. It never resolves to
 	// a different user: ids are allocated from a counter that only grows,
@@ -102,7 +111,7 @@ func main() {
 	if failure := resolved.Remove(); failure != nil {
 		panic(failure.Message)
 	}
-	_, ok = post.GetLink("author")
+	_, ok, _ = post.GetLink("author")
 	fmt.Println("author after removal:", ok)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {

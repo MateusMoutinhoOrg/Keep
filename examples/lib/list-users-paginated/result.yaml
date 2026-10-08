@@ -1,12 +1,12 @@
 cli-output: |
     page at 1:
-     - {id: 1, email: mateus1@gmail.com, age: 21}
-     - {id: 2, email: mateus2@gmail.com, age: 22}
+     - {id: 1, email: "mateus1@gmail.com", age: 21}
+     - {id: 2, email: "mateus2@gmail.com", age: 22}
     page at 3:
-     - {id: 3, email: mateus3@gmail.com, age: 23}
-     - {id: 4, email: mateus4@gmail.com, age: 24}
+     - {id: 3, email: "mateus3@gmail.com", age: 23}
+     - {id: 4, email: "mateus4@gmail.com", age: 24}
     page at 5:
-     - {id: 5, email: mateus5@gmail.com, age: 25}
+     - {id: 5, email: "mateus5@gmail.com", age: 25}
     page at 7: empty, done
     from position 3 to the end: 3
 exit-code: 0

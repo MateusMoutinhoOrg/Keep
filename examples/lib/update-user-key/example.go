@@ -41,7 +41,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -66,13 +69,13 @@ func main() {
 	fmt.Println("updated:", mateus.String())
 
 	// The index followed the value.
-	_, ok = users.FindByKey("email", "mateus@keep.dev")
+	_, ok, _ = users.FindByKey("email", "mateus@keep.dev")
 	fmt.Println("found under the new email:", ok)
-	_, ok = users.FindByKey("email", "mateus@gmail.com")
+	_, ok, _ = users.FindByKey("email", "mateus@gmail.com")
 	fmt.Println("found under the old email:", ok)
 
 	// The record is still the same record: its id never changed.
-	byID, _ := users.FindByID(mateus.ID)
+	byID, _, _ := users.FindByID(mateus.ID)
 	fmt.Println("by id:", byID.String())
 
 	// A value another live record already holds is refused, and nothing is
@@ -96,9 +99,10 @@ func main() {
 	theirs, _ := ana.Get("handle")
 	fmt.Printf("handles: %v and %v\n", mine, theirs)
 
-	// Which is why FindByKey cannot read it back: only a Key is indexed.
-	_, ok = users.FindByKey("handle", "ana")
-	fmt.Println("found by handle:", ok)
+	// Which is why FindByKey cannot read it back: only a Key is indexed,
+	// and asking it to look up anything else is refused.
+	_, _, failure = users.FindByKey("handle", "ana")
+	fmt.Println("lookup by handle refused:", failure != nil && failure.Type == api.InvalidField)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)

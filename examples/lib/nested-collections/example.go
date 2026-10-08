@@ -55,7 +55,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -87,7 +90,11 @@ func main() {
 		}
 	}
 
-	for _, session := range mateus.ListNested("sessions") {
+	sessions, failure := mateus.ListNested("sessions")
+	if failure != nil {
+		panic(failure.Message)
+	}
+	for _, session := range sessions {
 		token, _ := session.Get("token")
 		creation, _ := session.Get("creation")
 		expiration, _ := session.Get("expiration")
@@ -97,16 +104,16 @@ func main() {
 	// A record of a nested collection follows a Link exactly the way a
 	// top-level one does: the Target names a schema of the same Props, at
 	// any depth.
-	first := mateus.ListNested("sessions")[0]
-	device, ok := first.GetLink("device")
-	if !ok {
+	first := sessions[0]
+	device, ok, failure := first.GetLink("device")
+	if failure != nil || !ok {
 		panic("the session should have resolved its device")
 	}
 	label, _ := device.Get("label")
 	fmt.Printf("session %d opened from: %v\n", first.ID, label)
 
 	// The second session set no device, so there is nothing to follow.
-	_, ok = mateus.ListNested("sessions")[1].GetLink("device")
+	_, ok, _ = sessions[1].GetLink("device")
 	fmt.Println("second session has a device:", ok)
 
 	// A Key of a nested collection is unique inside that collection only,
@@ -126,7 +133,8 @@ func main() {
 	}
 	fmt.Println("accepted under ana: token-1")
 
-	// A nested field is not a value: Get refuses it, ListNested is the way in.
+	// A nested field is not a value: Get refuses it, Nested and ListNested
+	// are the way in.
 	_, failure = mateus.Get("sessions")
 	fmt.Println("Get on a nested field:", failure.Message)
 
@@ -134,11 +142,22 @@ func main() {
 	if failure := mateus.Remove(); failure != nil {
 		panic(failure.Message)
 	}
-	fmt.Println("ana's sessions after removing mateus:", len(ana.ListNested("sessions")))
+	remaining, failure := ana.ListNested("sessions")
+	if failure != nil {
+		panic(failure.Message)
+	}
+	fmt.Println("ana's sessions after removing mateus:", len(remaining))
+
+	// Nothing can be written under a removed owner: the insert is refused
+	// rather than leaving records no listing reaches.
+	_, failure = mateus.InsertNested("sessions", map[string]any{
+		"token": "token-9", "creation": 5000, "expiration": 6000,
+	})
+	fmt.Println("insert under removed mateus refused:", failure != nil && failure.Type == api.Removed)
 
 	// The device is a collection of its own, so nothing nested under mateus
 	// took it with it. A link is a reference, never ownership.
-	_, ok = devices.FindByID(laptop.ID)
+	_, ok, _ = devices.FindByID(laptop.ID)
 	fmt.Println("device still there:", ok)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {

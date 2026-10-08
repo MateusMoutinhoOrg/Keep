@@ -1,9 +1,10 @@
 cli-output: |
     found after removal: false
+    update after removal refused: true
     removing twice: no error
     remaining: 2
-     - {id: 3, email: bruno@gmail.com, age: 44}
-     - {id: 2, email: ana@gmail.com, age: 31}
+     - {id: 3, email: "bruno@gmail.com", age: 44}
+     - {id: 2, email: "ana@gmail.com", age: 31}
 exit-code: 0
 tree:
     - file: database/user/2/position

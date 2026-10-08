@@ -25,7 +25,7 @@ struct of function fields, filled by a binder.
 | --- | --- |
 | [`sandbox/api/sandbox.go`](api.sandbox.md) | `Sandbox` |
 | [`sandbox/api/config.go`](api.config.md) | `Config` |
-| [`sandbox/api/databases.go`](api.databases.md) | `Key`, `Int`, `Nested`, `Float`, `String`, `Link`, `Bytes`, `KeyConflict`, `NoValue`, `MissingField`, `InvalidField`, `Internal`, `Field`, `Schema`, `Props`, `Error`, `Record`, `Collection`, `Database`, `Databases` |
+| [`sandbox/api/databases.go`](api.databases.md) | `Key`, `Int`, `Nested`, `Float`, `String`, `Link`, `Bytes`, `KeyConflict`, `NoValue`, `MissingField`, `InvalidField`, `Internal`, `Removed`, `InvalidSchema`, `InvalidArgument`, `Field`, `Schema`, `Props`, `Error`, `Record`, `Collection`, `Database`, `Databases` |
 | [`sandbox/api/info.go`](api.info.md) | `Info` |
 | [`sandbox/api/projectconfig.go`](api.projectconfig.md) | `ProjectConfig` |
 | [`sandbox/api/projectsandbox.go`](api.projectsandbox.md) | `ProjectSandbox` |
@@ -37,7 +37,9 @@ field is that package's `Sandbox` struct, filled by `adapters/impls/<name>.Bind(
 
 | Page | Declares |
 | --- | --- |
+| [`deps.FoldDeps`](deps.folddeps.md) | `Contract` |
 | [`deps.HashDeps`](deps.hashdeps.md) | `Contract` |
+| [`deps.SleepDeps`](deps.sleepdeps.md) | `Contract` |
 | [`deps.StdDeps`](deps.stddeps.md) | `Contract` |
 | [`deps.StorageDeps`](deps.storagedeps.md) | `Contract` |
 | [`deps.StringsDeps`](deps.stringsdeps.md) | `Contract` |

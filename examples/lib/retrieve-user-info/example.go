@@ -39,7 +39,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -84,8 +87,17 @@ func main() {
 
 	// HasValues answers the same question for several fields at
 	// once, without reading any value.
-	fmt.Println("has email and age:", user.HasValues([]string{"email", "age"}))
-	fmt.Println("has email and nickname:", user.HasValues([]string{"email", "nickname"}))
+	for _, names := range [][]string{{"email", "age"}, {"email", "nickname"}} {
+		has, failure := user.HasValues(names)
+		if failure != nil {
+			panic(failure.Message)
+		}
+		fmt.Printf("has %v: %v\n", names, has)
+	}
+
+	// An undeclared name is the same mistake for HasValues as for Get.
+	_, failure = user.HasValues([]string{"email", "phone"})
+	fmt.Println("HasValues with phone refused:", failure != nil && failure.Type == api.InvalidField)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {
 		panic(err)

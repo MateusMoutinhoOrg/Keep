@@ -128,11 +128,16 @@ func New() storagedeps.Contract {
 				return nil, true, errors.New("keep: position " + strconv.FormatInt(position, 10) +
 					" out of range for key " + name)
 			}
-			end := position + size
-			if end > int64(len(value)) {
-				end = int64(len(value))
+			if size < 0 {
+				return nil, true, errors.New("keep: negative size " + strconv.FormatInt(size, 10) +
+					" for key " + name)
 			}
-			return append([]byte(nil), value[position:end]...), true, nil
+			// Comparing against what remains, rather than adding size to
+			// position, is what keeps a huge size from overflowing.
+			if remaining := int64(len(value)) - position; size > remaining {
+				size = remaining
+			}
+			return append([]byte(nil), value[position:position+size]...), true, nil
 		},
 		Delete: func(key []string) error {
 			s.mu.Lock()

@@ -1,9 +1,9 @@
 cli-output: |
-    by email: {id: 1, email: mateus@gmail.com, username: mateus, age: 27}
-    by username: {id: 2, email: ana@gmail.com, username: ana, age: 31}
+    by email: {id: 1, email: "mateus@gmail.com", username: "mateus", age: 27}
+    by username: {id: 2, email: "ana@gmail.com", username: "ana", age: 31}
     by upper-cased email: true 1
-    unknown email found: false
-    non-key field found: false
+    unknown email found: false failure: <nil>
+    non-key field refused: true
 exit-code: 0
 tree:
     - file: database/user/1/position

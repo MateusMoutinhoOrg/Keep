@@ -1,1 +1,1 @@
-description: "Look a record up through a unique Key field, in one read, case-insensitively"
+description: "Look a record up through a unique Key field, at a fixed cost, ignoring case"

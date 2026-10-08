@@ -12,7 +12,7 @@ import (
 // Reading a collection one page at a time.
 //
 // List(position, chunk) reads the position list from position, counted from
-// 1, and stops after chunk records. A page costs one read per record it
+// 1, and stops after chunk positions. A page costs two reads per record it
 // returns and nothing for the records it skips, so paging through a large
 // collection never reads the whole of it.
 
@@ -38,7 +38,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)

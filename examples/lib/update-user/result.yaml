@@ -1,17 +1,20 @@
 cli-output: |
-    before: {id: 1, email: mateus@gmail.com, username: mateus, age: 27, height: 1.82, bio: writes databases}
-    after: {id: 1, email: mateus@gmail.com, username: mateus, age: 28, height: 1.83, bio: writes storage-independent databases}
+    before: {id: 1, email: "mateus@gmail.com", username: "mateus", age: 27, height: 1.82, bio: "writes databases", nickname: "teu"}
+    after: {id: 1, email: "mateus@gmail.com", username: "mateus", age: 28, height: 1.83, bio: "writes storage-independent databases", nickname: "teu"}
     reloaded age: 28
     refused: field "age" expects an integer value, got string
     refused: field "height" expects a floating-point value, got string
     refused: field "bio" expects a string value, got int
     height: 2 (float64)
+    age from a float64: 29 (int64)
+    nickname after clearing: field "nickname" has no value for this record
+    refused: required field "bio" cannot be cleared
 exit-code: 0
 tree:
     - file: database/user/1/position
       sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
     - file: database/user/1/values/age
-      sha: 59e19706d51d39f66711c2653cd7eb1291c94d9b55eb14bda74ce4dc636d015a
+      sha: 35135aaa6cc23891b40cb3f378c53a17a1127210ce60e125ccf03efcfdaec458
     - file: database/user/1/values/bio
       sha: a907fe4aac9675925d483d40151b34fad0dbd356888ce6997026015776094e39
     - file: database/user/1/values/email

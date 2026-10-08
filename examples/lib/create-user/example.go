@@ -35,7 +35,10 @@ func main() {
 	deps := standard.New()    // filestorage, osstd, sha256hash, stdstrings
 	lib := sandbox.New(&deps) // *api.Sandbox
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)

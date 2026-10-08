@@ -40,7 +40,10 @@ func main() {
 	deps := standard.New()
 	lib := sandbox.New(&deps)
 
-	db := lib.Databases.New(Props)
+	db, failure := lib.Databases.New(Props)
+	if failure != nil {
+		panic(failure.Message)
+	}
 	users, ok := db.Collection("user")
 	if !ok {
 		panic(`the Props declares no "user" schema`)
@@ -67,15 +70,15 @@ func main() {
 	// The id is all a lookup needs. Nothing about the record's values is
 	// read to find it, so a field no index covers — "bio" is a String —
 	// still comes back with it.
-	resolved, ok := users.FindByID(mateus.ID)
-	if !ok {
+	resolved, ok, failure := users.FindByID(mateus.ID)
+	if failure != nil || !ok {
 		panic("the record should have resolved")
 	}
 	bio, _ := resolved.Get("bio")
 	fmt.Printf("by id %d: %s (bio: %v)\n", mateus.ID, resolved.String(), bio)
 
 	// An id that was never allocated resolves to nothing.
-	_, ok = users.FindByID(99)
+	_, ok, _ = users.FindByID(99)
 	fmt.Println("id 99:", ok)
 
 	// Remove the record and its id stops resolving — permanently. The
@@ -84,7 +87,7 @@ func main() {
 	if failure := resolved.Remove(); failure != nil {
 		panic(failure.Message)
 	}
-	_, ok = users.FindByID(mateus.ID)
+	_, ok, _ = users.FindByID(mateus.ID)
 	fmt.Println("id 1 after removal:", ok)
 
 	fresh, failure := users.Insert(map[string]any{
@@ -95,7 +98,7 @@ func main() {
 		panic(failure.Message)
 	}
 	fmt.Println("next id allocated:", fresh.ID)
-	_, ok = users.FindByID(mateus.ID)
+	_, ok, _ = users.FindByID(mateus.ID)
 	fmt.Println("id 1 still:", ok)
 
 	if err := os.CopyFS("assert-dir", os.DirFS("test-dir")); err != nil {

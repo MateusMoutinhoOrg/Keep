@@ -3,3 +3,5 @@ adapters:
     - osstd
     - sha256hash
     - stdstrings
+    - timesleep
+    - xtextfold

@@ -1,5 +1,5 @@
 cli-output: |
-    logo: {id: 1, name: logo.png, content: 9 bytes}
+    logo: {id: 1, name: "logo.png", content: 9 bytes}
     content: 89 50 4e 47 0d 0a 1a 0a 00 ([]uint8)
     same bytes: true
     after update: "GIF89a", 6 bytes

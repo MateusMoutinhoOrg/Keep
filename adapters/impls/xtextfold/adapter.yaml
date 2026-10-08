@@ -1,0 +1,5 @@
+dep: folddeps
+help: Unicode canonical caseless folding over golang.org/x/text
+module: golang.org/x/text
+name: xtextfold
+origin: local
