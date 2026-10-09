@@ -25,6 +25,7 @@ remove one.
 | `list-all-users` | Walk every record of a collection over a backend that cannot list keys | [example.go](../../examples/lib/list-all-users/example.go) |
 | `list-users-paginated` | Read a collection one page at a time, paying only for the records returned | [example.go](../../examples/lib/list-users-paginated/example.go) |
 | `nested-collections` | Declare a collection inside a record, link out of it, and see it removed with its owner | [example.go](../../examples/lib/nested-collections/example.go) |
+| `nosync-writes` | Turn filestorage's NoSync on and off where the deps are built | [example.go](../../examples/lib/nosync-writes/example.go) |
 | `plain-value-fields` | Store a decimal and a repeatable text field, and see String accept what Key refuses | [example.go](../../examples/lib/plain-value-fields/example.go) |
 | `repair-collection` | Repair a collection after a crash, and index a field turned from String into Key | [example.go](../../examples/lib/repair-collection/example.go) |
 | `retrieve-user-info` | Read fields back off a record, and tell an unset field from an undeclared one | [example.go](../../examples/lib/retrieve-user-info/example.go) |

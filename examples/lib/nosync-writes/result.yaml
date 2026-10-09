@@ -1,0 +1,57 @@
+cli-output: |
+    NoSync off (durable, the default):
+      inserted: {id: 1, email: "mateus@gmail.com", age: 27}
+      inserted: {id: 2, email: "ana@gmail.com", age: 31}
+    NoSync on (fast, lost on a power loss):
+      inserted: {id: 1, email: "mateus@gmail.com", age: 27}
+      inserted: {id: 2, email: "ana@gmail.com", age: 31}
+exit-code: 0
+tree:
+    - file: durable/user/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: durable/user/1/values/age
+      sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
+    - file: durable/user/1/values/email
+      sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: durable/user/2/position
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: durable/user/2/values/age
+      sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
+    - file: durable/user/2/values/email
+      sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: durable/user/keys/email/26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: durable/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: durable/user/last-id
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: durable/user/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: durable/user/list/2
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: durable/user/size
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: nosync/user/1/position
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: nosync/user/1/values/age
+      sha: 670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf
+    - file: nosync/user/1/values/email
+      sha: c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+    - file: nosync/user/2/position
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: nosync/user/2/values/age
+      sha: eb1e33e8a81b697b75855af6bfcdbcbf7cbbde9f94962ceaec1ed8af21f5a50f
+    - file: nosync/user/2/values/email
+      sha: 26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+    - file: nosync/user/keys/email/26e2d102014008d92bb43f1903915e2c405bc978d43593c0713fd8da20ad76ea
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: nosync/user/keys/email/c39c87b53c7068a06b71d285e222e03ca0d5e87be19df65eb1f7b2b90e9a4a06
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: nosync/user/last-id
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: nosync/user/list/1
+      sha: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+    - file: nosync/user/list/2
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+    - file: nosync/user/size
+      sha: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
