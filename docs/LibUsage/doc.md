@@ -37,8 +37,8 @@ Everything callable from Go is behind one of them.
 
 | Field | Type |
 | --- | --- |
-| `lib.Config` | `api.Config` |
 | `lib.Databases` | `api.Databases` |
+| `lib.Config` | `api.Config` |
 | `lib.Info` | `api.Info` |
 
 [PublicApi](../PublicApi/doc.md) lists every one of them — signatures, props structs and
@@ -65,6 +65,7 @@ The contracts available to patch:
 
 | Field | Contract package |
 | --- | --- |
+| `deps.CryptoDeps` | `sandbox/deps/cryptodeps` |
 | `deps.FoldDeps` | `sandbox/deps/folddeps` |
 | `deps.HashDeps` | `sandbox/deps/hashdeps` |
 | `deps.SleepDeps` | `sandbox/deps/sleepdeps` |
@@ -77,6 +78,7 @@ exposing the same `Bind(deps *deps.Deps)` entry point:
 
 | Adapter lib | Binder |
 | --- | --- |
+| `adapters/impls/aesgcmcrypto` | `aesgcmcrypto.Bind(&deps)` |
 | `adapters/impls/filestorage` | `filestorage.Bind(&deps)` |
 | `adapters/impls/memstorage` | `memstorage.Bind(&deps)` |
 | `adapters/impls/osstd` | `osstd.Bind(&deps)` |
@@ -87,7 +89,7 @@ exposing the same `Bind(deps *deps.Deps)` entry point:
 
 Starting from `standard.New()` is the safe default: an unfilled field is a nil func that
 panics on first call. For a permanent mix, write your own
-`adapters/bindings/<name>/new.go` binding only the libs you want — `standard/new.go` is
+`adapters/bindings/<name>/generated.new.go` binding only the libs you want — `standard/generated.new.go` is
 regenerated on every build, while other directories under `bindings/` are left alone.
 
 `sandbox/api` is pure contract and `sandbox/` never touches the OS, so both are safe to import

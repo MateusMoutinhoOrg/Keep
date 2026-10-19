@@ -34,7 +34,7 @@ edit. Every key is in [Extensions](../Extensions/doc.md).
 ## Add the CLI layer
 
 ```bash
-agnos cli-init     # sandbox/internal/generated/cli, cmd/main, help, version and help-flag, stddeps + argvdeps + stringsdeps + OpinionatedAgnosCli
+agnos cli-init     # sandbox/internal/cli, cmd/main, help, version and help-flag, stddeps + argvdeps + stringsdeps + OpinionatedAgnosCli
 ```
 
 From there `agnos add-command <name> --summary "..." --category "..."` declares a command and
@@ -44,7 +44,7 @@ From there `agnos add-command <name> --summary "..." --category "..."` declares 
 ## Add the server layer
 
 ```bash
-agnos server-init      # serverdeps, signaldeps, sandbox/internal/server, the health route, start-server
+agnos server-init      # serverdeps, signaldeps, sandbox/internal/server, the health and openapi routes, start-server
 Keep start-server  # listens on the first free port of 3000..4000
 ```
 
@@ -94,8 +94,8 @@ declaration, no generated counterpart — write the package and run `build`.
 ## Add a surface to the sandbox api
 
 The api is what a Go caller gets back from `sandbox.New` (see [LibUsage](../LibUsage/doc.md)).
-Two hand-written places, then `build` regenerates `sandbox/api/sandbox.go` and
-`sandbox/new.go` around them:
+Two hand-written places, then `build` regenerates `sandbox/api/generated.sandbox.go` and
+`sandbox/generated.new.go` around them:
 
 1. `sandbox/api/<x>.go` — the contract: `type <X> struct { ... }` of function fields, named
    after the file, every declaration doc-commented (those comments render
@@ -104,12 +104,12 @@ Two hand-written places, then `build` regenerates `sandbox/api/sandbox.go` and
    field of the contract, with the implementation beside it.
 
 `build` then writes `sandbox/constructors/<x>/constructor.go` — `sandbox.<X> =
-<x>.New<X>(sandbox)` — **once**, and `sandbox/new.go` calls it. From there the constructor is
+<x>.New<X>(sandbox)` — **once**, and `sandbox/generated.new.go` calls it. From there the constructor is
 yours: wrap the implementation, decorate the contract, or build a different one entirely.
 
 ## Construct a field yourself
 
-`sandbox/new.go` is one `<x>.Constructor(&self)` per directory of `sandbox/constructors/`, so
+`sandbox/generated.new.go` is one `<x>.Constructor(&self)` per directory of `sandbox/constructors/`, so
 adding a directory is adding a call. Write `sandbox/constructors/<x>/constructor.go` with
 `func Constructor(sandbox *api.Sandbox)` in `package <x>`, run `build`, and it is wired — the
 same way a generated one is, and with no generated file to fight over. Editing a constructor
@@ -171,7 +171,7 @@ prints what it changes before writing. Details in [LibExamples](../LibExamples/d
 
 | File | Written when |
 | --- | --- |
-| `sandbox/internal/<pkg>/*.go` (never under `generated/`) | logic worth reusing |
+| `sandbox/internal/<pkg>/*.go` (never named `generated.*`) | logic worth reusing |
 | `sandbox/api/<x>.go` + `sandbox/internal/<x>/new.go` | a new api surface |
 | `sandbox/constructors/<x>/constructor.go` | how a field of the `Sandbox` is built |
 | `sandbox/deps/<x>/<x>.go` + `adapters/impls/<x>/<x>.go` + its `adapter.yaml` | a new dependency |
@@ -188,6 +188,11 @@ hand-written import of them with its replacement — `cliio.Fail(sandbox, …)` 
 `sandbox.Deps.OpinionatedAgnosCli.Fail(…)`, `routeio.RequestOf(route)` is `route.Request`, a `Handle*`
 logs and then calls `OpinionatedAgnosServer.WriteError(sandbox.Deps.SerializableDeps, …)`, and
 `start-server` calls `sandbox.Server.Serve` rather than `server.Main`.
+
+A project built before the `generated.` prefix needs nothing done by hand: its next `build`
+writes every generated Go file as `generated.<name>.go` (a remote dep's copy and shim included),
+drops the old name beside it, moves `sandbox/internal/generated/{cli,server,config}` to
+`sandbox/internal/<x>/` and rewrites the import of each in the project's own files.
 
 ## Ship
 

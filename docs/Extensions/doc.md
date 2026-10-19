@@ -20,14 +20,14 @@ server: false
 
 | Key | What agnos generates and looks after |
 |---|---|
-| `sandbox` | the core: `sandbox/new.go`, `sandbox/api/sandbox.go`, `sandbox/constructors/<x>/constructor.go`, `sandbox/api/config.go`, `sandbox/internal/generated/config/new.go` |
-| `deps` | `sandbox/deps/deps.go`, each binding's `new.go`; `add-dep` and the rest of the dependency commands |
-| `cli` | `cmd/main`, `help`, `version`, `sandbox/api/{cli,command,trigger}.go` and the `OpinionatedAgnosCli` lib — the dispatch; `add-command` and the rest |
-| `server` | `sandbox/internal/{server,routes}`, `sandbox/api/{server,route}.go` and the `OpinionatedAgnosServer` lib; `add-route` and the rest |
+| `sandbox` | the core: `sandbox/generated.new.go`, `sandbox/api/generated.sandbox.go`, `sandbox/constructors/<x>/constructor.go`, `sandbox/api/generated.config.go`, `sandbox/internal/config/generated.new.go` |
+| `deps` | `sandbox/deps/generated.deps.go`, each binding's `new.go`; `add-dep` and the rest of the dependency commands |
+| `cli` | `cmd/main`, `help`, `version`, `sandbox/api/generated.{cli,command,trigger}.go` and the `OpinionatedAgnosCli` lib — the dispatch; `add-command` and the rest |
+| `server` | `sandbox/internal/{server,routes}`, `sandbox/api/generated.{server,route}.go` and the `OpinionatedAgnosServer` lib; `add-route` and the rest |
 | `front` | the `OpinionatedAgnosFront` lib and the `front` route serving `assets/front/`; `add-page` and `remove-page` |
-| `database` | `sandbox/internal/databases` and the `OpinionatedAgnosDatabase` lib; `add-database`, `add-table`, `add-table-field` and the rest |
+| `database` | `sandbox/internal/databases` and the `OpinionatedAgnosDatabase` lib; `add-database`, `add-table`, `add-table-field` and the rest; `sandbox/api/generated.databaseconfig.go` and, with a cli, the `--database` middleware |
 | `example` | the `examples/` suite; `add-cli-example`, `add-lib-example`, `run-examples`, `update-example` |
-| `backoffice` | nothing on `build`: `backoffice-init` writes the admin backoffice once (routes, `backoffice-db`, `add-backoffice-user`), and the key turns on its doc. Needs `server`, `front` and `database` |
+| `backoffice` | nothing on `build`: `backoffice-init` writes the admin backoffice once (routes, `backoffice-db`, the `backup` database and its snapshots, `add-backoffice-user`), and the key turns on its doc. Needs `server`, `front` and `database` |
 | `doc` | the `docs/` tree and every `Index.md`; `add-doc` and `remove-doc` |
 | `readme` | `README.md`, built from `AgnosConfig/docs/ReadmeHeader.md` and the doc index |
 

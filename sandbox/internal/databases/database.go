@@ -54,7 +54,7 @@ func NewDatabase(sandbox *api.Sandbox, props api.Props, locks *writelock.Registr
 // passed in, or the one a Database hands back, changes nothing a database
 // does.
 func CopyProps(sandbox *api.Sandbox, props api.Props) api.Props {
-	copied := api.Props{Path: props.Path}
+	copied := api.Props{Path: props.Path, EncryptKey: props.EncryptKey}
 	if props.Schemas != nil {
 		copied.Schemas = make([]api.Schema, len(props.Schemas))
 		for index, schema := range props.Schemas {

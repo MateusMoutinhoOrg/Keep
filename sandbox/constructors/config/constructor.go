@@ -2,7 +2,7 @@ package config
 
 import (
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
-	config "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/generated/config"
+	config "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/config"
 )
 
 // Constructor fills Sandbox.Config, building it with the

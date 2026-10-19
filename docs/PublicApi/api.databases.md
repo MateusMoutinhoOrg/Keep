@@ -47,6 +47,7 @@ Props is the declarative description a database is created from. It is the only 
 | --- | --- | --- |
 | `Path` | `string` | Path is the prefix every key of the database is written under. It is split on slashes into the leading segments of every key, so a backend that maps keys to files reads it as a directory; empty segments are dropped, which makes a trailing slash optional. A "." or ".." segment is refused: where the tree lands is the backend's base, not the Path. |
 | `Schemas` | `[]Schema` | Schemas are the collections the database holds. |
+| `EncryptKey` | `string` | EncryptKey, when not empty, encrypts the database: every value it writes passes through Deps.CryptoDeps.Encrypt under this key, every value it reads through Decrypt, and the unique index addresses a value by a digest keyed by it, so the backend holds no value in the clear. What a key names — Path, schema and field names, ids, positions — is not encrypted. A database opened with another key fails with Internal on the first value it reads. One opened with none never takes its ciphertext for data: a lookup finds nothing, and an insert, a listing or a repair fails with Internal before it writes. Empty, the default, stores every value as given. |
 
 ## `Error`
 

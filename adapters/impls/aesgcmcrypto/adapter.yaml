@@ -1,0 +1,5 @@
+dep: cryptodeps
+help: AES-256-GCM over crypto/aes, crypto/cipher and crypto/rand, keyed by the SHA-256 of the key
+module: ""
+name: aesgcmcrypto
+origin: local

@@ -31,7 +31,9 @@ own. Both shipped adapters encode each segment *before* joining, so `["a/b"]` an
 `["a", "b"]` stay two different keys.
 
 A value is an arbitrary byte slice. Keep stores short ASCII in practice — decimal integers
-and field values — but nothing in the contract bounds either.
+and field values — but nothing in the contract bounds either. A database with an
+`EncryptKey` hands the backend binary ciphertext instead, and the same keys
+([Encryption](../Encryption/doc.md)).
 
 ## No sentinel errors
 

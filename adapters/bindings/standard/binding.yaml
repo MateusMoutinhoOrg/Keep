@@ -1,4 +1,5 @@
 adapters:
+    - aesgcmcrypto
     - filestorage
     - osstd
     - sha256hash

@@ -98,6 +98,7 @@ Using the project as a Go module - wiring the deps, calling the sandbox
 | [LibUsage](docs/LibUsage/doc.md) | Use Keep as a Go module: wire the deps, build the sandbox, call its API |
 | [PublicApi](docs/PublicApi/doc.md) | Every exported symbol of Keep, generated from the contract sources and their doc comments |
 | [LibExamples](docs/LibExamples/doc.md) | Index of every runnable example of Keep as a Go module |
+| [Encryption](docs/Encryption/doc.md) | Encrypt every value a database stores by giving its Props an EncryptKey |
 | [Schemas](docs/Schemas/doc.md) | Declaring a database: Props, schemas, field types and nested collections |
 
 ### ApiUsage

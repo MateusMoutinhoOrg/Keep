@@ -2,6 +2,7 @@ package databases
 
 import (
 	api "github.com/MateusMoutinhoOrg/Keep/sandbox/api"
+	encryption "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/encryption"
 	writelock "github.com/MateusMoutinhoOrg/Keep/sandbox/internal/writelock"
 )
 
@@ -9,13 +10,15 @@ import (
 // description, then binds a copy of it to the sandbox, handing back the
 // database every collection of it is reached through. Every database it
 // builds shares locks, so two databases over the same Path still take one
-// write lock per collection.
+// write lock per collection. A Props carrying an EncryptKey is bound to the
+// sandbox encryption.Sandbox derives from it, which every collection and
+// record of the database then reaches storage through.
 func NewFactory(sandbox *api.Sandbox, databases *api.Databases, locks *writelock.Registry) func(props api.Props) (api.Database, *api.Error) {
 	return func(props api.Props) (api.Database, *api.Error) {
 		if failure := Validate(sandbox, props); failure != nil {
 			return api.Database{}, failure
 		}
-		return NewDatabase(sandbox, CopyProps(sandbox, props), locks), nil
+		return NewDatabase(encryption.Sandbox(sandbox, props.EncryptKey), CopyProps(sandbox, props), locks), nil
 	}
 }
 

@@ -17,6 +17,7 @@ remove one.
 | `concurrent-inserts` | Insert from many goroutines at once, and see a contested unique key won exactly once | [example.go](../../examples/lib/concurrent-inserts/example.go) |
 | `create-user` | Insert a record, and see a unique key and a required field refused | [example.go](../../examples/lib/create-user/example.go) |
 | `delete-user` | Remove a record with its index entries and everything nested under it | [example.go](../../examples/lib/delete-user/example.go) |
+| `encrypted-database` | Give the Props an EncryptKey, and see the backend hold only ciphertext while reads stay plain | [example.go](../../examples/lib/encrypted-database/example.go) |
 | `find-nested-by-key` | Open a nested field as a collection of its own, and find a nested record by its key | [example.go](../../examples/lib/find-nested-by-key/example.go) |
 | `find-user-by-id` | Resolve a record straight from its permanent id, with no index read and no reuse | [example.go](../../examples/lib/find-user-by-id/example.go) |
 | `find-user-by-key` | Look a record up through a unique Key field, at a fixed cost, ignoring case | [example.go](../../examples/lib/find-user-by-key/example.go) |

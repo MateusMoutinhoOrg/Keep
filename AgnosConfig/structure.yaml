@@ -7,7 +7,7 @@ sandbox:
   dir: true
   description: "closed: imports nothing outside sandbox/, no OS packages"
   children:
-    new.go:
+    generated.new.go:
       order: 1
       gen: true
       description: New(deps) *api.Sandbox, one <x>.Constructor per dir of constructors/
@@ -16,7 +16,7 @@ sandbox:
       dir: true
       description: contracts only; imports nothing but sandbox/deps
       children:
-        sandbox.go:
+        generated.sandbox.go:
           order: 1
           gen: true
           description: every <x>sandbox.go part embedded, plus Config and Deps
@@ -32,13 +32,13 @@ sandbox:
     constructors:
       order: 3
       dir: true
-      description: one Constructor per field of the Sandbox, each called by new.go
+      description: one Constructor per field of the Sandbox, each called by generated.new.go
     deps:
       order: 4
       dir: true
       description: one dir per capability the sandbox needs from outside; each imports nothing at all
       children:
-        deps.go:
+        generated.deps.go:
           order: 1
           gen: true
           description: one field per sub-directory, title-cased
@@ -54,12 +54,16 @@ sandbox:
           order: 4
           dir: true
           description: a pause - what a writer waits with while another process holds the lease
+        cryptodeps:
+          order: 5
+          dir: true
+          description: encrypt and decrypt one value under a key - what a Props with an EncryptKey stores through
     internal:
       order: 5
       dir: true
       description: the logic; unreachable from outside the sandbox
       children:
-        generated:
+        config:
           order: 1
           dir: true
           description: (gen) the config, ProjectName and Version from AgnosConfig/project.yaml
@@ -87,8 +91,12 @@ sandbox:
           order: 7
           dir: true
           description: the constructors every *api.Error is built by
-        info:
+        encryption:
           order: 8
+          dir: true
+          description: the sandbox an encrypted database runs over - storage that encrypts every value, an index digest keyed by the EncryptKey
+        info:
+          order: 9
           dir: true
           description: NewInfo
 adapters:
@@ -117,6 +125,10 @@ adapters:
           order: 4
           dir: true
           description: sleepdeps over time.Sleep
+        aesgcmcrypto:
+          order: 5
+          dir: true
+          description: cryptodeps over AES-256-GCM, keyed by the SHA-256 of the key
     bindings:
       order: 2
       dir: true

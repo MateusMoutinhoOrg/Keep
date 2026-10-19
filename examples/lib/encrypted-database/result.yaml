@@ -1,0 +1,9 @@
+cli-output: |
+    found: {id: 2, email: "ana@gmail.com", age: 31}
+    stored email holds the plain value: false
+    stored email is 28 bytes longer than the value
+    another key fails with Internal: true
+exit-code: 0
+tree:
+    - file: report/tree.txt
+      sha: f762eba4d154424c4b34803af6112e62dfcd2f95c5385f8231d0e3424a4b735b

@@ -50,7 +50,8 @@ Everything else is regenerated over.
 - **The sandbox may not import the standard library.** `fmt` is `sandbox.Deps.StdDeps.Sprintf`,
   `strconv`/`strings` are `sandbox.Deps.StringsDeps`, `crypto/sha256` is
   `sandbox.Deps.HashDeps`, `time.Sleep` is `sandbox.Deps.SleepDeps`, Unicode case folding is
-  `sandbox.Deps.FoldDeps`, and storage is `sandbox.Deps.StorageDeps`. A mutex is a buffered
+  `sandbox.Deps.FoldDeps`, encryption is `sandbox.Deps.CryptoDeps`, and storage is
+  `sandbox.Deps.StorageDeps`. A mutex is a buffered
   `chan struct{}` — a builtin. A new capability is a new contract under `sandbox/deps/`,
   filled by every binding (`standard` and `memory`).
 - **`sandbox/deps/storagedeps` reports no expected condition as an error.** Absent is
@@ -74,11 +75,17 @@ Everything else is regenerated over.
   field that does not cross into a consumer. A record reaches storage through the closure it
   was built with, which is what keeps every api type convertible and Keep installable as a
   dep of another agnos repo.
+- **An encrypted database runs over a copy of the sandbox.** `Props.EncryptKey` makes
+  `Databases.New` build the database over `encryption.Sandbox`, whose `StorageDeps` encrypts
+  every value and whose `HashDeps.Sha256Hex` is keyed. Nothing under `dense`, `record` or
+  `collection` knows: keep reaching storage and hashing only through `sandbox.Deps`, never
+  through a dep captured elsewhere, or an encrypted database writes in the clear. See
+  [docs/Encryption](docs/Encryption/doc.md).
 - **Completeness is unchecked by the compiler.** A function field no factory fills is nil
   and panics on first call, so every `<Field>Factory` must be called from the `New` that
   builds its object.
 - **A release bump is `version:` in `AgnosConfig/project.yaml`**, then `agnos build`. It
-  regenerates `sandbox/internal/generated/config/new.go`, which fills `sandbox.Config` —
+  regenerates `sandbox/internal/config/generated.new.go`, which fills `sandbox.Config` —
   what `api.Info.Name` and `api.Info.Version` report.
 
 ## Adding an api surface
@@ -94,7 +101,7 @@ Two files, then `agnos build` writes the wiring:
    each field from its factory.
 
 `build` then writes `sandbox/constructors/<x>/constructor.go` once and calls it from
-`sandbox/new.go`.
+`sandbox/generated.new.go`.
 
 An example goes with it: `agnos add-lib-example <name>`, write `example.go`, add a
 `props.yaml` with a one-line `description:`, then `agnos run-examples` to write the golden. An
