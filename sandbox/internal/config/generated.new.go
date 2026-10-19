@@ -13,6 +13,6 @@ import (
 func NewConfig(sandbox *api.Sandbox) api.Config {
 	return api.Config{
 		ProjectName: "Keep",
-		Version:     "v0.4.0",
+		Version:     "v0.11.0",
 	}
 }
